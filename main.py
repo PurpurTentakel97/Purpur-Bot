@@ -1,8 +1,8 @@
 import asyncio
 import os
-
 from dotenv import load_dotenv
-from discord_bot.discord_main import start_discord_bot
+
+from discord_bot.discord_chat import DiscordChat
 from twitch_bot.twitch_main import start_twitch_bot
 
 async def main():
@@ -10,7 +10,7 @@ async def main():
     discord_token = os.getenv("DISCORD_TOKEN")
     twitch_token = "TWITCH_TOKEN"
 
-    await start_discord_bot(discord_token),
+    await DiscordChat.create(discord_token),
     await start_twitch_bot(twitch_token)
 
 
