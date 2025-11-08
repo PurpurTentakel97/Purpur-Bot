@@ -14,7 +14,7 @@ class DiscordChat:
 
     async def _ensure_connected(self) -> None:
         if self._task is None or self._task.done():
-            self._task = await asyncio.create_task(self._client.start(self._token))
+            self._task = asyncio.create_task(self._client.start(self._token))
 
 
     @classmethod
