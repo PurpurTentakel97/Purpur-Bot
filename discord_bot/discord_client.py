@@ -15,11 +15,6 @@ class DiscordClient(Client):
     async def on_ready(self):
         print(f'{self.user} has connected to Discord!')
 
-        channels = self.get_all_channels()
-        for channel in channels:
-            if channel.name == "announce":
-                await self.send_message(channel.id, "||@everyone||\nHello World!")
-
 
     async def on_message(self, message):
         if message.author == self.user:
