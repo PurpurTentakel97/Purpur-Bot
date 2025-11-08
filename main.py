@@ -5,14 +5,15 @@ from dotenv import load_dotenv
 from discord_bot.discord_chat import DiscordChat
 from twitch_bot.twitch_main import start_twitch_bot
 
+
 async def main():
     load_dotenv()
     discord_token = os.getenv("DISCORD_TOKEN")
-    twitch_token = "TWITCH_TOKEN"
+    twitch_client_id = os.getenv("TWITCH_CLIENT_ID")
+    twitch_credentials = os.getenv("TWITCH_CREDENTIALS")
 
-    await DiscordChat.create(discord_token),
-    await start_twitch_bot(twitch_token)
-
+    discord_bot: DiscordChat = await DiscordChat.create(discord_token)
+    await start_twitch_bot(twitch_client_id, twitch_credentials)
 
     while True:
         await  asyncio.sleep(1)
