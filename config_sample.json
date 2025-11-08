@@ -1,0 +1,5 @@
+{
+  "discord_token":"<DISCORD_TOKEN>",
+  "twitch_client_id": "<TWITCH_CLIENT_ID>",
+  "twitch_credentials":"<TWITCH_CREDENTIALS>"
+}

@@ -1,19 +1,15 @@
 import asyncio
-import os
-from dotenv import load_dotenv
 
+from helpers.config import load_config, Config
 from discord_bot.discord_chat import DiscordChat
 from twitch_bot.twitch_main import start_twitch_bot
 
 
 async def main():
-    load_dotenv()
-    discord_token = os.getenv("DISCORD_TOKEN")
-    twitch_client_id = os.getenv("TWITCH_CLIENT_ID")
-    twitch_credentials = os.getenv("TWITCH_CREDENTIALS")
+    config: Config = load_config()
 
-    discord_bot: DiscordChat = await DiscordChat.create(discord_token)
-    await start_twitch_bot(twitch_client_id, twitch_credentials)
+    discord_bot: DiscordChat = await DiscordChat.create(config.discord_token)
+    await start_twitch_bot(config.twitch_client_id, config.twitch_credentials)
 
     while True:
         await  asyncio.sleep(1)
