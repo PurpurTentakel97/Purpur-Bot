@@ -1,10 +1,13 @@
 import json
+from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
+from typing import final
 
 from helpers.log import LogLevel, log, log_exception
 
 
+@final
 class FileResultType(Enum):
     SUCCESS = auto()
     FILE_NOT_FOUND = auto()
@@ -21,51 +24,39 @@ class FileResultType(Enum):
     GENERIC = auto()
 
 
+@dataclass(frozen=True)
 class BasicFileResult:
-    def __init__(self, result_type: FileResultType) -> None:
-        self._result_type: FileResultType = result_type
-
-    @property
-    def result_type(self) -> FileResultType:
-        return self._result_type
+    result_type: FileResultType
 
     @property
     def success(self) -> bool:
-        return self._result_type == FileResultType.SUCCESS
+        return self.result_type == FileResultType.SUCCESS
 
 
+@final
+@dataclass(frozen=True)
 class LoadJsonResult(BasicFileResult):
-    def __init__(self, result_type: FileResultType, data: dict) -> None:
-        super().__init__(result_type)
-        self._data: dict = data
-
-    @property
-    def data(self) -> dict:
-        return self._data
+    data: dict
 
 
+@final
+@dataclass(frozen=True)
 class SaveJsonResult(BasicFileResult):
-    def __init__(self, result_type: FileResultType) -> None:
-        super().__init__(result_type)
+    pass
 
 
+@final
+@dataclass(frozen=True)
 class LoadFileResult(BasicFileResult):
-    def __init__(self, result_type: FileResultType, data: str) -> None:
-        super().__init__(result_type)
-        self._data: str = data
-
-    @property
-    def data(self) -> str:
-        return self._data
+    data: str
 
     def to_json_result(self, data: dict) -> LoadJsonResult:
         return LoadJsonResult(self.result_type, data)
 
 
+@final
+@dataclass(frozen=True)
 class SaveFileResult(BasicFileResult):
-    def __init__(self, result_type: FileResultType) -> None:
-        super().__init__(result_type)
-
     def to_json_result(self) -> SaveJsonResult:
         return SaveJsonResult(self.result_type)
 
@@ -175,12 +166,13 @@ def load_json(path: Path) -> LoadJsonResult:
         log_exception(e, "unknown error while loading a JSON")
         return LoadJsonResult(FileResultType.GENERIC, {})
 
+
 def save_json(path: Path, data: dict) -> SaveJsonResult:
     if not isinstance(data, dict):
         log(LogLevel.ERROR, f"data must be a dict to be able to serialise to JSON, not {type(data)}")
         return SaveJsonResult(FileResultType.INVALID_DATA)
     try:
-        result: SaveFileResult =  save_file(path, json.dumps(data, indent=4))
+        result: SaveFileResult = save_file(path, json.dumps(data, indent=4))
         return result.to_json_result()
 
     except TypeError as e:
