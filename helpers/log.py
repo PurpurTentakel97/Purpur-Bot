@@ -8,11 +8,16 @@ class LogProgramm(Enum):
     Discord = auto()
     Twitch = auto()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
+
+    @classmethod
+    def max_length(cls) -> int:
+        return max(len(member.name) for member in cls)
+
 
 class LogLevel(Enum):
     INFO = auto()
@@ -20,23 +25,36 @@ class LogLevel(Enum):
     ERROR = auto()
     CRITICAL = auto()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
+
+    @classmethod
+    def max_length(cls) -> int:
+        return max(len(member.name) for member in cls)
+
 
 def log(level: LogLevel, programm: LogProgramm, message: str) -> None:
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] | {level:8} | {programm:7} | {message}")
+    print(f""
+          f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] |"
+          f" {level:{LogLevel.max_length()}} |"
+          f" {programm:{LogProgramm.max_length()}} |"
+          f" {message}")
+
 
 def log_general(level: LogLevel, message: str) -> None:
-    log(level,LogProgramm.General, message)
+    log(level, LogProgramm.General, message)
+
 
 def log_discord(level: LogLevel, message: str) -> None:
-    log(level,LogProgramm.Discord, message)
+    log(level, LogProgramm.Discord, message)
+
 
 def log_twitch(level: LogLevel, message: str) -> None:
-    log(level,LogProgramm.Twitch, message)
+    log(level, LogProgramm.Twitch, message)
+
 
 def log_exception(exception: Exception, programm: LogProgramm, message: str) -> None:
     exception_name: str = type(exception).__name__
