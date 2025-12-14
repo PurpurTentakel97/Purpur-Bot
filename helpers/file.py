@@ -4,7 +4,7 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import final
 
-from helpers.log import LogLevel, log_general, log_exception, LogProgramm
+from helpers.log import LogLevel, log_default, log_exception, LogProgram
 
 
 @final
@@ -63,11 +63,11 @@ class SaveFileResult(BasicFileResult):
 
 def load_file(path: Path) -> LoadFileResult:
     if not isinstance(path, Path):
-        log_general(LogLevel.ERROR, f"path must be a Path object, not {type(path)}")
+        log_default(LogLevel.ERROR, f"path must be a Path object, not {type(path)}")
         return LoadFileResult(FileResultType.INVALID_PATH, "")
 
     if not path.exists():
-        log_general(LogLevel.ERROR, f"File {path} does not exist")
+        log_default(LogLevel.ERROR, f"File {path} does not exist")
         return LoadFileResult(FileResultType.FILE_NOT_FOUND, "")
 
     try:
@@ -76,47 +76,47 @@ def load_file(path: Path) -> LoadFileResult:
             return LoadFileResult(FileResultType.SUCCESS, data)
 
     except FileNotFoundError as e:
-        log_exception(e, LogProgramm.General, "while reading a file")
+        log_exception(e, LogProgram.Default, "while reading a file")
         return LoadFileResult(FileResultType.FILE_NOT_FOUND, "")
     except PermissionError as e:
-        log_exception(e, LogProgramm.General, "while reading a file")
+        log_exception(e, LogProgram.Default, "while reading a file")
         return LoadFileResult(FileResultType.PERMISSION_DENIED, "")
     except IsADirectoryError as e:
-        log_exception(e, LogProgramm.General, "while reading a file")
+        log_exception(e, LogProgram.Default, "while reading a file")
         return LoadFileResult(FileResultType.IS_A_DIRECTORY, "")
     except UnicodeDecodeError as e:
-        log_exception(e, LogProgramm.General, "while reading a file")
+        log_exception(e, LogProgram.Default, "while reading a file")
         return LoadFileResult(FileResultType.INVALID_ENCODING, "")
     except (IOError, OSError) as e:
-        log_exception(e, LogProgramm.General, "while reading a file")
+        log_exception(e, LogProgram.Default, "while reading a file")
         return LoadFileResult(FileResultType.IO_OR_OS_ERROR, "")
 
     except Exception as e:
-        log_exception(e, LogProgramm.General, "generic error while reading a file")
+        log_exception(e, LogProgram.Default, "generic error while reading a file")
         return LoadFileResult(FileResultType.GENERIC, "")
 
 
 def save_file(path: Path, data: str) -> SaveFileResult:
     if not isinstance(path, Path):
-        log_general(LogLevel.ERROR, f"path must be a Path object, not {type(path)}")
+        log_default(LogLevel.ERROR, f"path must be a Path object, not {type(path)}")
         return SaveFileResult(FileResultType.INVALID_PATH)
 
     if not isinstance(data, str):
-        log_general(LogLevel.ERROR, f"data must be a str to be able to store into a file, not {type(data)}")
+        log_default(LogLevel.ERROR, f"data must be a str to be able to store into a file, not {type(data)}")
         return SaveFileResult(FileResultType.INVALID_DATA)
 
     if path.exists() and path.is_dir():
-        log_general(LogLevel.ERROR, f"File {path} is a directory")
+        log_default(LogLevel.ERROR, f"File {path} is a directory")
         return SaveFileResult(FileResultType.IS_A_DIRECTORY)
 
     if not path.parent.exists():
-        log_general(LogLevel.INFO, f"create directory {path.parent}")
+        log_default(LogLevel.INFO, f"create directory {path.parent}")
         path.parent.mkdir(parents=True, exist_ok=True)
 
     if path.exists():
-        log_general(LogLevel.INFO, f"overwrite file {path}")
+        log_default(LogLevel.INFO, f"overwrite file {path}")
     else:
-        log_general(LogLevel.INFO, f"create file {path}")
+        log_default(LogLevel.INFO, f"create file {path}")
 
     try:
         with open(path, 'w', encoding='utf-8') as f:
@@ -124,23 +124,23 @@ def save_file(path: Path, data: str) -> SaveFileResult:
             return SaveFileResult(FileResultType.SUCCESS)
 
     except FileNotFoundError as e:
-        log_exception(e, LogProgramm.General, "while reading a file")
+        log_exception(e, LogProgram.Default, "while reading a file")
         return SaveFileResult(FileResultType.FILE_NOT_FOUND)
     except PermissionError as e:
-        log_exception(e, LogProgramm.General, "while reading a file")
+        log_exception(e, LogProgram.Default, "while reading a file")
         return SaveFileResult(FileResultType.PERMISSION_DENIED)
     except IsADirectoryError as e:
-        log_exception(e, LogProgramm.General, "while reading a file")
+        log_exception(e, LogProgram.Default, "while reading a file")
         return SaveFileResult(FileResultType.IS_A_DIRECTORY)
     except UnicodeDecodeError as e:
-        log_exception(e, LogProgramm.General, "while reading a file")
+        log_exception(e, LogProgram.Default, "while reading a file")
         return SaveFileResult(FileResultType.INVALID_ENCODING)
     except (IOError, OSError) as e:
-        log_exception(e, LogProgramm.General, "while reading a file")
+        log_exception(e, LogProgram.Default, "while reading a file")
         return SaveFileResult(FileResultType.IO_OR_OS_ERROR)
 
     except Exception as e:
-        log_exception(e, LogProgramm.General, "unknown error while reading a file")
+        log_exception(e, LogProgram.Default, "unknown error while reading a file")
         return SaveFileResult(FileResultType.GENERIC)
 
 
@@ -153,41 +153,41 @@ def load_json(path: Path) -> LoadJsonResult:
         return result.to_json_result(data)
 
     except json.JSONDecodeError as e:
-        log_exception(e, LogProgramm.General, "while loading a JSON")
+        log_exception(e, LogProgram.Default, "while loading a JSON")
         return LoadJsonResult(FileResultType.INVALID_ENCODING, {})
     except RecursionError as e:
-        log_exception(e, LogProgramm.General, "while loading a JSON")
+        log_exception(e, LogProgram.Default, "while loading a JSON")
         return LoadJsonResult(FileResultType.RECURSION_ERROR, {})
     except OverflowError as e:
-        log_exception(e, LogProgramm.General, "while loading a JSON")
+        log_exception(e, LogProgram.Default, "while loading a JSON")
         return LoadJsonResult(FileResultType.OVERFLOW_ERROR, {})
 
     except Exception as e:
-        log_exception(e, LogProgramm.General, "unknown error while loading a JSON")
+        log_exception(e, LogProgram.Default, "unknown error while loading a JSON")
         return LoadJsonResult(FileResultType.GENERIC, {})
 
 
 def save_json(path: Path, data: dict) -> SaveJsonResult:
     if not isinstance(data, dict):
-        log_general(LogLevel.ERROR, f"data must be a dict to be able to serialise to JSON, not {type(data)}")
+        log_default(LogLevel.ERROR, f"data must be a dict to be able to serialise to JSON, not {type(data)}")
         return SaveJsonResult(FileResultType.INVALID_DATA)
     try:
         result: SaveFileResult = save_file(path, json.dumps(data, indent=4))
         return result.to_json_result()
 
     except TypeError as e:
-        log_exception(e, LogProgramm.General, "while dumping a JSON")
+        log_exception(e, LogProgram.Default, "while dumping a JSON")
         return SaveJsonResult(FileResultType.TYPE_ERROR)
     except ValueError as e:
-        log_exception(e, LogProgramm.General, "while dumping a JSON")
+        log_exception(e, LogProgram.Default, "while dumping a JSON")
         return SaveJsonResult(FileResultType.VALUE_ERROR)
     except RecursionError as e:
-        log_exception(e, LogProgramm.General, "while dumping a JSON")
+        log_exception(e, LogProgram.Default, "while dumping a JSON")
         return SaveJsonResult(FileResultType.RECURSION_ERROR)
     except OverflowError as e:
-        log_exception(e, LogProgramm.General, "while dumping a JSON")
+        log_exception(e, LogProgram.Default, "while dumping a JSON")
         return SaveJsonResult(FileResultType.OVERFLOW_ERROR)
 
     except Exception as e:
-        log_exception(e, LogProgramm.General, "unknown error while dumping a JSON")
+        log_exception(e, LogProgram.Default, "unknown error while dumping a JSON")
         return SaveJsonResult(FileResultType.GENERIC)

@@ -1,6 +1,6 @@
 import discord
 from discord import Client
-from helpers.log import log_discord, LogLevel, log_exception, LogProgramm
+from helpers.log import log_discord, LogLevel, log_exception, LogProgram
 import sys
 
 class DiscordClient(Client):
@@ -29,6 +29,6 @@ class DiscordClient(Client):
         exc_type, value, traceback = sys.exc_info()
 
         if value:
-            log_exception(value, LogProgramm.Discord, f"Error in event: {event}")
+            log_exception(value, LogProgram.Discord, f"Error in event: {event}")
         else:
             log_discord(LogLevel.ERROR, f"Discord client error: {event} {args} {kwargs}")
