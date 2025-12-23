@@ -94,7 +94,7 @@ def log_twitch(level: LogLevel, message: str) -> None:
         log(level=level, program=LogProgram.Twitch, message=message)
 
 
-def log_exception(exception: Exception, program: LogProgram, message: str) -> None:
+def log_exception(exception: BaseException, program: LogProgram, message: str) -> None:
     exception_name: str = type(exception).__name__
     trace_back: TracebackType | None = exception.__traceback__
     location: str = "unknown location"
