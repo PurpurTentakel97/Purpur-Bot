@@ -6,13 +6,13 @@ from typing import Any
 from typing import Self
 from typing import final
 
-from helpers.file import LoadJsonResult
-from helpers.file import SaveJsonResult
-from helpers.file import load_json
-from helpers.file import save_json
-from helpers.log import LogLevel
-from helpers.log import log_default
-from helpers.my_types import JsonDict
+from src.helpers.file import LoadJsonResult
+from src.helpers.file import SaveJsonResult
+from src.helpers.file import load_json
+from src.helpers.file import save_json
+from src.helpers.log import LogLevel
+from src.helpers.log import log_default
+from src.helpers.my_types import JsonDict
 
 _CONFIG_SAMPLE_FILE: str = "config_sample.json"
 _CONFIG_FILE: str = "config.json"

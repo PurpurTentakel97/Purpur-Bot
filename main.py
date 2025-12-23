@@ -1,8 +1,8 @@
 import asyncio
 
-from discord_bot.discord_chat import DiscordChat
-from helpers.config import Config
-from helpers.config import load_config
+from src.discord_bot.discord_chat import DiscordChat
+from src.helpers.config import Config
+from src.helpers.config import load_config
 
 # from twitch_bot.twitch_main import start_twitch_bot
 
