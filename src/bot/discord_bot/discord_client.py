@@ -5,10 +5,10 @@ import discord
 from discord import Client
 from discord.abc import Messageable
 
-from src.helpers.log import LogLevel
-from src.helpers.log import LogProgram
-from src.helpers.log import log_discord
-from src.helpers.log import log_exception
+from bot.helpers.log import LogLevel
+from bot.helpers.log import LogProgram
+from bot.helpers.log import log_discord
+from bot.helpers.log import log_exception
 
 
 class DiscordClient(Client):

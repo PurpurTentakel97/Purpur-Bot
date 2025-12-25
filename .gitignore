@@ -15,6 +15,7 @@ wheels/
 
 # Tests
 .coverage
+coverage_html/
 
 # Config
 config.json

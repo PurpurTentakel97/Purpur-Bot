@@ -4,9 +4,9 @@ from typing import Self
 
 import discord
 
-from src.discord_bot.discord_client import DiscordClient
-from src.helpers.log import LogLevel
-from src.helpers.log import log_discord
+from bot.discord_bot.discord_client import DiscordClient
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_discord
 
 
 class DiscordChat:

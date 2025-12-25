@@ -5,11 +5,11 @@ from enum import auto
 from pathlib import Path
 from typing import final
 
-from src.helpers.log import LogLevel
-from src.helpers.log import LogProgram
-from src.helpers.log import log_default
-from src.helpers.log import log_exception
-from src.helpers.my_types import JsonDict
+from bot.helpers.log import LogLevel
+from bot.helpers.log import LogProgram
+from bot.helpers.log import log_default
+from bot.helpers.log import log_exception
+from bot.helpers.my_types import JsonDict
 
 
 @final
