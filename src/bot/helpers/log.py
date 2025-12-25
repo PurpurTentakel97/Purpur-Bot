@@ -25,8 +25,9 @@ class LogProgram(Enum):
 class LogLevel(IntEnum):
     DEBUG = 10
     INFO = 20
-    ERROR = 30
-    CRITICAL = 40
+    WARNING = 30
+    ERROR = 40
+    CRITICAL = 50
 
     DEFAULT_LOG_LEVEL = DEBUG
 
@@ -70,9 +71,9 @@ class LogLevelConfig:
         cls.twitch.level = LogLevel.DEFAULT_LOG_LEVEL
 
 
-def log(level: LogLevel, program: LogProgram, message: str) -> None:
+def _log(level: LogLevel, program: LogProgram, message: str) -> None:
     print(
-        f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] |"
+        f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}] |"
         + f" {level!s:{LogLevel.max_length()}} |"
         + f" {program!s:{LogProgram.max_length()}} |"
         + f" {message}"
@@ -81,17 +82,17 @@ def log(level: LogLevel, program: LogProgram, message: str) -> None:
 
 def log_default(level: LogLevel, message: str) -> None:
     if LogLevelConfig.default.should_log(level):
-        log(level=level, program=LogProgram.Default, message=message)
+        _log(level=level, program=LogProgram.Default, message=message)
 
 
 def log_discord(level: LogLevel, message: str) -> None:
     if LogLevelConfig.discord.should_log(level):
-        log(level=level, program=LogProgram.Discord, message=message)
+        _log(level=level, program=LogProgram.Discord, message=message)
 
 
 def log_twitch(level: LogLevel, message: str) -> None:
     if LogLevelConfig.twitch.should_log(level):
-        log(level=level, program=LogProgram.Twitch, message=message)
+        _log(level=level, program=LogProgram.Twitch, message=message)
 
 
 def log_exception(exception: BaseException, program: LogProgram, message: str) -> None:
@@ -106,4 +107,4 @@ def log_exception(exception: BaseException, program: LogProgram, message: str) -
 
         location = f"{filename}:{line_number} in {function_name}()"
 
-    log(level=LogLevel.CRITICAL, program=program, message=f"{exception_name} | {location} | {message}")
+    _log(level=LogLevel.CRITICAL, program=program, message=f"{exception_name} | {location} | {message}")
