@@ -1,5 +1,6 @@
 from pathlib import Path
 from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from pydantic import BaseModel
 
@@ -193,3 +194,94 @@ def test_save_json_value_error() -> None:
 
     assert not result.success
     assert result.result_type == FileResultType.VALUE_ERROR
+
+
+def test_load_file_file_not_found_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "exists.txt"
+    file_path.write_text("content")
+    with patch("builtins.open", side_effect=FileNotFoundError()):
+        result = load_file(file_path)
+        assert result.result_type == FileResultType.FILE_NOT_FOUND
+
+
+def test_load_file_permission_denied_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "exists.txt"
+    file_path.write_text("content")
+    with patch("builtins.open", side_effect=PermissionError()):
+        result = load_file(file_path)
+        assert result.result_type == FileResultType.PERMISSION_DENIED
+
+
+def test_load_file_is_a_directory_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "exists.txt"
+    file_path.write_text("content")
+    with patch("builtins.open", side_effect=IsADirectoryError()):
+        result = load_file(file_path)
+        assert result.result_type == FileResultType.IS_A_DIRECTORY
+
+
+def test_load_file_unicode_decode_error_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "exists.txt"
+    file_path.write_text("content")
+    # UnicodeDecodeError needs arguments
+    with patch("builtins.open", side_effect=UnicodeDecodeError("utf-8", b"", 0, 1, "reason")):
+        result = load_file(file_path)
+        assert result.result_type == FileResultType.INVALID_ENCODING
+
+
+def test_load_file_os_error_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "exists.txt"
+    file_path.write_text("content")
+    with patch("builtins.open", side_effect=OSError()):
+        result = load_file(file_path)
+        assert result.result_type == FileResultType.IO_OR_OS_ERROR
+
+
+def test_load_file_generic_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "exists.txt"
+    file_path.write_text("content")
+    with patch("builtins.open", side_effect=Exception()):
+        result = load_file(file_path)
+        assert result.result_type == FileResultType.GENERIC
+
+
+def test_save_file_file_not_found_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "save.txt"
+    with patch("builtins.open", side_effect=FileNotFoundError()):
+        result = save_file(file_path, "data")
+        assert result.result_type == FileResultType.FILE_NOT_FOUND
+
+
+def test_save_file_permission_denied_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "save.txt"
+    with patch("builtins.open", side_effect=PermissionError()):
+        result = save_file(file_path, "data")
+        assert result.result_type == FileResultType.PERMISSION_DENIED
+
+
+def test_save_file_is_a_directory_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "save.txt"
+    with patch("builtins.open", side_effect=IsADirectoryError()):
+        result = save_file(file_path, "data")
+        assert result.result_type == FileResultType.IS_A_DIRECTORY
+
+
+def test_save_file_unicode_decode_error_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "save.txt"
+    with patch("builtins.open", side_effect=UnicodeDecodeError("utf-8", b"", 0, 1, "reason")):
+        result = save_file(file_path, "data")
+        assert result.result_type == FileResultType.INVALID_ENCODING
+
+
+def test_save_file_os_error_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "save.txt"
+    with patch("builtins.open", side_effect=OSError()):
+        result = save_file(file_path, "data")
+        assert result.result_type == FileResultType.IO_OR_OS_ERROR
+
+
+def test_save_file_generic_exception(tmp_path: Path) -> None:
+    file_path = tmp_path / "save.txt"
+    with patch("builtins.open", side_effect=Exception()):
+        result = save_file(file_path, "data")
+        assert result.result_type == FileResultType.GENERIC
