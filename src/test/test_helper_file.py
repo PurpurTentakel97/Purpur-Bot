@@ -5,8 +5,8 @@ from pydantic import BaseModel
 
 from bot.helpers.file import FileResultType
 from bot.helpers.file import load_file
-from bot.helpers.file import save_file
 from bot.helpers.file import load_json
+from bot.helpers.file import save_file
 from bot.helpers.file import save_json
 
 
@@ -136,8 +136,8 @@ def test_save_json_success(tmp_path: Path) -> None:
     assert result.success
     assert result.result_type == FileResultType.SUCCESS
     assert file_path.exists()
-    assert '"name":"save_test"' in file_path.read_text(encoding="utf-8")
-    assert '"age":100' in file_path.read_text(encoding="utf-8")
+    assert '"name": "save_test"' in file_path.read_text(encoding="utf-8")
+    assert '"age": 100' in file_path.read_text(encoding="utf-8")
 
 
 def test_save_json_is_directory(tmp_path: Path) -> None:
