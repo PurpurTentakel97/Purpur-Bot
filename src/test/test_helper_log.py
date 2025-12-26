@@ -6,8 +6,10 @@ from _pytest.capture import CaptureResult
 
 from bot.helpers.log import LogLevel
 from bot.helpers.log import LogLevelConfig
+from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default
 from bot.helpers.log import log_discord
+from bot.helpers.log import log_exception
 from bot.helpers.log import log_twitch
 
 
@@ -112,3 +114,44 @@ def test_correct_log_program(
     log_function(LogLevel.DEBUG, "test message")
     captured: CaptureResult[str] = capsys.readouterr()
     assert expected_string in captured.out
+
+
+def test_log_level_config_initialization() -> None:
+    with pytest.raises(TypeError):
+        LogLevelConfig()
+
+
+def test_log_exception_format(capsys: pytest.CaptureFixture[str]) -> None:
+    _reset_log()
+
+    exception_message: str = "Test exception"
+    log_message: str = "Context Message"
+
+    try:
+        raise ValueError(exception_message)
+    except ValueError as e:
+        log_exception(e, LogProgram.Default, log_message)
+
+    captured: CaptureResult[str] = capsys.readouterr()
+    assert "ValueError" in captured.out
+    assert "test_helper_log.py" in captured.out
+    assert "test_log_exception_format" in captured.out
+    assert log_message in captured.out
+    assert "CRITICAL" in captured.out
+    assert exception_message in captured.out
+
+
+def test_log_exception_no_traceback(capsys: pytest.CaptureFixture[str]) -> None:
+    _reset_log()
+
+    exception_message: str = "Test exception"
+    log_message: str = "Context Message"
+
+    e = ValueError(exception_message)
+    log_exception(e, LogProgram.Default, log_message)
+
+    captured: CaptureResult[str] = capsys.readouterr()
+    assert "unknown location" in captured.out
+    assert log_message in captured.out
+    assert exception_message in captured.out
+    assert "CRITICAL" in captured.out
