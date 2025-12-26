@@ -1,15 +1,17 @@
-import json
 from dataclasses import dataclass
 from enum import Enum
 from enum import auto
 from pathlib import Path
+from typing import Final
 from typing import final
+
+from pydantic import BaseModel
+from pydantic import ValidationError
 
 from bot.helpers.log import LogLevel
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default
 from bot.helpers.log import log_exception
-from bot.helpers.my_types import JsonDict
 
 
 @final
@@ -40,8 +42,8 @@ class BasicFileResult:
 
 @final
 @dataclass(frozen=True)
-class LoadJsonResult(BasicFileResult):
-    data: JsonDict
+class LoadJsonResult[T: BaseModel | None](BasicFileResult):
+    data: T | None
 
 
 @final
@@ -55,7 +57,7 @@ class SaveJsonResult(BasicFileResult):
 class LoadFileResult(BasicFileResult):
     data: str
 
-    def to_json_result(self, data: JsonDict) -> LoadJsonResult:
+    def to_json_result[T: BaseModel](self, data: T | None) -> LoadJsonResult[T | None]:
         return LoadJsonResult(self.result_type, data)
 
 
@@ -70,6 +72,10 @@ def load_file(path: Path) -> LoadFileResult:
     if not path.exists():
         log_default(LogLevel.ERROR, f"File {path} does not exist")
         return LoadFileResult(FileResultType.FILE_NOT_FOUND, "")
+
+    if path.is_dir():
+        log_default(LogLevel.ERROR, f"File {path} is a directory")
+        return LoadFileResult(FileResultType.IS_A_DIRECTORY, "")
 
     try:
         with open(path, encoding="utf-8") as f:
@@ -137,47 +143,33 @@ def save_file(path: Path, data: str) -> SaveFileResult:
         return SaveFileResult(FileResultType.GENERIC)
 
 
-def load_json(path: Path) -> LoadJsonResult:
+def load_json[T: BaseModel](path: Path, model_class: type[T]) -> LoadJsonResult[T | None]:
     try:
         result: LoadFileResult = load_file(path)
         if not result.success:
-            return result.to_json_result({})
-        data: JsonDict = json.loads(result.data)
-        return result.to_json_result(data)
+            return result.to_json_result(None)
 
-    except json.JSONDecodeError as e:
+        t: Final = model_class.model_validate_json(result.data)
+        return result.to_json_result(t)
+    except ValidationError as e:
         log_exception(e, LogProgram.Default, "while loading a JSON")
-        return LoadJsonResult(FileResultType.INVALID_ENCODING, {})
-    except RecursionError as e:
-        log_exception(e, LogProgram.Default, "while loading a JSON")
-        return LoadJsonResult(FileResultType.RECURSION_ERROR, {})
-    except OverflowError as e:
-        log_exception(e, LogProgram.Default, "while loading a JSON")
-        return LoadJsonResult(FileResultType.OVERFLOW_ERROR, {})
-
-    except Exception as e:
-        log_exception(e, LogProgram.Default, "unknown error while loading a JSON")
-        return LoadJsonResult(FileResultType.GENERIC, {})
+        return LoadJsonResult(FileResultType.INVALID_DATA, None)
 
 
-def save_json(path: Path, data: JsonDict) -> SaveJsonResult:
+def save_json(path: Path, data: BaseModel) -> SaveJsonResult:
     try:
-        result: SaveFileResult = save_file(path, json.dumps(data, indent=4))
+        result: SaveFileResult = save_file(path, data.model_dump_json(indent=4))
         return result.to_json_result()
 
     except TypeError as e:
-        log_exception(e, LogProgram.Default, "while dumping a JSON")
-        return SaveJsonResult(FileResultType.TYPE_ERROR)
-    except ValueError as e:
-        log_exception(e, LogProgram.Default, "while dumping a JSON")
-        return SaveJsonResult(FileResultType.VALUE_ERROR)
+        log_exception(e, LogProgram.Default, "type error while dumping a JSON")
+        return SaveJsonResult(FileResultType.INVALID_DATA)
     except RecursionError as e:
-        log_exception(e, LogProgram.Default, "while dumping a JSON")
+        log_exception(e, LogProgram.Default, "recursion error while dumping a JSON")
         return SaveJsonResult(FileResultType.RECURSION_ERROR)
     except OverflowError as e:
-        log_exception(e, LogProgram.Default, "while dumping a JSON")
+        log_exception(e, LogProgram.Default, "overflow error while dumping a JSON")
         return SaveJsonResult(FileResultType.OVERFLOW_ERROR)
-
-    except Exception as e:
-        log_exception(e, LogProgram.Default, "unknown error while dumping a JSON")
-        return SaveJsonResult(FileResultType.GENERIC)
+    except ValueError as e:
+        log_exception(e, LogProgram.Default, "value error while dumping a JSON")
+        return SaveJsonResult(FileResultType.VALUE_ERROR)
