@@ -7,9 +7,7 @@ from pydantic import BaseModel
 from bot.helpers.file import load_json
 from bot.helpers.file import save_json
 from bot.helpers.log import LogLevel
-from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default
-from bot.helpers.log import log_exception
 
 _CONFIG_SAMPLE_FILE: Path = Path("config_sample.json")
 _CONFIG_FILE: Path = Path("config.json")
@@ -39,11 +37,3 @@ def load_config() -> Config:
 
     log_default(LogLevel.CRITICAL, f"Failed to load config {_CONFIG_FILE} -> Will raise")
     raise Exception(f"Failed to load config {_CONFIG_FILE}")
-
-
-def save_default_config() -> None:
-    try:
-        save_json(_CONFIG_SAMPLE_FILE, Config())
-    except Exception as e:
-        log_exception(e, LogProgram.Default, f"Failed to save default config to {_CONFIG_FILE}")
-        raise
