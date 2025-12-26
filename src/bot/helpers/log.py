@@ -97,6 +97,7 @@ def log_twitch(level: LogLevel, message: str) -> None:
 
 def log_exception(exception: BaseException, program: LogProgram, message: str) -> None:
     exception_name: str = type(exception).__name__
+    exception_message: str = str(exception)
     trace_back: TracebackType | None = exception.__traceback__
     location: str = "unknown location"
 
@@ -107,4 +108,8 @@ def log_exception(exception: BaseException, program: LogProgram, message: str) -
 
         location = f"{filename}:{line_number} in {function_name}()"
 
-    _log(level=LogLevel.CRITICAL, program=program, message=f"{exception_name} | {location} | {message}")
+    _log(
+        level=LogLevel.CRITICAL,
+        program=program,
+        message=f"{exception_name} | {location} | {exception_message} | {message}",
+    )
