@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+
+# IDE
+.idea/
+
+# Tests
+.coverage
+coverage_html/
+
+# Config
+config.json
+config_sample.json
