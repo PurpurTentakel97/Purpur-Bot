@@ -1,9 +1,9 @@
 import asyncio
 
 from bot.discord_bot.discord_chat import DiscordChat
+from bot.helpers.app_context import APP_CONTEXT
 from bot.twitch_bot.twitch_chat import TwitchChat
 from bot.twitch_bot.twitch_client import TwitchClient
-from bot.helpers.app_context import APP_CONTEXT
 
 
 async def main() -> None:

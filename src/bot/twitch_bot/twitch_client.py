@@ -7,7 +7,8 @@ from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.twitch import Twitch
 from twitchAPI.type import AuthScope
 
-from bot.helpers.log import log_twitch, LogLevel
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_twitch
 
 
 class TwitchClient:
