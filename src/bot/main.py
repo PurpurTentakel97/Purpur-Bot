@@ -1,14 +1,11 @@
 import asyncio
 
 from bot.discord_bot.discord_chat import DiscordChat
-from bot.helpers.config import Config
-from bot.helpers.config import load_config
+from bot.helpers.app_context import APP_CONTEXT
 
 
 async def main() -> None:
-    config: Config = load_config()
-
-    _: DiscordChat = await DiscordChat.create(config.discord_token)
+    _: DiscordChat = await DiscordChat.create(APP_CONTEXT.discord_token)
 
     while True:
         await asyncio.sleep(1)
