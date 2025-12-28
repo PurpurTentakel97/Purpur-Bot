@@ -9,8 +9,8 @@ from bot.twitch_bot.twitch_client import TwitchClient
 async def main() -> None:
     _: DiscordChat = await DiscordChat.create(APP_CONTEXT.discord_token)
 
-    twitch_client = await TwitchClient.create(APP_CONTEXT.twitch_client_id, APP_CONTEXT.twitch_credentials)
-    __ = await TwitchChat.create(twitch_client)
+    twitch_client = await TwitchClient.create()
+    __ = await TwitchChat.create(twitch_client, "codingPurpurTentakel")
 
     while True:
         await asyncio.sleep(1)

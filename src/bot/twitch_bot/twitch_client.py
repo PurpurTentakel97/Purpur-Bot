@@ -7,29 +7,39 @@ from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.twitch import Twitch
 from twitchAPI.type import AuthScope
 
+from bot.helpers.app_context import APP_CONTEXT
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_twitch
 
 
 class TwitchClient:
+    _SCOPES = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
+
     def __init__(self, client: Twitch) -> None:
         self.client = client
         log_twitch(LogLevel.INFO, "Twitch client is ready!")
 
     @classmethod
-    async def create(cls, app_id: str, credentials: str) -> Self:
+    async def create(cls) -> Self:
         log_twitch(LogLevel.INFO, "Connecting in to Twitch...")
-        user_scope = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
-        twitch = await Twitch(app_id, credentials)
-        auth: Final = UserAuthenticator(twitch, user_scope)
 
-        # this cast is needed because the lib does not provide a proper type hint for the result
-        # however, the documentation ensures that the result is a tuple of two strings or None
-        result: Final = cast(Optional[tuple[str, str]], await auth.authenticate())
-        assert result is not None
+        async def _user_user_refresh(new_access_token: str, new_refresh_token: str) -> None:
+            APP_CONTEXT.update_twitch_tokens(new_access_token, new_refresh_token)
 
-        token, refresh_token = result
+        if APP_CONTEXT.twitch_tokens is None:
+            twitch = await Twitch(APP_CONTEXT.twitch_client_id, APP_CONTEXT.twitch_credentials)
+            twitch.user_auth_refresh_callback = _user_user_refresh
+            auth: Final = UserAuthenticator(twitch, cls._SCOPES)
+            # this cast is needed because the lib does not provide a proper type hint for the result
+            # however, the documentation ensures that the result is a tuple of two strings or None
+            auth_response: Final = cast(Optional[tuple[str, str]], await auth.authenticate())
+            assert auth_response is not None
+            access_token, refresh_token = auth_response
+            APP_CONTEXT.update_twitch_tokens(access_token, refresh_token)
+        else:
+            access_token, refresh_token = APP_CONTEXT.twitch_tokens
+            twitch = await Twitch(APP_CONTEXT.twitch_client_id, APP_CONTEXT.twitch_credentials, authenticate_app=False)
+            twitch.user_auth_refresh_callback = _user_user_refresh
 
-        await twitch.set_user_authentication(token, user_scope, refresh_token)
-
+        await twitch.set_user_authentication(access_token, cls._SCOPES, refresh_token, validate=True)
         return cls(twitch)
