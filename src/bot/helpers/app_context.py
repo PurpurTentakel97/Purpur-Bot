@@ -1,0 +1,114 @@
+import os
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from typing import ClassVar
+from typing import Final
+from typing import NamedTuple
+from typing import Optional
+from typing import Self
+from typing import final
+
+from attr import dataclass
+from dotenv import load_dotenv
+
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
+
+
+def _get_env_var_or_raise(key: str) -> str:
+    value = os.getenv(key)
+    if value is None or not value.strip():
+        raise ValueError(f"Environment variable '{key}' is not set")
+    return value.strip()
+
+
+def _get_env_var_or_default(key: str, default: str | None) -> str | None:
+    value = os.getenv(key)
+    if value is None or not value.strip():
+        log_default(LogLevel.INFO, f"Environment variable '{key}' is not set, using default '{default}'")
+        return default
+    return value.strip()
+
+
+@final
+class TwitchTokens(NamedTuple):
+    access_token: str
+    refresh_token: str
+
+    @classmethod
+    def try_load(cls) -> Optional[Self]:
+        access_token = _get_env_var_or_default("TWITCH_ACCESS_TOKEN", None)
+        if access_token is None:
+            return None
+        refresh_token = _get_env_var_or_default("TWITCH_REFRESH_TOKEN", None)
+        if refresh_token is None:
+            return None
+        return cls(access_token, refresh_token)
+
+
+@final
+@dataclass(frozen=True)
+class AppContext:
+    _ENV_FILE_PATH: ClassVar = Path(os.getcwd()) / ".env"
+
+    discord_token: str
+    twitch_client_id: str
+    twitch_credentials: str
+    twitch_tokens: Optional[TwitchTokens]
+
+    def update_twitch_tokens(self, new_access_token: str, new_refresh_token: str) -> None:
+        object.__setattr__(self, "twitch_tokens", TwitchTokens(new_access_token, new_refresh_token))
+        self._update_env_file(
+            self._ENV_FILE_PATH,
+            {"TWITCH_ACCESS_TOKEN": new_access_token, "TWITCH_REFRESH_TOKEN": new_refresh_token},
+        )
+
+    @classmethod
+    def _update_env_file(cls, path: Path, updates: dict[str, str]) -> None:
+        try:
+            original = path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            original = ""
+
+        lines: Final = original.splitlines(keepends=True)
+        found: Final = dict.fromkeys(updates, False)
+        new_lines: Final[list[str]] = []
+
+        for line in lines:
+            stripped = line.lstrip()
+
+            for key, value in updates.items():
+                if stripped.startswith(f"{key}=") or stripped.startswith(f"export {key}="):
+                    leading_ws = line[: len(line) - len(stripped)]
+                    export_prefix = "export " if stripped.startswith("export ") else ""
+                    new_line = "\n" if stripped.endswith(("\r\n", "\n")) else ""
+                    new_lines.append(f"{leading_ws}{export_prefix}{key}={value}{new_line}")
+                    found[key] = True
+                    break
+            else:
+                new_lines.append(line)
+
+        if new_lines and not new_lines[-1].endswith(("\r\n", "\n")):
+            new_lines[-1] = new_lines[-1] + "\n"
+        for key, value in updates.items():
+            if not found[key]:
+                new_lines.append(f"{key}={value}\n")
+
+        new_content = "".join(new_lines)
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with NamedTemporaryFile(mode="w", encoding="utf-8", delete=False, dir=path.parent) as tmp_file:
+            tmp_file.write(new_content)
+            tmp_file.flush()
+            os.fsync(tmp_file.fileno())
+            temp_path = tmp_file.name
+        os.replace(temp_path, path)
+
+
+load_dotenv()
+APP_CONTEXT = AppContext(
+    discord_token=_get_env_var_or_raise("DISCORD_TOKEN"),
+    twitch_client_id=_get_env_var_or_raise("TWITCH_CLIENT_ID"),
+    twitch_credentials=_get_env_var_or_raise("TWITCH_CREDENTIALS"),
+    twitch_tokens=TwitchTokens.try_load(),
+)
