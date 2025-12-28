@@ -18,6 +18,4 @@ wheels/
 coverage_html/
 
 # Config
-config.json
-config_sample.json
 .env

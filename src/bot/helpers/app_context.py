@@ -11,7 +11,8 @@ from typing import final
 from attr import dataclass
 from dotenv import load_dotenv
 
-from bot.helpers.log import LogLevel, log_default
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
 
 
 def _get_env_var_or_raise(key: str) -> str:
@@ -19,6 +20,7 @@ def _get_env_var_or_raise(key: str) -> str:
     if value is None or not value.strip():
         raise ValueError(f"Environment variable {key} not set")
     return value.strip()
+
 
 def _get_env_var_or_default(key: str, default: str | None) -> str | None:
     value = os.getenv(key)
