@@ -28,7 +28,7 @@ class TwitchClient:
         async def _user_user_refresh(new_access_token: str, new_refresh_token: str) -> None:
             APP_CONTEXT.update_twitch_tokens(new_access_token, new_refresh_token)
 
-        async def _new_tokens(twitch: Twitch) -> tuple[str, str]: # access_token, refresh_token
+        async def _new_tokens(twitch: Twitch) -> tuple[str, str]:  # access_token, refresh_token
             auth: Final = UserAuthenticator(twitch, cls._SCOPES)
             # this cast is needed because the lib does not provide a proper type hint for the result
             # however, the documentation ensures that the result is a tuple of two strings or None
