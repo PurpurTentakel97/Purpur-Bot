@@ -18,14 +18,14 @@ from bot.helpers.log import log_default
 def _get_env_var_or_raise(key: str) -> str:
     value = os.getenv(key)
     if value is None or not value.strip():
-        raise ValueError(f"Environment variable {key} not set")
+        raise ValueError(f"Environment variable '{key}' is not set")
     return value.strip()
 
 
 def _get_env_var_or_default(key: str, default: str | None) -> str | None:
     value = os.getenv(key)
     if value is None or not value.strip():
-        log_default(LogLevel.INFO, f"Environment variable {key} not set, using default {default}")
+        log_default(LogLevel.INFO, f"Environment variable '{key}' is not set, using default '{default}'")
         return default
     return value.strip()
 
@@ -58,8 +58,8 @@ class AppContext:
 
     def update_twitch_tokens(self, new_access_token: str, new_refresh_token: str) -> None:
         object.__setattr__(self, "twitch_tokens", TwitchTokens(new_access_token, new_refresh_token))
-        APP_CONTEXT._update_env_file(
-            AppContext._ENV_FILE_PATH,
+        self._update_env_file(
+            self._ENV_FILE_PATH,
             {"TWITCH_ACCESS_TOKEN": new_access_token, "TWITCH_REFRESH_TOKEN": new_refresh_token},
         )
 
