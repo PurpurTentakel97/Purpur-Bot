@@ -1,7 +1,8 @@
 from typing import Self
 
-from twitchAPI.chat import Chat, ChatMessage
+from twitchAPI.chat import Chat
 from twitchAPI.chat import ChatEvent
+from twitchAPI.chat import ChatMessage
 from twitchAPI.chat import EventData
 
 from bot.helpers.log import LogLevel
