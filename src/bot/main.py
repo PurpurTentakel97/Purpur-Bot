@@ -1,11 +1,16 @@
 import asyncio
 
 from bot.discord_bot.discord_chat import DiscordChat
+from bot.twitch_bot.twitch_chat import TwitchChat
+from bot.twitch_bot.twitch_client import TwitchClient
 from bot.helpers.app_context import APP_CONTEXT
 
 
 async def main() -> None:
     _: DiscordChat = await DiscordChat.create(APP_CONTEXT.discord_token)
+
+    twitch_client = await TwitchClient.create(APP_CONTEXT.twitch_client_id, APP_CONTEXT.twitch_credentials)
+    __ = await TwitchChat.create(twitch_client)
 
     while True:
         await asyncio.sleep(1)
