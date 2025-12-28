@@ -1,0 +1,139 @@
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+from twitchAPI.type import InvalidRefreshTokenException
+from twitchAPI.type import UnauthorizedException
+
+from bot.helpers.app_context import TwitchTokens
+from bot.twitch_bot.twitch_client import TwitchClient
+
+
+@pytest.mark.asyncio
+async def test_twitch_client_create_success_with_tokens() -> None:
+    # Mock tokens in APP_CONTEXT
+    tokens = TwitchTokens("access", "refresh")
+
+    with (
+        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+    ):
+        mock_ctx.twitch_tokens = tokens
+        mock_ctx.twitch_client_id = "id"
+        mock_ctx.twitch_credentials = "cred"
+
+        mock_twitch_instance = mock_twitch_cls.return_value
+
+        client = await TwitchClient.create()
+
+        assert isinstance(client, TwitchClient)
+        assert client.client == mock_twitch_instance
+
+        mock_twitch_cls.assert_called_once_with("id", "cred", authenticate_app=False)
+        mock_twitch_instance.set_user_authentication.assert_called_once_with(
+            "access",
+            TwitchClient._SCOPES,  # type: ignore[reportPrivateUsage]
+            "refresh",
+            validate=True,
+        )
+
+
+@pytest.mark.asyncio
+async def test_twitch_client_create_no_tokens() -> None:
+    with (
+        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.twitch_bot.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
+    ):
+        mock_ctx.twitch_tokens = None
+        mock_ctx.twitch_client_id = "id"
+        mock_ctx.twitch_credentials = "cred"
+
+        mock_twitch_instance = mock_twitch_cls.return_value
+
+        mock_auth_instance = mock_auth_cls.return_value
+        mock_auth_instance.authenticate = AsyncMock(return_value=("new_access", "new_refresh"))
+
+        client = await TwitchClient.create()
+
+        assert isinstance(client, TwitchClient)
+        mock_twitch_cls.assert_called_once_with("id", "cred")
+        mock_auth_cls.assert_called_once_with(mock_twitch_instance, TwitchClient._SCOPES)  # type: ignore[reportPrivateUsage]
+        mock_ctx.update_twitch_tokens.assert_called_once_with("new_access", "new_refresh")
+        mock_twitch_instance.set_user_authentication.assert_called_once_with(
+            "new_access",
+            TwitchClient._SCOPES,  # type: ignore[reportPrivateUsage]
+            "new_refresh",
+            validate=True,
+        )
+
+
+@pytest.mark.asyncio
+async def test_twitch_client_create_invalid_tokens_reauth() -> None:
+    tokens = TwitchTokens("old_access", "old_refresh")
+
+    with (
+        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.twitch_bot.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
+    ):
+        mock_ctx.twitch_tokens = tokens
+        mock_ctx.twitch_client_id = "id"
+        mock_ctx.twitch_credentials = "cred"
+
+        mock_twitch_instance = mock_twitch_cls.return_value
+        # The first call fails with UnauthorizedException, the second succeeds
+        mock_twitch_instance.set_user_authentication.side_effect = [UnauthorizedException(), None]
+
+        mock_auth_instance = mock_auth_cls.return_value
+        mock_auth_instance.authenticate = AsyncMock(return_value=("new_access", "new_refresh"))
+
+        client = await TwitchClient.create()
+
+        assert isinstance(client, TwitchClient)
+        assert mock_twitch_instance.set_user_authentication.call_count == 2
+        mock_ctx.update_twitch_tokens.assert_called_once_with("new_access", "new_refresh")
+
+        # Verify the second call used new tokens
+        mock_twitch_instance.set_user_authentication.assert_called_with(
+            "new_access",
+            TwitchClient._SCOPES,  # type: ignore[reportPrivateUsage]
+            "new_refresh",
+            validate=True,
+        )
+
+
+@pytest.mark.asyncio
+async def test_twitch_client_create_invalid_refresh_token_reauth() -> None:
+    tokens = TwitchTokens("old_access", "old_refresh")
+
+    with (
+        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.twitch_bot.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
+    ):
+        mock_ctx.twitch_tokens = tokens
+        mock_ctx.twitch_client_id = "id"
+        mock_ctx.twitch_credentials = "cred"
+
+        mock_twitch_instance = mock_twitch_cls.return_value
+        # The first call fails with InvalidRefreshTokenException, the second succeeds
+        mock_twitch_instance.set_user_authentication.side_effect = [InvalidRefreshTokenException(), None]
+
+        mock_auth_instance = mock_auth_cls.return_value
+        mock_auth_instance.authenticate = AsyncMock(return_value=("new_access", "new_refresh"))
+
+        client = await TwitchClient.create()
+
+        assert isinstance(client, TwitchClient)
+        assert mock_twitch_instance.set_user_authentication.call_count == 2
+        mock_ctx.update_twitch_tokens.assert_called_once_with("new_access", "new_refresh")
+
+        # Verify the second call used new tokens
+        mock_twitch_instance.set_user_authentication.assert_called_with(
+            "new_access",
+            TwitchClient._SCOPES,  # type: ignore[reportPrivateUsage]
+            "new_refresh",
+            validate=True,
+        )
