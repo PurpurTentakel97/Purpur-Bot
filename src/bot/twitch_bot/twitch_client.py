@@ -7,6 +7,7 @@ from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.twitch import Twitch
 from twitchAPI.type import AuthScope
 from twitchAPI.type import InvalidRefreshTokenException
+from twitchAPI.type import TwitchAuthorizationException
 from twitchAPI.type import UnauthorizedException
 
 from bot.helpers.app_context import APP_CONTEXT
@@ -44,27 +45,37 @@ class TwitchClient:
             APP_CONTEXT.update_twitch_tokens(access_token, refresh_token)
             return access_token, refresh_token
 
-        if APP_CONTEXT.twitch_tokens.is_valid():
-            access_token, refresh_token = APP_CONTEXT.twitch_tokens.value_or_rise()
-            twitch = await Twitch(
-                APP_CONTEXT.twitch_client_id.value_or_rise(),
-                APP_CONTEXT.twitch_credentials.value_or_rise(),
-                authenticate_app=False,
-            )
-            twitch.user_auth_refresh_callback = _user_user_refresh
-
-        else:
-            twitch = await Twitch(
-                APP_CONTEXT.twitch_client_id.value_or_rise(), APP_CONTEXT.twitch_credentials.value_or_rise()
-            )
-            twitch.user_auth_refresh_callback = _user_user_refresh
-            access_token, refresh_token = await _new_tokens(twitch)
-
+        twitch: Optional[Twitch] = None
         try:
+            if APP_CONTEXT.twitch_tokens.is_valid():
+                access_token, refresh_token = APP_CONTEXT.twitch_tokens.value_or_rise()
+                twitch = await Twitch(
+                    APP_CONTEXT.twitch_client_id.value_or_rise(),
+                    APP_CONTEXT.twitch_credentials.value_or_rise(),
+                    authenticate_app=False,
+                )
+                twitch.user_auth_refresh_callback = _user_user_refresh
+
+            else:
+                twitch = await Twitch(
+                    APP_CONTEXT.twitch_client_id.value_or_rise(), APP_CONTEXT.twitch_credentials.value_or_rise()
+                )
+                twitch.user_auth_refresh_callback = _user_user_refresh
+                access_token, refresh_token = await _new_tokens(twitch)
+
             await twitch.set_user_authentication(access_token, cls._SCOPES, refresh_token, validate=True)
         except (InvalidRefreshTokenException, UnauthorizedException):
             log_twitch(LogLevel.ERROR, "Invalid refresh token: try to reauthenticate...")
-            access_token, refresh_token = await _new_tokens(twitch)
-            await twitch.set_user_authentication(access_token, cls._SCOPES, refresh_token, validate=True)
+            try:
+                assert twitch is not None
+                access_token, refresh_token = await _new_tokens(twitch)
+                await twitch.set_user_authentication(access_token, cls._SCOPES, refresh_token, validate=True)
+            except (InvalidRefreshTokenException, UnauthorizedException) as e:
+                log_twitch(LogLevel.ERROR, f"Twitch authentication failed: {e}")
+                return None
+        except (Exception, TwitchAuthorizationException) as e:
+            log_twitch(LogLevel.ERROR, f"Twitch connection failed: {e}")
+            return None
 
+        assert twitch is not None
         return cls(twitch)

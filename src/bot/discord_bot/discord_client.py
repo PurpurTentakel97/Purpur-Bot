@@ -21,10 +21,11 @@ class DiscordClient(Client):
 
     def connect_chat(self, chat: DiscordServer) -> None:
         self._servers[chat.server_id] = chat
+        log_discord(LogLevel.INFO, f"Server {chat.server_id} initialized.")
 
     def _start(self) -> None:
         log_discord(LogLevel.INFO, "Connecting to Discord...")
-        asyncio.create_task(self.start(self._token))
+        asyncio.create_task(self.connect())
 
     @classmethod
     async def create(cls) -> Optional[Self]:
@@ -36,6 +37,12 @@ class DiscordClient(Client):
         intents.message_content = True
 
         instance = cls(intents=intents, token=APP_CONTEXT.discord_token.value_or_rise())
+        try:
+            await instance.login(instance._token)
+        except discord.LoginFailure as e:
+            log_discord(LogLevel.ERROR, f"Discord login failed: {e}")
+            return None
+
         instance._start()
 
         return instance

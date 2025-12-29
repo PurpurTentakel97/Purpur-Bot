@@ -30,10 +30,9 @@ class TwitchTokens(NamedTuple):
     @classmethod
     def try_load(cls) -> Optional[Self]:
         access_token = _get_env_var_or_default("TWITCH_ACCESS_TOKEN", None)
-        if access_token is None:
-            return None
         refresh_token = _get_env_var_or_default("TWITCH_REFRESH_TOKEN", None)
-        if refresh_token is None:
+
+        if access_token is None or refresh_token is None:
             return None
         return cls(access_token, refresh_token)
 
