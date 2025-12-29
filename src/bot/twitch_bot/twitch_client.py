@@ -1,7 +1,13 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from typing import Final
 from typing import Optional
 from typing import Self
 from typing import cast
+
+if TYPE_CHECKING:
+    from bot.twitch_bot.twitch_chat import TwitchChat
 
 from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.twitch import Twitch
@@ -20,7 +26,17 @@ class TwitchClient:
 
     def __init__(self, client: Twitch) -> None:
         self.client = client
+        self._chats: list[TwitchChat] = []
         log_twitch(LogLevel.INFO, "Twitch client is ready!")
+
+    def connect_chat(self, chat: TwitchChat) -> None:
+        self._chats.append(chat)
+
+    async def terminate(self) -> None:
+        for chat in self._chats:
+            await chat.terminate()
+        await self.client.close()
+        log_twitch(LogLevel.INFO, "Twitch client terminated.")
 
     @classmethod
     async def create(cls) -> Optional[Self]:

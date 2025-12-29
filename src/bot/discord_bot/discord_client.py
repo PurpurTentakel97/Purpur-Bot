@@ -18,6 +18,7 @@ class DiscordClient(Client):
         super().__init__(intents=intents)
         self._token: str = token
         self._servers: dict[int, DiscordServer] = {}
+        self._connection_task: Optional[asyncio.Task[None]] = None
 
     def connect_chat(self, chat: DiscordServer) -> None:
         self._servers[chat.server_id] = chat
@@ -25,7 +26,17 @@ class DiscordClient(Client):
 
     def _start(self) -> None:
         log_discord(LogLevel.INFO, "Connecting to Discord...")
-        asyncio.create_task(self.connect())
+        self._connection_task = asyncio.create_task(self.connect())
+
+    async def terminate(self) -> None:
+        await self.close()
+        if self._connection_task is not None:
+            self._connection_task.cancel()
+            try:
+                await self._connection_task
+            except asyncio.CancelledError:
+                pass
+        log_discord(LogLevel.INFO, "Discord client terminated.")
 
     @classmethod
     async def create(cls) -> Optional[Self]:
@@ -51,7 +62,7 @@ class DiscordClient(Client):
         log_discord(LogLevel.INFO, "Discord client is ready!")
 
     async def on_disconnect(self) -> None:
-        log_discord(LogLevel.ERROR, "Discord client disconnected!")
+        log_discord(LogLevel.INFO, "Discord client disconnected!")
 
     async def on_resumed(self) -> None:
         log_discord(LogLevel.INFO, "Discord client resumed!")

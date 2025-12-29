@@ -9,7 +9,14 @@ from bot.twitch_bot.twitch_client import TwitchClient
 DEBUG_ID = 1
 
 
-async def start_discord_bot() -> Optional[DiscordClient]:
+def _handle_console() -> None:
+    while True:
+        command = input()
+        if command == "exit":
+            break
+
+
+async def _start_discord_bot() -> Optional[DiscordClient]:
     discord_client = await DiscordClient.create()
 
     if discord_client is None:
@@ -20,7 +27,14 @@ async def start_discord_bot() -> Optional[DiscordClient]:
     return discord_client
 
 
-async def start_twitch_bot() -> Optional[TwitchClient]:
+async def _stop_discord_bot(discord_client: Optional[DiscordClient]) -> None:
+    if discord_client is None:
+        return
+
+    await discord_client.terminate()
+
+
+async def _start_twitch_bot() -> Optional[TwitchClient]:
     twitch_client = await TwitchClient.create()
 
     if twitch_client is None:
@@ -30,12 +44,21 @@ async def start_twitch_bot() -> Optional[TwitchClient]:
     return twitch_client
 
 
-async def main() -> None:
-    _discord_client: Optional[DiscordClient] = await start_discord_bot()  # pyright: ignore[reportUnusedVariable]
-    _twitch_client: Optional[TwitchClient] = await start_twitch_bot()  # pyright: ignore[reportUnusedVariable]
+async def _stop_twitch_bot(twitch_client: Optional[TwitchClient]) -> None:
+    if twitch_client is None:
+        return
 
-    while True:
-        await asyncio.sleep(1)
+    await twitch_client.terminate()
+
+
+async def main() -> None:
+    discord_client: Optional[DiscordClient] = await _start_discord_bot()
+    twitch_client: Optional[TwitchClient] = await _start_twitch_bot()
+
+    _handle_console()  # blocking
+
+    await _stop_discord_bot(discord_client)
+    await _stop_twitch_bot(twitch_client)
 
 
 def start() -> None:
