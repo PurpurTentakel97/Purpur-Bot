@@ -44,7 +44,6 @@ class TwitchClient:
             APP_CONTEXT.update_twitch_tokens(access_token, refresh_token)
             return access_token, refresh_token
 
-
         if APP_CONTEXT.twitch_tokens.is_valid():
             access_token, refresh_token = APP_CONTEXT.twitch_tokens.value_or_rise()
             twitch = await Twitch(

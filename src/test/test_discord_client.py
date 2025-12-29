@@ -31,12 +31,32 @@ def test_discord_client_connect_chat(discord_client: DiscordClient) -> None:
 
 @pytest.mark.asyncio
 async def test_discord_client_create() -> None:
-    token = "another_token"
-    with patch("bot.discord_bot.discord_client.DiscordClient._start") as mock_start:
-        client = await DiscordClient.create(token)
-        assert client._token == token
+    with (
+        patch("bot.discord_bot.discord_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.discord_bot.discord_client.DiscordClient._start") as mock_start,
+    ):
+        mock_ctx.discord_token.is_valid.return_value = True
+        mock_ctx.discord_token.value_or_rise.return_value = "another_token"
+
+        client = await DiscordClient.create()
+        assert client is not None
+        assert client._token == "another_token"
         mock_start.assert_called_once()
         assert isinstance(client, DiscordClient)
+
+
+@pytest.mark.asyncio
+async def test_discord_client_create_no_token() -> None:
+    with (
+        patch("bot.discord_bot.discord_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.discord_bot.discord_client.log_discord") as mock_log,
+    ):
+        mock_ctx.discord_token.is_valid.return_value = False
+
+        client = await DiscordClient.create()
+        assert client is None
+        mock_log.assert_called_once()
+        assert "Discord token not found" in mock_log.call_args[0][1]
 
 
 @pytest.mark.asyncio
