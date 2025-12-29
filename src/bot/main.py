@@ -9,7 +9,7 @@ from bot.types.programm_parts import ProgramParts
 async def main() -> None:
     program: ProgramParts = await startup_programm()
 
-    handle_console()  # blocking
+    await asyncio.to_thread(handle_console)
 
     await terminate_programm(program)
 
