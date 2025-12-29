@@ -38,11 +38,17 @@ class TwitchChat:
     @classmethod
     async def create(cls, twitch: TwitchClient, id_: int, channel_name: str) -> Self:
         chat = await Chat(twitch.client)
-        return cls(chat, id_, channel_name)
+        instance = cls(chat, id_, channel_name)
+        twitch.connect_chat(instance)
+        return instance
 
     async def handle_command(self, command: str) -> None:
         log_twitch(LogLevel.DEBUG, f"Received command: {command}")
         await self.chat.send_message(self.channel_name, "!ping")
+
+    async def terminate(self) -> None:
+        self.chat.stop()
+        log_twitch(LogLevel.INFO, f"Twitch chat for {self.channel_name} terminated.")
 
     async def _on_ready(self, ready_event: EventData) -> None:
         await ready_event.chat.join_room(self.channel_name)
