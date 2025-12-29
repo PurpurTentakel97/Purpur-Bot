@@ -22,7 +22,13 @@ class TwitchClient:
         log_twitch(LogLevel.INFO, "Twitch client is ready!")
 
     @classmethod
-    async def create(cls) -> Self:
+    async def create(cls) -> Optional[Self]:
+        if not APP_CONTEXT.twitch_client_id.is_valid() or not APP_CONTEXT.twitch_credentials.is_valid():
+            log_twitch(
+                LogLevel.ERROR, "Twitch credentials are not found in environment variables. Twitch Bot isn't started."
+            )
+            return None
+
         log_twitch(LogLevel.INFO, "Connecting in to Twitch...")
 
         async def _user_user_refresh(new_access_token: str, new_refresh_token: str) -> None:
@@ -38,14 +44,22 @@ class TwitchClient:
             APP_CONTEXT.update_twitch_tokens(access_token, refresh_token)
             return access_token, refresh_token
 
-        if APP_CONTEXT.twitch_tokens is None:
-            twitch = await Twitch(APP_CONTEXT.twitch_client_id, APP_CONTEXT.twitch_credentials)
+
+        if APP_CONTEXT.twitch_tokens.is_valid():
+            access_token, refresh_token = APP_CONTEXT.twitch_tokens.value_or_rise()
+            twitch = await Twitch(
+                APP_CONTEXT.twitch_client_id.value_or_rise(),
+                APP_CONTEXT.twitch_credentials.value_or_rise(),
+                authenticate_app=False,
+            )
+            twitch.user_auth_refresh_callback = _user_user_refresh
+
+        else:
+            twitch = await Twitch(
+                APP_CONTEXT.twitch_client_id.value_or_rise(), APP_CONTEXT.twitch_credentials.value_or_rise()
+            )
             twitch.user_auth_refresh_callback = _user_user_refresh
             access_token, refresh_token = await _new_tokens(twitch)
-        else:
-            access_token, refresh_token = APP_CONTEXT.twitch_tokens
-            twitch = await Twitch(APP_CONTEXT.twitch_client_id, APP_CONTEXT.twitch_credentials, authenticate_app=False)
-            twitch.user_auth_refresh_callback = _user_user_refresh
 
         try:
             await twitch.set_user_authentication(access_token, cls._SCOPES, refresh_token, validate=True)
