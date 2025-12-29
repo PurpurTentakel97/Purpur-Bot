@@ -2,7 +2,8 @@ from pathlib import Path
 from typing import Optional
 from typing import final
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
+from pydantic import ValidationError
 
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
