@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Optional
 from typing import final
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
@@ -40,6 +40,10 @@ def get_config() -> Optional[ProgrammConfig]:
         return None
 
     with PATH.open("r") as file:
-        config = ProgrammConfig.model_validate_json(file.read())
+        try:
+            config = ProgrammConfig.model_validate_json(file.read())
+        except ValidationError as e:
+            log_default(LogLevel.ERROR, f"config.json is invalid: {e}")
+            return None
         log_default(LogLevel.INFO, "config loaded successfully")
         return config
