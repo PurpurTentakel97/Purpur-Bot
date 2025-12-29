@@ -1,4 +1,5 @@
 # pyright: reportPrivateUsage=false
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
 from unittest.mock import patch
@@ -8,6 +9,7 @@ import pytest
 
 from bot.discord_bot.discord_client import DiscordClient
 from bot.discord_bot.discord_server import DiscordServer
+from bot.helpers.log import LogLevel
 
 
 @pytest.fixture
@@ -34,6 +36,7 @@ async def test_discord_client_create() -> None:
     with (
         patch("bot.discord_bot.discord_client.APP_CONTEXT") as mock_ctx,
         patch("bot.discord_bot.discord_client.DiscordClient._start") as mock_start,
+        patch("bot.discord_bot.discord_client.DiscordClient.login", new_callable=AsyncMock) as mock_login,
     ):
         mock_ctx.discord_token.is_valid.return_value = True
         mock_ctx.discord_token.value_or_rise.return_value = "another_token"
@@ -41,6 +44,7 @@ async def test_discord_client_create() -> None:
         client = await DiscordClient.create()
         assert client is not None
         assert client._token == "another_token"
+        mock_login.assert_called_once_with("another_token")
         mock_start.assert_called_once()
         assert isinstance(client, DiscordClient)
 
@@ -57,6 +61,22 @@ async def test_discord_client_create_no_token() -> None:
         assert client is None
         mock_log.assert_called_once()
         assert "Discord token not found" in mock_log.call_args[0][1]
+
+
+@pytest.mark.asyncio
+async def test_discord_client_create_login_failure() -> None:
+    with (
+        patch("bot.discord_bot.discord_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.discord_bot.discord_client.DiscordClient.login", new_callable=AsyncMock) as mock_login,
+        patch("bot.discord_bot.discord_client.log_discord") as mock_log,
+    ):
+        mock_ctx.discord_token.is_valid.return_value = True
+        mock_ctx.discord_token.value_or_rise.return_value = "invalid_token"
+        mock_login.side_effect = discord.LoginFailure("Improper token has been passed.")
+
+        client = await DiscordClient.create()
+        assert client is None
+        mock_log.assert_called_with(LogLevel.ERROR, "Discord login failed: Improper token has been passed.")
 
 
 @pytest.mark.asyncio

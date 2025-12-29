@@ -4,9 +4,11 @@ from unittest.mock import patch
 
 import pytest
 from twitchAPI.type import InvalidRefreshTokenException
+from twitchAPI.type import TwitchAuthorizationException
 from twitchAPI.type import UnauthorizedException
 
 from bot.helpers.app_context import TwitchTokens
+from bot.helpers.log import LogLevel
 from bot.twitch_bot.twitch_client import TwitchClient
 
 
@@ -113,7 +115,49 @@ async def test_twitch_client_create_invalid_tokens_reauth() -> None:
 
 
 @pytest.mark.asyncio
-async def test_twitch_client_create_invalid_refresh_token_reauth() -> None:
+async def test_twitch_client_create_auth_failure_all_attempts() -> None:
+    tokens = TwitchTokens("old_access", "old_refresh")
+
+    with (
+        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.twitch_bot.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
+        patch("bot.twitch_bot.twitch_client.log_twitch") as mock_log,
+    ):
+        mock_ctx.twitch_tokens.is_valid.return_value = True
+        mock_ctx.twitch_tokens.value_or_rise.return_value = tokens
+        mock_ctx.twitch_client_id.is_valid.return_value = True
+        mock_ctx.twitch_client_id.value_or_rise.return_value = "id"
+        mock_ctx.twitch_credentials.is_valid.return_value = True
+        mock_ctx.twitch_credentials.value_or_rise.return_value = "cred"
+
+        mock_twitch_instance = mock_twitch_cls.return_value
+        # All attempts fail
+        mock_twitch_instance.set_user_authentication.side_effect = UnauthorizedException()
+
+        mock_auth_instance = mock_auth_cls.return_value
+        mock_auth_instance.authenticate = AsyncMock(return_value=("new_access", "new_refresh"))
+
+        client = await TwitchClient.create()
+
+        assert client is None
+        assert mock_twitch_instance.set_user_authentication.call_count == 2
+        mock_log.assert_called_with(LogLevel.ERROR, "Twitch authentication failed: ")
+    tokens = TwitchTokens("old_access", "old_refresh")
+    with (
+        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.twitch_bot.twitch_client.log_twitch") as mock_log,
+    ):
+        mock_ctx.twitch_tokens.is_valid.return_value = False
+        mock_ctx.twitch_client_id.is_valid.return_value = True
+        mock_ctx.twitch_client_id.value_or_rise.return_value = "id"
+        mock_ctx.twitch_credentials.is_valid.return_value = True
+        mock_ctx.twitch_credentials.value_or_rise.return_value = "cred"
+        mock_twitch_cls.side_effect = TwitchAuthorizationException("Auth failed")
+        client = await TwitchClient.create()
+        assert client is None
+        mock_log.assert_called_with(LogLevel.ERROR, "Twitch connection failed: Auth failed")
     tokens = TwitchTokens("old_access", "old_refresh")
 
     with (
