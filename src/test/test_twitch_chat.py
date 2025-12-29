@@ -18,9 +18,10 @@ async def test_twitch_chat_create() -> None:
     # Mock Chat as an AsyncMock that returns another mock when called
     with patch("bot.twitch_bot.twitch_chat.Chat", new_callable=AsyncMock) as mock_chat_cls:
         mock_chat_cls.return_value = mock_chat_instance
-        chat = await TwitchChat.create(mock_twitch_client, "channel")
+        chat = await TwitchChat.create(mock_twitch_client, 1, "channel")
 
         assert isinstance(chat, TwitchChat)
+        assert chat.id == 1
         assert chat.channel_name == "channel"
         mock_chat_cls.assert_called_once_with(mock_twitch_client.client)
 
@@ -33,7 +34,7 @@ async def test_twitch_chat_init_registers_events() -> None:
         patch("bot.twitch_bot.twitch_chat.TwitchChat._on_ready", new_callable=AsyncMock),
         patch("bot.twitch_bot.twitch_chat.TwitchChat._on_message", new_callable=AsyncMock),
     ):
-        _ = TwitchChat(mock_chat, "channel")
+        _ = TwitchChat(mock_chat, 1, "channel")
 
         assert mock_chat.register_event.call_count == 2
         mock_chat.register_event.assert_any_call(ChatEvent.READY, ANY)
@@ -44,7 +45,7 @@ async def test_twitch_chat_init_registers_events() -> None:
 @pytest.mark.asyncio
 async def test_twitch_chat_on_ready() -> None:
     mock_chat = MagicMock()
-    chat = TwitchChat(mock_chat, "channel")
+    chat = TwitchChat(mock_chat, 1, "channel")
 
     mock_event = MagicMock()
     mock_event.chat = AsyncMock()
@@ -57,7 +58,7 @@ async def test_twitch_chat_on_ready() -> None:
 @pytest.mark.asyncio
 async def test_twitch_chat_on_message_no_command() -> None:
     mock_chat = MagicMock()
-    chat = TwitchChat(mock_chat, "channel")
+    chat = TwitchChat(mock_chat, 1, "channel")
 
     mock_message = MagicMock()
     mock_message.text = "Hello world"
@@ -70,7 +71,7 @@ async def test_twitch_chat_on_message_no_command() -> None:
 @pytest.mark.asyncio
 async def test_twitch_chat_on_message_command() -> None:
     mock_chat = MagicMock()
-    chat = TwitchChat(mock_chat, "channel")
+    chat = TwitchChat(mock_chat, 1, "channel")
 
     mock_message = MagicMock()
     mock_message.text = "!ping"
@@ -84,7 +85,7 @@ async def test_twitch_chat_on_message_command() -> None:
 async def test_twitch_chat_handle_command() -> None:
     mock_chat = MagicMock()
     mock_chat.send_message = AsyncMock()
-    chat = TwitchChat(mock_chat, "channel")
+    chat = TwitchChat(mock_chat, 1, "channel")
 
     await chat.handle_command("!any")
 
