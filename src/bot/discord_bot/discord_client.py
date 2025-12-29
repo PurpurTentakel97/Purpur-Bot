@@ -1,4 +1,5 @@
 import asyncio
+from typing import Optional
 from typing import Self
 from typing import final
 
@@ -6,6 +7,7 @@ import discord
 from discord import Client
 
 from bot.discord_bot.discord_server import DiscordServer
+from bot.helpers.app_context import APP_CONTEXT
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord
 
@@ -19,17 +21,28 @@ class DiscordClient(Client):
 
     def connect_chat(self, chat: DiscordServer) -> None:
         self._servers[chat.server_id] = chat
+        log_discord(LogLevel.INFO, f"Server {chat.server_id} initialized.")
 
     def _start(self) -> None:
         log_discord(LogLevel.INFO, "Connecting to Discord...")
-        asyncio.create_task(self.start(self._token))
+        asyncio.create_task(self.connect())
 
     @classmethod
-    async def create(cls, token: str) -> Self:
+    async def create(cls) -> Optional[Self]:
+        if not APP_CONTEXT.discord_token.is_valid():
+            log_discord(LogLevel.ERROR, "Discord token not found in environment variables. Discord Bot isn't started.")
+            return None
+
         intents = discord.Intents.default()
         intents.message_content = True
 
-        instance = cls(intents=intents, token=token)
+        instance = cls(intents=intents, token=APP_CONTEXT.discord_token.value_or_rise())
+        try:
+            await instance.login(instance._token)
+        except discord.LoginFailure as e:
+            log_discord(LogLevel.ERROR, f"Discord login failed: {e}")
+            return None
+
         instance._start()
 
         return instance

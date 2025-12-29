@@ -49,6 +49,6 @@ class TwitchChat:
         log_twitch(LogLevel.INFO, f"Twitch chat connected to {self.channel_name}")
 
     async def _on_message(self, message: ChatMessage) -> None:
-        log_twitch(LogLevel.DEBUG, f"Received message: {message.text}")
+        log_twitch(LogLevel.DEBUG, f"{self.channel_name} | {message.user.name}: {message.text}")
         if message.text.startswith("!"):
             await self.handle_command(message.text)

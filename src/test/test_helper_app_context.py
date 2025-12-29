@@ -5,26 +5,34 @@ from unittest.mock import patch
 import pytest
 
 from bot.helpers.app_context import AppContext
+from bot.helpers.app_context import OptionalAppContextEntry
 from bot.helpers.app_context import TwitchTokens
 from bot.helpers.app_context import _get_env_var_or_default  # type: ignore[reportPrivateUsage]
-from bot.helpers.app_context import _get_env_var_or_raise  # type: ignore[reportPrivateUsage]
 
 
-def test_get_env_var_or_raise_success() -> None:
-    with patch.dict(os.environ, {"TEST_VAR": "  value  "}):
-        assert _get_env_var_or_raise("TEST_VAR") == "value"
+def test_optional_app_context_entry_value_or_rise() -> None:
+    entry = OptionalAppContextEntry("value")
+    assert entry.value_or_rise() == "value"
 
 
-def test_get_env_var_or_raise_fail_not_set() -> None:
-    with patch.dict(os.environ, {}, clear=True):
-        with pytest.raises(ValueError, match="Environment variable 'TEST_VAR' is not set"):
-            _get_env_var_or_raise("TEST_VAR")
+def test_optional_app_context_entry_value_or_rise_fail() -> None:
+    entry: OptionalAppContextEntry[str] = OptionalAppContextEntry(None)
+    with pytest.raises(RuntimeError, match="Value is not set"):
+        entry.value_or_rise()
 
 
-def test_get_env_var_or_raise_fail_empty() -> None:
-    with patch.dict(os.environ, {"TEST_VAR": "   "}):
-        with pytest.raises(ValueError, match="Environment variable 'TEST_VAR' is not set"):
-            _get_env_var_or_raise("TEST_VAR")
+def test_optional_app_context_entry_value_or_default() -> None:
+    entry: OptionalAppContextEntry[str] = OptionalAppContextEntry(None)
+    assert entry.value_or_default("default") == "default"
+    entry.set_value("value")
+    assert entry.value_or_default("default") == "value"
+
+
+def test_optional_app_context_entry_is_valid() -> None:
+    entry: OptionalAppContextEntry[str] = OptionalAppContextEntry(None)
+    assert not entry.is_valid()
+    entry.set_value("value")
+    assert entry.is_valid()
 
 
 def test_get_env_var_or_default_success() -> None:
@@ -151,9 +159,9 @@ def test_app_context_update_twitch_tokens(tmp_path: Path) -> None:
 
         ctx.update_twitch_tokens("new_access", "new_refresh")
 
-        assert ctx.twitch_tokens is not None
-        assert ctx.twitch_tokens.access_token == "new_access"
-        assert ctx.twitch_tokens.refresh_token == "new_refresh"
+        assert ctx.twitch_tokens.is_valid()
+        assert ctx.twitch_tokens.value_or_rise().access_token == "new_access"
+        assert ctx.twitch_tokens.value_or_rise().refresh_token == "new_refresh"
 
         content = env_file.read_text(encoding="utf-8")
         assert "TWITCH_ACCESS_TOKEN=new_access\n" in content

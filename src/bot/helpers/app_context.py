@@ -8,18 +8,10 @@ from typing import Optional
 from typing import Self
 from typing import final
 
-from attr import dataclass
 from dotenv import load_dotenv
 
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
-
-
-def _get_env_var_or_raise(key: str) -> str:
-    value = os.getenv(key)
-    if value is None or not value.strip():
-        raise ValueError(f"Environment variable '{key}' is not set")
-    return value.strip()
 
 
 def _get_env_var_or_default(key: str, default: str | None) -> str | None:
@@ -38,26 +30,68 @@ class TwitchTokens(NamedTuple):
     @classmethod
     def try_load(cls) -> Optional[Self]:
         access_token = _get_env_var_or_default("TWITCH_ACCESS_TOKEN", None)
-        if access_token is None:
-            return None
         refresh_token = _get_env_var_or_default("TWITCH_REFRESH_TOKEN", None)
-        if refresh_token is None:
+
+        if access_token is None or refresh_token is None:
             return None
         return cls(access_token, refresh_token)
 
 
 @final
-@dataclass(frozen=True)
+class AppContextEntry[T]:
+    def __init__(self, value: T) -> None:
+        self._value: T = value
+
+    def value(self) -> T:
+        return self._value
+
+    def set_value(self, value: T) -> None:
+        self._value = value
+
+
+@final
+class OptionalAppContextEntry[T]:
+    def __init__(self, value: Optional[T]) -> None:
+        self._value: Optional[T] = value
+
+    def value_unsafe(self) -> Optional[T]:
+        return self._value
+
+    def value_or_rise(self) -> T:
+        if self._value is None:
+            raise RuntimeError("Value is not set")
+        return self._value
+
+    def value_or_default(self, default: T) -> T:
+        if self._value is None:
+            return default
+        return self._value
+
+    def set_value(self, value: T) -> None:
+        self._value = value
+
+    def is_valid(self) -> bool:
+        return self._value is not None
+
+
+@final
 class AppContext:
     _ENV_FILE_PATH: ClassVar = Path(os.getcwd()) / ".env"
 
-    discord_token: str
-    twitch_client_id: str
-    twitch_credentials: str
-    twitch_tokens: Optional[TwitchTokens]
+    def __init__(
+        self,
+        discord_token: Optional[str],
+        twitch_client_id: Optional[str],
+        twitch_credentials: Optional[str],
+        twitch_tokens: Optional[TwitchTokens],
+    ) -> None:
+        self.discord_token: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_token)
+        self.twitch_client_id: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_client_id)
+        self.twitch_credentials: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_credentials)
+        self.twitch_tokens: OptionalAppContextEntry[TwitchTokens] = OptionalAppContextEntry(twitch_tokens)
 
     def update_twitch_tokens(self, new_access_token: str, new_refresh_token: str) -> None:
-        object.__setattr__(self, "twitch_tokens", TwitchTokens(new_access_token, new_refresh_token))
+        self.twitch_tokens.set_value(TwitchTokens(new_access_token, new_refresh_token))
         self._update_env_file(
             self._ENV_FILE_PATH,
             {"TWITCH_ACCESS_TOKEN": new_access_token, "TWITCH_REFRESH_TOKEN": new_refresh_token},
@@ -107,8 +141,8 @@ class AppContext:
 
 load_dotenv()
 APP_CONTEXT = AppContext(
-    discord_token=_get_env_var_or_raise("DISCORD_TOKEN"),
-    twitch_client_id=_get_env_var_or_raise("TWITCH_CLIENT_ID"),
-    twitch_credentials=_get_env_var_or_raise("TWITCH_CREDENTIALS"),
+    discord_token=_get_env_var_or_default("DISCORD_TOKEN", None),
+    twitch_client_id=_get_env_var_or_default("TWITCH_CLIENT_ID", None),
+    twitch_credentials=_get_env_var_or_default("TWITCH_CREDENTIALS", None),
     twitch_tokens=TwitchTokens.try_load(),
 )
