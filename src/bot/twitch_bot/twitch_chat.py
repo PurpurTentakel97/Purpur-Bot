@@ -11,9 +11,10 @@ from bot.twitch_bot.twitch_client import TwitchClient
 
 
 class TwitchChat:
-    def __init__(self, chat: Chat, channel_name: str) -> None:
-        self.chat = chat
-        self.channel_name = channel_name
+    def __init__(self, chat: Chat, id_: int, channel_name: str) -> None:
+        self.chat: Chat = chat
+        self._id: int = id_
+        self._channel_name: str = channel_name
 
         async def _on_ready(ready_event: EventData) -> None:
             await self._on_ready(ready_event)
@@ -26,10 +27,18 @@ class TwitchChat:
 
         self.chat.start()
 
+    @property
+    def id(self) -> int:
+        return self._id
+
+    @property
+    def channel_name(self) -> str:
+        return self._channel_name
+
     @classmethod
-    async def create(cls, twitch: TwitchClient, channel_name: str) -> Self:
+    async def create(cls, twitch: TwitchClient, id_: int, channel_name: str) -> Self:
         chat = await Chat(twitch.client)
-        return cls(chat, channel_name)
+        return cls(chat, id_, channel_name)
 
     async def handle_command(self, command: str) -> None:
         log_twitch(LogLevel.DEBUG, f"Received command: {command}")
