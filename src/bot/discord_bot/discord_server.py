@@ -1,4 +1,3 @@
-from typing import cast
 from typing import final
 
 import discord
@@ -37,13 +36,14 @@ class DiscordServer(Chat):
             return PermissionLevel.USER
 
         # the author is a member of the server by now since the client called this method.
-        author = cast(discord.Member, message.author)
+        if not isinstance(message.author, discord.Member):
+            raise AssertionError("Expected author to be a Member")
 
         msg = ChatMessage(
             id_=self._id,
             text=message.content,
             sender_chat=self,
-            sender_permission_level=_get_permission_level(author),
+            sender_permission_level=_get_permission_level(message.author),
             meta_data=message,
         )
         await self.message_queue.put(msg)
