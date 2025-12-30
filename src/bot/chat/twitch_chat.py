@@ -59,6 +59,8 @@ class TwitchChat(Chat):
         log_twitch(LogLevel.INFO, f"Twitch chat connected to {self.channel_name}")
 
     async def _on_message(self, message: TwitchChatMessage) -> None:
+        log_twitch(LogLevel.DEBUG, f"{message.user.name}: {message.text}")
+
         def _get_user_permission_level(user: ChatUser) -> PermissionLevel:
             # cast is needed because the lib does not provide a proper type hint for the result
             # however, the documentation ensures that badges are a dict or None
