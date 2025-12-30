@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import discord
 import pytest
 
-from bot.discord_bot.discord_server import DiscordServer
+from bot.chat.discord_server import DiscordServer
 from bot.types.feature_flag import DEFAULT_DISCORD_FEATURES
 
 

@@ -7,9 +7,9 @@ from twitchAPI.type import InvalidRefreshTokenException
 from twitchAPI.type import TwitchAuthorizationException
 from twitchAPI.type import UnauthorizedException
 
+from bot.chat.twitch_client import TwitchClient
 from bot.helpers.app_context import TwitchTokens
 from bot.helpers.log import LogLevel
-from bot.twitch_bot.twitch_client import TwitchClient
 
 
 @pytest.mark.asyncio
@@ -18,8 +18,8 @@ async def test_twitch_client_create_success_with_tokens() -> None:
     tokens = TwitchTokens("access", "refresh")
 
     with (
-        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
-        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.chat.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.chat.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
     ):
         mock_ctx.twitch_tokens.is_valid.return_value = True
         mock_ctx.twitch_tokens.value_or_rise.return_value = tokens
@@ -47,9 +47,9 @@ async def test_twitch_client_create_success_with_tokens() -> None:
 @pytest.mark.asyncio
 async def test_twitch_client_create_no_tokens() -> None:
     with (
-        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
-        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
-        patch("bot.twitch_bot.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
+        patch("bot.chat.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.chat.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.chat.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
     ):
         mock_ctx.twitch_tokens.is_valid.return_value = False
         mock_ctx.twitch_client_id.is_valid.return_value = True
@@ -81,9 +81,9 @@ async def test_twitch_client_create_invalid_tokens_reauth() -> None:
     tokens = TwitchTokens("old_access", "old_refresh")
 
     with (
-        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
-        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
-        patch("bot.twitch_bot.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
+        patch("bot.chat.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.chat.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.chat.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
     ):
         mock_ctx.twitch_tokens.is_valid.return_value = True
         mock_ctx.twitch_tokens.value_or_rise.return_value = tokens
@@ -119,10 +119,10 @@ async def test_twitch_client_create_auth_failure_all_attempts() -> None:
     tokens = TwitchTokens("old_access", "old_refresh")
 
     with (
-        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
-        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
-        patch("bot.twitch_bot.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
-        patch("bot.twitch_bot.twitch_client.log_twitch") as mock_log,
+        patch("bot.chat.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.chat.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.chat.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
+        patch("bot.chat.twitch_client.log_twitch") as mock_log,
     ):
         mock_ctx.twitch_tokens.is_valid.return_value = True
         mock_ctx.twitch_tokens.value_or_rise.return_value = tokens
@@ -145,9 +145,9 @@ async def test_twitch_client_create_auth_failure_all_attempts() -> None:
         mock_log.assert_called_with(LogLevel.ERROR, "Twitch authentication failed: ")
     tokens = TwitchTokens("old_access", "old_refresh")
     with (
-        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
-        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
-        patch("bot.twitch_bot.twitch_client.log_twitch") as mock_log,
+        patch("bot.chat.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.chat.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.chat.twitch_client.log_twitch") as mock_log,
     ):
         mock_ctx.twitch_tokens.is_valid.return_value = False
         mock_ctx.twitch_client_id.is_valid.return_value = True
@@ -161,9 +161,9 @@ async def test_twitch_client_create_auth_failure_all_attempts() -> None:
     tokens = TwitchTokens("old_access", "old_refresh")
 
     with (
-        patch("bot.twitch_bot.twitch_client.APP_CONTEXT") as mock_ctx,
-        patch("bot.twitch_bot.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
-        patch("bot.twitch_bot.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
+        patch("bot.chat.twitch_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.chat.twitch_client.Twitch", new_callable=AsyncMock) as mock_twitch_cls,
+        patch("bot.chat.twitch_client.UserAuthenticator", new_callable=MagicMock) as mock_auth_cls,
     ):
         mock_ctx.twitch_tokens.is_valid.return_value = True
         mock_ctx.twitch_tokens.value_or_rise.return_value = tokens

@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 from twitchAPI.chat import ChatEvent
 
-from bot.twitch_bot.twitch_chat import TwitchChat
+from bot.chat.twitch_chat import TwitchChat
 from bot.types.feature_flag import DEFAULT_TWITCH_FEATURES
 
 
@@ -17,7 +17,7 @@ async def test_twitch_chat_create() -> None:
 
     mock_chat_instance = MagicMock()
     # Mock TwitchChatClient as an AsyncMock that returns another mock when called
-    with patch("bot.twitch_bot.twitch_chat.TwitchChatClient", new_callable=AsyncMock) as mock_chat_cls:
+    with patch("bot.chat.twitch_chat.TwitchChatClient", new_callable=AsyncMock) as mock_chat_cls:
         mock_chat_cls.return_value = mock_chat_instance
         chat = await TwitchChat.create(mock_twitch_client, 1, "channel", DEFAULT_TWITCH_FEATURES)
 
@@ -32,8 +32,8 @@ async def test_twitch_chat_init_registers_events() -> None:
     mock_chat = MagicMock()
 
     with (
-        patch("bot.twitch_bot.twitch_chat.TwitchChat._on_ready", new_callable=AsyncMock),
-        patch("bot.twitch_bot.twitch_chat.TwitchChat._on_message", new_callable=AsyncMock),
+        patch("bot.chat.twitch_chat.TwitchChat._on_ready", new_callable=AsyncMock),
+        patch("bot.chat.twitch_chat.TwitchChat._on_message", new_callable=AsyncMock),
     ):
         _ = TwitchChat(mock_chat, 1, "channel", DEFAULT_TWITCH_FEATURES)
 
