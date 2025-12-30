@@ -6,10 +6,11 @@ from typing import final
 import discord
 from discord import Client
 
-from bot.discord_bot.discord_server import DiscordServer
+from bot.chat.discord_server import DiscordServer
 from bot.helpers.app_context import APP_CONTEXT
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord
+from bot.types.chat_message import ChatMessage
 
 
 @final
@@ -19,6 +20,13 @@ class DiscordClient(Client):
         self._token: str = token
         self._servers: dict[int, DiscordServer] = {}
         self._connection_task: Optional[asyncio.Task[None]] = None
+
+    async def get_next_message(self) -> Optional[ChatMessage]:
+        for server in self._servers.values():
+            message = await server.get_next_message()
+            if message is not None:
+                return message
+        return None
 
     def connect_chat(self, chat: DiscordServer) -> None:
         self._servers[chat.server_id] = chat
@@ -82,4 +90,4 @@ class DiscordClient(Client):
             log_discord(LogLevel.DEBUG, f"{incoming_server_id} | {message.author}: {message.content}")
             return
 
-        self._servers[incoming_server_id].on_message(message)
+        await self._servers[incoming_server_id].on_message(message)

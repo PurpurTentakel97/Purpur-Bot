@@ -1,7 +1,7 @@
 from typing import Optional
 
-from bot.discord_bot.discord_client import DiscordClient
-from bot.twitch_bot.twitch_client import TwitchClient
+from bot.chat.discord_client import DiscordClient
+from bot.chat.twitch_client import TwitchClient
 from bot.types.programm_parts import ProgramParts
 
 

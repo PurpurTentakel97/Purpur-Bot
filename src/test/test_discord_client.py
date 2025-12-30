@@ -7,8 +7,8 @@ from unittest.mock import patch
 import discord
 import pytest
 
-from bot.discord_bot.discord_client import DiscordClient
-from bot.discord_bot.discord_server import DiscordServer
+from bot.chat.discord_client import DiscordClient
+from bot.chat.discord_server import DiscordServer
 from bot.helpers.log import LogLevel
 
 
@@ -34,9 +34,9 @@ def test_discord_client_connect_chat(discord_client: DiscordClient) -> None:
 @pytest.mark.asyncio
 async def test_discord_client_create() -> None:
     with (
-        patch("bot.discord_bot.discord_client.APP_CONTEXT") as mock_ctx,
-        patch("bot.discord_bot.discord_client.DiscordClient._start") as mock_start,
-        patch("bot.discord_bot.discord_client.DiscordClient.login", new_callable=AsyncMock) as mock_login,
+        patch("bot.chat.discord_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.chat.discord_client.DiscordClient._start") as mock_start,
+        patch("bot.chat.discord_client.DiscordClient.login", new_callable=AsyncMock) as mock_login,
     ):
         mock_ctx.discord_token.is_valid.return_value = True
         mock_ctx.discord_token.value_or_rise.return_value = "another_token"
@@ -52,8 +52,8 @@ async def test_discord_client_create() -> None:
 @pytest.mark.asyncio
 async def test_discord_client_create_no_token() -> None:
     with (
-        patch("bot.discord_bot.discord_client.APP_CONTEXT") as mock_ctx,
-        patch("bot.discord_bot.discord_client.log_discord") as mock_log,
+        patch("bot.chat.discord_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.chat.discord_client.log_discord") as mock_log,
     ):
         mock_ctx.discord_token.is_valid.return_value = False
 
@@ -66,9 +66,9 @@ async def test_discord_client_create_no_token() -> None:
 @pytest.mark.asyncio
 async def test_discord_client_create_login_failure() -> None:
     with (
-        patch("bot.discord_bot.discord_client.APP_CONTEXT") as mock_ctx,
-        patch("bot.discord_bot.discord_client.DiscordClient.login", new_callable=AsyncMock) as mock_login,
-        patch("bot.discord_bot.discord_client.log_discord") as mock_log,
+        patch("bot.chat.discord_client.APP_CONTEXT") as mock_ctx,
+        patch("bot.chat.discord_client.DiscordClient.login", new_callable=AsyncMock) as mock_login,
+        patch("bot.chat.discord_client.log_discord") as mock_log,
     ):
         mock_ctx.discord_token.is_valid.return_value = True
         mock_ctx.discord_token.value_or_rise.return_value = "invalid_token"
@@ -81,7 +81,7 @@ async def test_discord_client_create_login_failure() -> None:
 
 @pytest.mark.asyncio
 async def test_discord_client_on_ready(discord_client: DiscordClient) -> None:
-    with patch("bot.discord_bot.discord_client.log_discord") as mock_log:
+    with patch("bot.chat.discord_client.log_discord") as mock_log:
         await discord_client.on_ready()
         mock_log.assert_called_once()
         assert "ready" in mock_log.call_args[0][1]
@@ -95,7 +95,7 @@ async def test_on_message_ignore_self(discord_client: DiscordClient) -> None:
         mock_user.return_value = MagicMock()
         mock_message.author = mock_user.return_value
 
-        with patch("bot.discord_bot.discord_client.log_discord") as mock_log:
+        with patch("bot.chat.discord_client.log_discord") as mock_log:
             await discord_client.on_message(mock_message)
             mock_log.assert_not_called()
 
@@ -110,7 +110,7 @@ async def test_on_message_dm(discord_client: DiscordClient) -> None:
     with patch.object(DiscordClient, "user", new_callable=PropertyMock) as mock_user:
         mock_user.return_value = MagicMock()
 
-        with patch("bot.discord_bot.discord_client.log_discord") as mock_log:
+        with patch("bot.chat.discord_client.log_discord") as mock_log:
             await discord_client.on_message(mock_message)
             # Should log DM
             assert any("DM | dm_user: dm_content" in str(call) for call in mock_log.call_args_list)
@@ -128,7 +128,7 @@ async def test_on_message_server_not_found(discord_client: DiscordClient) -> Non
     with patch.object(DiscordClient, "user", new_callable=PropertyMock) as mock_user:
         mock_user.return_value = MagicMock()
 
-        with patch("bot.discord_bot.discord_client.log_discord") as mock_log:
+        with patch("bot.chat.discord_client.log_discord") as mock_log:
             await discord_client.on_message(mock_message)
             # Should log error and debug message
             log_messages = [call[0][1] for call in mock_log.call_args_list]
