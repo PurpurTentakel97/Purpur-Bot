@@ -82,4 +82,4 @@ class DiscordClient(Client):
             log_discord(LogLevel.DEBUG, f"{incoming_server_id} | {message.author}: {message.content}")
             return
 
-        self._servers[incoming_server_id].on_message(message)
+        await self._servers[incoming_server_id].on_message(message)

@@ -8,6 +8,8 @@ from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 from bot.twitch_bot.twitch_chat import TwitchChat
 from bot.twitch_bot.twitch_client import TwitchClient
+from bot.types.feature_flag import DEFAULT_DISCORD_FEATURES
+from bot.types.feature_flag import DEFAULT_TWITCH_FEATURES
 from bot.types.programm_parts import ProgramParts
 
 
@@ -19,7 +21,7 @@ async def _start_discord_bot(config: ProgrammConfig) -> Optional[DiscordClient]:
 
     for user in config.user:
         for channel in user.discord:
-            discord_server = DiscordServer(user.id, channel)
+            discord_server = DiscordServer(user.id, channel, DEFAULT_DISCORD_FEATURES)
             discord_client.connect_chat(discord_server)
 
     return discord_client
@@ -33,7 +35,7 @@ async def _start_twitch_bot(config: ProgrammConfig) -> Optional[TwitchClient]:
 
     for user in config.user:
         for channel in user.twitch:
-            await TwitchChat.create(twitch_client, user.id, channel)
+            await TwitchChat.create(twitch_client, user.id, channel, DEFAULT_TWITCH_FEATURES)
 
     return twitch_client
 
