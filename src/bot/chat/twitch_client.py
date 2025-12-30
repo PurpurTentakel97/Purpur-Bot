@@ -6,6 +6,8 @@ from typing import Optional
 from typing import Self
 from typing import cast
 
+from bot.types.chat_message import ChatMessage
+
 if TYPE_CHECKING:
     from bot.chat.twitch_chat import TwitchChat
 
@@ -28,6 +30,13 @@ class TwitchClient:
         self.client = client
         self._chats: list[TwitchChat] = []
         log_twitch(LogLevel.INFO, "Twitch client is ready!")
+
+    async def get_next_message(self) -> Optional[ChatMessage]:
+        for chat in self._chats:
+            message = await chat.get_next_message()
+            if message is not None:
+                return message
+        return None
 
     def connect_chat(self, chat: TwitchChat) -> None:
         self._chats.append(chat)
