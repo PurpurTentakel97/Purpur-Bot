@@ -1,13 +1,13 @@
 from typing import Optional
 
-from bot.discord_bot.discord_client import DiscordClient
-from bot.discord_bot.discord_server import DiscordServer
+from bot.chat.discord_client import DiscordClient
+from bot.chat.discord_server import DiscordServer
+from bot.chat.twitch_chat import TwitchChat
+from bot.chat.twitch_client import TwitchClient
 from bot.helpers.config import ProgrammConfig
 from bot.helpers.config import get_config
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
-from bot.twitch_bot.twitch_chat import TwitchChat
-from bot.twitch_bot.twitch_client import TwitchClient
 from bot.types.feature_flag import DEFAULT_DISCORD_FEATURES
 from bot.types.feature_flag import DEFAULT_TWITCH_FEATURES
 from bot.types.programm_parts import ProgramParts

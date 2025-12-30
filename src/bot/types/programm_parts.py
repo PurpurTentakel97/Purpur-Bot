@@ -2,9 +2,9 @@ from typing import Optional
 
 from attr import dataclass
 
-from bot.discord_bot.discord_client import DiscordClient
+from bot.chat.discord_client import DiscordClient
+from bot.chat.twitch_client import TwitchClient
 from bot.helpers.config import ProgrammConfig
-from bot.twitch_bot.twitch_client import TwitchClient
 
 
 @dataclass

@@ -7,7 +7,7 @@ from attr import dataclass
 from bot.types.permission_level import PermissionLevel
 
 if TYPE_CHECKING:
-    from bot.twitch_bot.twitch_chat import Chat
+    from bot.chat.twitch_chat import Chat
 
 
 @final

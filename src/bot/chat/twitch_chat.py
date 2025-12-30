@@ -9,9 +9,9 @@ from twitchAPI.chat import ChatUser
 from twitchAPI.chat import EventData
 
 from bot.chat.chat import Chat
+from bot.chat.twitch_client import TwitchClient
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_twitch
-from bot.twitch_bot.twitch_client import TwitchClient
 from bot.types.chat_message import ChatMessage
 from bot.types.feature_flag import FeatureFlags
 from bot.types.permission_level import PermissionLevel

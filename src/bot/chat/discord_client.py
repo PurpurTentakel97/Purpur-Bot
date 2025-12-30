@@ -6,7 +6,7 @@ from typing import final
 import discord
 from discord import Client
 
-from bot.discord_bot.discord_server import DiscordServer
+from bot.chat.discord_server import DiscordServer
 from bot.helpers.app_context import APP_CONTEXT
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord

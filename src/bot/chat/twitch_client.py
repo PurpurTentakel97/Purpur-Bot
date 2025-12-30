@@ -7,7 +7,7 @@ from typing import Self
 from typing import cast
 
 if TYPE_CHECKING:
-    from bot.twitch_bot.twitch_chat import TwitchChat
+    from bot.chat.twitch_chat import TwitchChat
 
 from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.twitch import Twitch
