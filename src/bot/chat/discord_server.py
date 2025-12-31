@@ -1,4 +1,5 @@
 from typing import final
+from typing import override
 
 import discord
 
@@ -6,6 +7,7 @@ from bot.chat.chat import Chat
 from bot.types.chat_message import ChatMessage
 from bot.types.feature_flag import FeatureFlags
 from bot.types.permission_level import PermissionLevel
+from bot.types.response_message import ResponseMessage
 
 
 @final
@@ -21,6 +23,11 @@ class DiscordServer(Chat):
     @property
     def server_id(self) -> int:
         return self._server_id
+
+    @override
+    async def send_response(self, messages: list[ResponseMessage]) -> None:
+        for message in messages:
+            await message.meta_data.channel.send(message.text)
 
     async def on_message(self, message: discord.Message) -> None:
         def _get_permission_level(user: discord.Member) -> PermissionLevel:
