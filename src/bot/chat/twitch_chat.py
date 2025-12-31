@@ -86,7 +86,8 @@ class TwitchChat(Chat):
             text=message.text,
             sender_chat=self,
             sender_permission_level=_get_user_permission_level(message.user),
-            meta_data=message,
+            original_message=message,
+            meta_data=None,
         )
 
         await self.message_queue.put(msg)

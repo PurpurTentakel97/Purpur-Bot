@@ -17,7 +17,9 @@ def handle_single_message(message: ChatMessage) -> list[ResponseMessage]:
     response_messages: list[ResponseMessage] = []
 
     if message.text.strip().startswith("!"):
-        response_messages.append(handle_command(message))
+        response = handle_command(message)
+        if response is not None:
+            response_messages.append(response)
 
     return response_messages
 

@@ -17,4 +17,5 @@ class ChatMessage:
     text: str
     sender_chat: "Chat"
     sender_permission_level: PermissionLevel
+    original_message: Any
     meta_data: Any

@@ -27,7 +27,7 @@ class DiscordServer(Chat):
     @override
     async def send_response(self, messages: list[ResponseMessage]) -> None:
         for message in messages:
-            await message.meta_data.channel.send(message.text)
+            await message.original_message.channel.send(message.text)
 
     async def on_message(self, message: discord.Message) -> None:
         def _get_permission_level(user: discord.Member) -> PermissionLevel:
@@ -51,6 +51,7 @@ class DiscordServer(Chat):
             text=message.content,
             sender_chat=self,
             sender_permission_level=_get_permission_level(message.author),
-            meta_data=message,
+            original_message=message,
+            meta_data=None,
         )
         await self.message_queue.put(msg)

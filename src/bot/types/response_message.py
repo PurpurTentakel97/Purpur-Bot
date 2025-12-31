@@ -13,4 +13,5 @@ if TYPE_CHECKING:
 class ResponseMessage:
     text: str
     destination_chat: "Chat"
+    original_message: Any
     meta_data: Any
