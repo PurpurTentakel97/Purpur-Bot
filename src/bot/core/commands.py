@@ -1,20 +1,18 @@
 from typing import Optional
-from bot.helpers.log import log_default, LogLevel
+
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
 from bot.types.chat_message import ChatMessage
 from bot.types.response_message import ResponseMessage
 
 
 def add_command(id_: int, command_name: str, command_message: str) -> ResponseMessage:
-    log_default(
-        LogLevel.DEBUG, f"command '{command_name}' added: '{command_message}' to id {id_}"
-    )
+    log_default(LogLevel.DEBUG, f"command '{command_name}' added: '{command_message}' to id {id_}")
     return ResponseMessage()
 
 
 def edit_command(id_: int, command_name: str, command_message: str) -> ResponseMessage:
-    log_default(
-        LogLevel.DEBUG, f"command '{command_name}' edited: '{command_message}' with id {id_}"
-    )
+    log_default(LogLevel.DEBUG, f"command '{command_name}' edited: '{command_message}' with id {id_}")
     return ResponseMessage()
 
 

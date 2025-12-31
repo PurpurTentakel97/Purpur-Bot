@@ -11,8 +11,9 @@ from bot.types.programm_parts import ProgramParts
 # !command add|edit|remove NAME MESSAGE
 # !dict add|edit|remove NAME MESSAGE
 
+
 def handle_single_message(message: ChatMessage) -> None:
-    if message.text.strip().startswith('!'):
+    if message.text.strip().startswith("!"):
         handle_command(message)
 
 
@@ -25,7 +26,8 @@ async def handle_messages(program: ProgramParts) -> None:
                 if message is None:
                     break
                 log_twitch(
-                    LogLevel.DEBUG, f"{message.sender_chat.id} | {message.sender_permission_level.name} | {message.text}"
+                    LogLevel.DEBUG,
+                    f"{message.sender_chat.id} | {message.sender_permission_level.name} | {message.text}",
                 )
                 handle_single_message(message)
 
@@ -35,7 +37,8 @@ async def handle_messages(program: ProgramParts) -> None:
                 if message is None:
                     break
                 log_discord(
-                    LogLevel.DEBUG, f"{message.sender_chat.id} | {message.sender_permission_level.name} | {message.text}"
+                    LogLevel.DEBUG,
+                    f"{message.sender_chat.id} | {message.sender_permission_level.name} | {message.text}",
                 )
                 handle_single_message(message)
 
