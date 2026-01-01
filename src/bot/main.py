@@ -4,12 +4,11 @@ from bot.core.console import handle_console
 from bot.core.message_handler import handle_messages
 from bot.helpers.startup import startup_programm
 from bot.helpers.terminate import terminate_programm
-from bot.types.programm_parts import ProgramParts
 
 
 async def main() -> None:
-    program: ProgramParts = await startup_programm()
-    message_task = asyncio.create_task(handle_messages(program))
+    await startup_programm()
+    message_task = asyncio.create_task(handle_messages())
 
     await asyncio.to_thread(handle_console)  # blocking
 
@@ -19,7 +18,7 @@ async def main() -> None:
     except asyncio.CancelledError:
         pass
 
-    await terminate_programm(program)
+    await terminate_programm()
 
 
 def start() -> None:

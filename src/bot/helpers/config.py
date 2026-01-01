@@ -22,7 +22,7 @@ class UserConfig(BaseModel):
 @final
 class ProgrammConfig(BaseModel):
     version: str = "0.0.1"
-    user: list[UserConfig]
+    user: list[UserConfig] = []
 
 
 def _save_default_config() -> None:

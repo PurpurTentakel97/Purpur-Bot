@@ -3,7 +3,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from typing import Optional
+from typing import Self
 from typing import final
+
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
 
 DATABASE_PATH = Path.cwd() / "bot.db"
 
@@ -40,11 +44,25 @@ class DatabaseGetData:
 
 @final
 class Database:
-    def __init__(self) -> None:
-        self._connection = sqlite3.connect(DATABASE_PATH)
-        self._cursor = self._connection.cursor()
+    def __init__(self, connection: sqlite3.Connection, cursor: sqlite3.Cursor) -> None:
+        self._connection = connection
+        self._cursor = cursor
 
-    def save(self, data: DatabaseSaveData) -> None:
+    @classmethod
+    def create(cls) -> Optional[Self]:
+        try:
+            connection = sqlite3.connect(DATABASE_PATH)
+            cursor = connection.cursor()
+            return cls(connection, cursor)
+        except sqlite3.Error as e:
+            log_default(LogLevel.ERROR, f"Failed to connect to database: {e}")
+            return None
+
+    def close(self) -> None:
+        self._cursor.close()
+        self._connection.close()
+
+    def save(self, data: DatabaseSaveData) -> Optional[str]:
         keys = list(data.data.keys())
         values = tuple(data.data.values())
 
@@ -52,10 +70,15 @@ class Database:
         value_clause = ", ".join(["?"] * len(keys))
         command = f"INSERT INTO {data.table_name} ({name_clause}) VALUES ({value_clause})"
 
-        self._cursor.execute(command, values)
-        self._connection.commit()
+        try:
+            self._cursor.execute(command, values)
+            self._connection.commit()
+        except sqlite3.Error as e:
+            return str(e)
 
-    def update(self, data: DatabaseUpdateData) -> None:
+        return None
+
+    def update(self, data: DatabaseUpdateData) -> Optional[str]:
         data_keys = list(data.data.keys())
         data_values = tuple(data.data.values())
         where_keys = list(data.where.keys())
@@ -65,20 +88,30 @@ class Database:
         where_clause = " AND ".join([f"{key} = ?" for key in where_keys])
         command = f"UPDATE {data.table_name} SET {set_clause} WHERE {where_clause}"
 
-        self._cursor.execute(command, data_values + where_values)
-        self._connection.commit()
+        try:
+            self._cursor.execute(command, data_values + where_values)
+            self._connection.commit()
+        except sqlite3.Error as e:
+            return str(e)
 
-    def delete(self, data: DatabaseDeleteData) -> None:
+        return None
+
+    def delete(self, data: DatabaseDeleteData) -> Optional[str]:
         keys = list(data.where.keys())
         values = tuple(data.where.values())
 
         where_clause = " AND ".join([f"{key} = ?" for key in keys])
         command = f"DELETE FROM {data.table_name} WHERE {where_clause}"
 
-        self._cursor.execute(command, values)
-        self._connection.commit()
+        try:
+            self._cursor.execute(command, values)
+            self._connection.commit()
+        except sqlite3.Error as e:
+            return str(e)
 
-    def get_single[T](self, data: DatabaseGetData, return_type: T) -> Optional[T]:
+        return None
+
+    def get_single[T](self, data: DatabaseGetData, return_type: T) -> tuple[Optional[T], Optional[str]]:
         where_keys = list(data.where.keys())
         where_values = tuple(data.where.values())
 
@@ -86,18 +119,18 @@ class Database:
         where_clause = " AND ".join([f"{key} = ?" for key in where_keys])
         command = f"SELECT {keys_claus} FROM {data.table_name} WHERE {where_clause} LIMIT 1"
 
-        self._cursor.execute(command, where_values)
-        fetch_result = self._cursor.fetchone()
+        try:
+            self._cursor.execute(command, where_values)
+            fetch_result = self._cursor.fetchone()
+        except sqlite3.Error as e:
+            return None, str(e)
 
         if fetch_result is None:
-            return None
+            return None, None
 
         value = fetch_result[0]
 
         if isinstance(value, type(return_type)):
-            return value
+            return value, None
 
-        return None
-
-
-DATABASE = Database()
+        return None, None

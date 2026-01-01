@@ -1,60 +1,22 @@
 from typing import Optional
 
-from bot.database.database import DATABASE
-from bot.database.database import DatabaseDeleteData
-from bot.database.database import DatabaseGetData
-from bot.database.database import DatabaseSaveData
-from bot.database.database import DatabaseUpdateData
+from bot.database.commands import add_command
+from bot.database.commands import edit_command
+from bot.database.commands import lookup_all_commands
+from bot.database.commands import remove_command
+from bot.database.commands import try_lookup_command
 from bot.types.chat_message import ChatMessage
+from bot.types.permission_level import PermissionLevel
 from bot.types.response_message import ResponseMessage
-
-TABLE_NAME = "basic_commands"
-
-
-def add_command(message: ChatMessage, command_name: str, command_message: str) -> ResponseMessage:
-    data = DatabaseSaveData(
-        table_name=TABLE_NAME, data={"id": message.id_, "name": command_name, "message": command_message}
-    )
-    DATABASE.save(data)
-    return ResponseMessage(
-        "TODO: add_command_response", message.sender_chat, message.original_message, message.meta_data
-    )
-
-
-def edit_command(message: ChatMessage, command_name: str, command_message: str) -> ResponseMessage:
-    data = DatabaseUpdateData(
-        table_name=TABLE_NAME, data={"message": command_message}, where={"id": message.id_, "name": command_name}
-    )
-    DATABASE.update(data)
-    return ResponseMessage(
-        "TODO: edit_command_response", message.sender_chat, message.original_message, message.meta_data
-    )
-
-
-def remove_command(message: ChatMessage, command_name: str) -> ResponseMessage:
-    data = DatabaseDeleteData(table_name=TABLE_NAME, where={"id": message.id_, "name": command_name})
-    DATABASE.delete(data)
-    return ResponseMessage(
-        "TODO: edit_command_response", message.sender_chat, message.original_message, message.meta_data
-    )
-
-
-def try_lookup_command(message: ChatMessage, command_name: str) -> Optional[ResponseMessage]:
-    data = DatabaseGetData(
-        table_name=TABLE_NAME, keys=["message"], where={"id": message.id_, "name": command_name.lstrip("!")}
-    )
-    value = DATABASE.get_single(data, "")
-
-    if value is None:
-        return None
-    return ResponseMessage(value, message.sender_chat, message.original_message, message.meta_data)
 
 
 def handle_command(message: ChatMessage) -> Optional[ResponseMessage]:
     parts = message.text.strip().split(" ")
 
-    if True:
-        # todo: restrict by mod and admin
+    if (
+        message.sender_permission_level == PermissionLevel.MODERATOR
+        or message.sender_permission_level == PermissionLevel.ADMIN
+    ):
         match parts:
             case ["!command", "add", command_name, *msg]:
                 command_message = " ".join(msg)
@@ -83,5 +45,11 @@ def handle_command(message: ChatMessage) -> Optional[ResponseMessage]:
 
             case _:
                 pass
+
+    match parts:
+        case ["!commands", *_]:
+            lookup_all_commands(message)
+        case _:
+            pass
 
     return try_lookup_command(message, parts[0])

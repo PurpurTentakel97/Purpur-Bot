@@ -1,51 +1,61 @@
-from typing import Optional
-
 from bot.chat.discord_client import DiscordClient
 from bot.chat.discord_server import DiscordServer
 from bot.chat.twitch_chat import TwitchChat
 from bot.chat.twitch_client import TwitchClient
-from bot.helpers.config import ProgrammConfig
+from bot.database.database import Database
 from bot.helpers.config import get_config
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 from bot.types.feature_flag import DEFAULT_DISCORD_FEATURES
 from bot.types.feature_flag import DEFAULT_TWITCH_FEATURES
-from bot.types.programm_parts import ProgramParts
+from bot.types.programm_parts import PROGRAMM_PARTS
 
 
-async def _start_discord_bot(config: ProgrammConfig) -> Optional[DiscordClient]:
-    discord_client = await DiscordClient.create()
+def _start_config() -> None:
+    value = get_config()
+    if value is not None:
+        PROGRAMM_PARTS.config = value
 
-    if discord_client is None:
+
+def _start_database() -> None:
+    value = Database.create()
+    if value is not None:
+        PROGRAMM_PARTS.database = value
+
+
+async def _start_discord_bot() -> None:
+    PROGRAMM_PARTS.discord = await DiscordClient.create()
+
+    if PROGRAMM_PARTS.discord is None:
         return None
 
-    for user in config.user:
+    for user in PROGRAMM_PARTS.config.user:
         for channel in user.discord:
             discord_server = DiscordServer(user.id, channel, DEFAULT_DISCORD_FEATURES)
-            discord_client.connect_chat(discord_server)
-
-    return discord_client
+            PROGRAMM_PARTS.discord.connect_chat(discord_server)
 
 
-async def _start_twitch_bot(config: ProgrammConfig) -> Optional[TwitchClient]:
-    twitch_client = await TwitchClient.create()
+async def _start_twitch_bot() -> None:
+    PROGRAMM_PARTS.twitch = await TwitchClient.create()
 
-    if twitch_client is None:
+    if PROGRAMM_PARTS.twitch is None:
         return None
 
-    for user in config.user:
+    for user in PROGRAMM_PARTS.config.user:
         for channel in user.twitch:
-            await TwitchChat.create(twitch_client, user.id, channel, DEFAULT_TWITCH_FEATURES)
-
-    return twitch_client
+            await TwitchChat.create(PROGRAMM_PARTS.twitch, user.id, channel, DEFAULT_TWITCH_FEATURES)
 
 
-async def startup_programm() -> ProgramParts:
-    config = get_config()
-    if config is None:
+async def startup_programm() -> None:
+    _start_config()
+    if PROGRAMM_PARTS.config_unwrapped() is None:
         log_default(LogLevel.ERROR, "Config not existing. Aborting start Bots...")
-        return ProgramParts(None, None, None)
+        return None
 
-    discord = await _start_discord_bot(config)
-    twitch = await _start_twitch_bot(config)
-    return ProgramParts(discord, twitch, config)
+    _start_database()
+    if PROGRAMM_PARTS.database_unwrapped() is None:
+        log_default(LogLevel.ERROR, "Database not existing. Aborting start Bots...")
+        return None
+
+    await _start_discord_bot()
+    await _start_twitch_bot()
