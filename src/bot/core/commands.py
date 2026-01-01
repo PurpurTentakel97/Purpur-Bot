@@ -13,10 +13,7 @@ from bot.types.response_message import ResponseMessage
 def handle_command(message: ChatMessage) -> Optional[ResponseMessage]:
     parts = message.text.strip().split(" ")
 
-    if (
-        message.sender_permission_level == PermissionLevel.MODERATOR
-        or message.sender_permission_level == PermissionLevel.ADMIN
-    ):
+    if message.sender_permission_level.is_permitted(PermissionLevel.SPECIAL_USER):
         match parts:
             case ["!command", "add", command_name, *msg]:
                 command_message = " ".join(msg)

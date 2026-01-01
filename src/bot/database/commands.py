@@ -26,7 +26,7 @@ def add_command(message: ChatMessage, command_name: str, command_message: str) -
     )
 
     result = PROGRAMM_PARTS.database.save(data)
-    if not DatabaseResult.is_success(result):
+    if not result.success:
         return ResponseMessage(
             f"Error add command '!{command_name}'", message.sender_chat, message.original_message, message.meta_data
         )
@@ -45,7 +45,7 @@ def edit_command(message: ChatMessage, command_name: str, command_message: str) 
     )
 
     result = PROGRAMM_PARTS.database.update(data)
-    if not DatabaseResult.is_success(result):
+    if not result.success:
         if result == DatabaseResult.NO_DATA_EDITED:
             return ResponseMessage(
                 f"Command '!{command_name}' does not exist.",
@@ -72,7 +72,7 @@ def remove_command(message: ChatMessage, command_name: str) -> ResponseMessage:
     data = DatabaseDeleteData(table_name=TABLE_NAME, where={"id": message.id_, "name": command_name})
 
     result = PROGRAMM_PARTS.database.delete(data)
-    if not DatabaseResult.is_success(result):
+    if not result.success:
         if result == DatabaseResult.NO_DATA_EDITED:
             return ResponseMessage(
                 f"Command '!{command_name}' does not exist.",
@@ -101,7 +101,7 @@ def try_lookup_command(message: ChatMessage, command_name: str) -> Optional[Resp
     )
     result = PROGRAMM_PARTS.database.get_single(data, "")
 
-    if not DatabaseResult.is_success(result.result):
+    if not result.result.success:
         return None
     if result.data is None:
         return None
