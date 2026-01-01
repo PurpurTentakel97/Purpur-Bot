@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from bot.core.message_handler import handle_messages
 from bot.frontend.routes.imprint import router as imprint_router
+from bot.frontend.routes.login import router as login_router
 from bot.helpers.startup import startup_programm
 from bot.helpers.terminate import terminate_programm
 
@@ -31,3 +32,4 @@ async def main(_: FastAPI) -> AsyncGenerator[None]:
 
 app: Final = FastAPI(lifespan=main)
 app.include_router(imprint_router)
+app.include_router(login_router)
