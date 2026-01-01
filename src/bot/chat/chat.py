@@ -1,11 +1,13 @@
 import asyncio
+from abc import ABC
+from abc import abstractmethod
 
 from bot.types.chat_message import ChatMessage
 from bot.types.feature_flag import FeatureFlags
+from bot.types.response_message import ResponseMessage
 
 
-# todo: make abstract when it comes to sending messages
-class Chat:
+class Chat(ABC):
     def __init__(self, id_: int, features: FeatureFlags) -> None:
         self._id: int = id_
         self._feature_flags: FeatureFlags = features
@@ -23,3 +25,7 @@ class Chat:
         if self.message_queue.empty():
             return None
         return await self.message_queue.get()
+
+    @abstractmethod
+    async def send_response(self, messages: list[ResponseMessage]) -> None:
+        pass

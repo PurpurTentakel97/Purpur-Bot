@@ -1,11 +1,16 @@
 from typing import final
+from typing import override
 
-import discord
+from discord import Member as DiscordMember
+from discord.message import Message as DiscordMessage
 
 from bot.chat.chat import Chat
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_discord
 from bot.types.chat_message import ChatMessage
 from bot.types.feature_flag import FeatureFlags
 from bot.types.permission_level import PermissionLevel
+from bot.types.response_message import ResponseMessage
 
 
 @final
@@ -22,8 +27,20 @@ class DiscordServer(Chat):
     def server_id(self) -> int:
         return self._server_id
 
-    async def on_message(self, message: discord.Message) -> None:
-        def _get_permission_level(user: discord.Member) -> PermissionLevel:
+    @override
+    async def send_response(self, messages: list[ResponseMessage]) -> None:
+        for message in messages:
+            if isinstance(message.original_message, DiscordMessage):
+                await message.original_message.channel.send(message.text)
+            else:
+                log_discord(
+                    LogLevel.ERROR,
+                    "Could not reply to the provided original message due to type missmatch: "
+                    + f"{type(message.original_message)}",
+                )
+
+    async def on_message(self, message: DiscordMessage) -> None:
+        def _get_permission_level(user: DiscordMember) -> PermissionLevel:
             if user.guild_permissions.administrator:
                 return PermissionLevel.ADMIN
 
@@ -36,7 +53,7 @@ class DiscordServer(Chat):
             return PermissionLevel.USER
 
         # the author is a member of the server by now since the client called this method.
-        if not isinstance(message.author, discord.Member):
+        if not isinstance(message.author, DiscordMember):
             raise AssertionError("Expected author to be a Member")
 
         msg = ChatMessage(
@@ -44,6 +61,7 @@ class DiscordServer(Chat):
             text=message.content,
             sender_chat=self,
             sender_permission_level=_get_permission_level(message.author),
-            meta_data=message,
+            original_message=message,
+            meta_data=None,
         )
         await self.message_queue.put(msg)

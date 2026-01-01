@@ -1,6 +1,7 @@
 from typing import Self
 from typing import cast
 from typing import final
+from typing import override
 
 from twitchAPI.chat import Chat as TwitchChatClient
 from twitchAPI.chat import ChatEvent
@@ -15,6 +16,7 @@ from bot.helpers.log import log_twitch
 from bot.types.chat_message import ChatMessage
 from bot.types.feature_flag import FeatureFlags
 from bot.types.permission_level import PermissionLevel
+from bot.types.response_message import ResponseMessage
 
 
 @final
@@ -54,6 +56,11 @@ class TwitchChat(Chat):
         self.chat.stop()
         log_twitch(LogLevel.INFO, f"Twitch chat for {self.channel_name} terminated.")
 
+    @override
+    async def send_response(self, messages: list[ResponseMessage]) -> None:
+        for message in messages:
+            await self.chat.send_message(self.channel_name, message.text)
+
     async def _on_ready(self, ready_event: EventData) -> None:
         await ready_event.chat.join_room(self.channel_name)
         log_twitch(LogLevel.INFO, f"Twitch chat connected to {self.channel_name}")
@@ -79,7 +86,8 @@ class TwitchChat(Chat):
             text=message.text,
             sender_chat=self,
             sender_permission_level=_get_user_permission_level(message.user),
-            meta_data=message,
+            original_message=message,
+            meta_data=None,
         )
 
         await self.message_queue.put(msg)

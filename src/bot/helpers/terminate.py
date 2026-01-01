@@ -1,24 +1,25 @@
-from typing import Optional
-
-from bot.chat.discord_client import DiscordClient
-from bot.chat.twitch_client import TwitchClient
-from bot.types.programm_parts import ProgramParts
+from bot.types.programm_parts import PROGRAMM_PARTS
 
 
-async def _stop_discord_bot(discord_client: Optional[DiscordClient]) -> None:
-    if discord_client is None:
+async def _stop_discord_bot() -> None:
+    if PROGRAMM_PARTS.discord is None:
         return
 
-    await discord_client.terminate()
+    await PROGRAMM_PARTS.discord.terminate()
 
 
-async def _stop_twitch_bot(twitch_client: Optional[TwitchClient]) -> None:
-    if twitch_client is None:
+async def _stop_twitch_bot() -> None:
+    if PROGRAMM_PARTS.twitch is None:
         return
 
-    await twitch_client.terminate()
+    await PROGRAMM_PARTS.twitch.terminate()
 
 
-async def terminate_programm(program: ProgramParts) -> None:
-    await _stop_discord_bot(program.discord)
-    await _stop_twitch_bot(program.twitch)
+def _stop_database() -> None:
+    PROGRAMM_PARTS.database.close()
+
+
+async def terminate_programm() -> None:
+    await _stop_discord_bot()
+    await _stop_twitch_bot()
+    _stop_database()
