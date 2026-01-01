@@ -3,6 +3,7 @@ from typing import Optional
 from typing import final
 
 from pydantic import BaseModel
+from pydantic import ConfigDict
 from pydantic import ValidationError
 
 from bot.helpers.log import LogLevel
@@ -21,6 +22,8 @@ class UserConfig(BaseModel):
 
 @final
 class ProgrammConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     version: str = "0.0.1"
     user: list[UserConfig] = []
 
