@@ -27,7 +27,7 @@ async def _start_discord_bot() -> None:
     PROGRAMM_PARTS.discord = await DiscordClient.create()
 
     if PROGRAMM_PARTS.discord is None:
-        return None
+        return
 
     for user in PROGRAMM_PARTS.config.user:
         for channel in user.discord:
@@ -39,7 +39,7 @@ async def _start_twitch_bot() -> None:
     PROGRAMM_PARTS.twitch = await TwitchClient.create()
 
     if PROGRAMM_PARTS.twitch is None:
-        return None
+        return
 
     for user in PROGRAMM_PARTS.config.user:
         for channel in user.twitch:
@@ -50,12 +50,12 @@ async def startup_programm() -> None:
     _start_config()
     if PROGRAMM_PARTS.config_unwrapped() is None:
         log_default(LogLevel.ERROR, "Config not existing. Aborting start Bots...")
-        return None
+        return
 
     _start_database()
     if PROGRAMM_PARTS.database_unwrapped() is None:
         log_default(LogLevel.ERROR, "Database not existing. Aborting start Bots...")
-        return None
+        return
 
     await _start_discord_bot()
     await _start_twitch_bot()

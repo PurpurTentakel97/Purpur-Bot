@@ -5,6 +5,7 @@ from bot.database.database import DatabaseGetData
 from bot.database.database import DatabaseSaveData
 from bot.database.database import DatabaseUpdateData
 from bot.types.chat_message import ChatMessage
+from bot.types.database_result import is_success
 from bot.types.programm_parts import PROGRAMM_PARTS
 from bot.types.response_message import ResponseMessage
 
@@ -15,10 +16,11 @@ def add_command(message: ChatMessage, command_name: str, command_message: str) -
     data = DatabaseSaveData(
         table_name=TABLE_NAME, data={"id": message.id_, "name": command_name, "message": command_message}
     )
-    error = PROGRAMM_PARTS.database.save(data)
-    if error:
+
+    result = PROGRAMM_PARTS.database.save(data)
+    if not is_success(result):
         return ResponseMessage(
-            f"Error adding command: {error}", message.sender_chat, message.original_message, message.meta_data
+            f"Error add command '!{command_name}'", message.sender_chat, message.original_message, message.meta_data
         )
 
     return ResponseMessage(
@@ -33,10 +35,14 @@ def edit_command(message: ChatMessage, command_name: str, command_message: str) 
     data = DatabaseUpdateData(
         table_name=TABLE_NAME, data={"message": command_message}, where={"id": message.id_, "name": command_name}
     )
-    error = PROGRAMM_PARTS.database.update(data)
-    if error:
+
+    result = PROGRAMM_PARTS.database.update(data)
+    if not is_success(result):
         return ResponseMessage(
-            f"Error editing command: {error}", message.sender_chat, message.original_message, message.meta_data
+            f"Error editing command: '!{command_name}'",
+            message.sender_chat,
+            message.original_message,
+            message.meta_data,
         )
 
     return ResponseMessage(
@@ -49,10 +55,14 @@ def edit_command(message: ChatMessage, command_name: str, command_message: str) 
 
 def remove_command(message: ChatMessage, command_name: str) -> ResponseMessage:
     data = DatabaseDeleteData(table_name=TABLE_NAME, where={"id": message.id_, "name": command_name})
-    error = PROGRAMM_PARTS.database.delete(data)
-    if error:
+
+    result = PROGRAMM_PARTS.database.delete(data)
+    if not is_success(result):
         return ResponseMessage(
-            f"Error removing command: {error}", message.sender_chat, message.original_message, message.meta_data
+            f"Error removing command: '!{command_name}'",
+            message.sender_chat,
+            message.original_message,
+            message.meta_data,
         )
 
     return ResponseMessage(
@@ -67,16 +77,14 @@ def try_lookup_command(message: ChatMessage, command_name: str) -> Optional[Resp
     data = DatabaseGetData(
         table_name=TABLE_NAME, keys=["message"], where={"id": message.id_, "name": command_name.lstrip("!")}
     )
-    value, error = PROGRAMM_PARTS.database.get_single(data, "")
+    result = PROGRAMM_PARTS.database.get_single(data, "")
 
-    if error:
-        return ResponseMessage(
-            f"Database error: {error}", message.sender_chat, message.original_message, message.meta_data
-        )
-
-    if value is None:
+    if not is_success(result.result):
         return None
-    return ResponseMessage(value, message.sender_chat, message.original_message, message.meta_data)
+    if result.data is None:
+        return None
+
+    return ResponseMessage(result.data, message.sender_chat, message.original_message, message.meta_data)
 
 
 def lookup_all_commands(message: ChatMessage) -> ResponseMessage:

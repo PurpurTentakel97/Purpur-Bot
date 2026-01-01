@@ -35,7 +35,7 @@ class DiscordServer(Chat):
             else:
                 log_discord(
                     LogLevel.ERROR,
-                    "Could not reply to provided original message doe to type missmatch: "
+                    "Could not reply to the provided original message due to type missmatch: "
                     + f"{type(message.original_message)}",
                 )
 

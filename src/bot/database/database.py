@@ -8,6 +8,7 @@ from typing import final
 
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
+from bot.types.database_result import DatabaseResult
 
 DATABASE_PATH = Path.cwd() / "bot.db"
 
@@ -43,6 +44,13 @@ class DatabaseGetData:
 
 
 @final
+@dataclass(frozen=True)
+class SingleDatabaseResult[T]:
+    data: T
+    result: DatabaseResult
+
+
+@final
 class Database:
     def __init__(self, connection: sqlite3.Connection, cursor: sqlite3.Cursor) -> None:
         self._connection = connection
@@ -62,7 +70,7 @@ class Database:
         self._cursor.close()
         self._connection.close()
 
-    def save(self, data: DatabaseSaveData) -> Optional[str]:
+    def save(self, data: DatabaseSaveData) -> DatabaseResult:
         keys = list(data.data.keys())
         values = tuple(data.data.values())
 
@@ -74,11 +82,12 @@ class Database:
             self._cursor.execute(command, values)
             self._connection.commit()
         except sqlite3.Error as e:
-            return str(e)
+            log_default(LogLevel.ERROR, f"Error while storing data to the database. {e}")
+            return DatabaseResult.ERROR
 
-        return None
+        return DatabaseResult.SUCCESS
 
-    def update(self, data: DatabaseUpdateData) -> Optional[str]:
+    def update(self, data: DatabaseUpdateData) -> DatabaseResult:
         data_keys = list(data.data.keys())
         data_values = tuple(data.data.values())
         where_keys = list(data.where.keys())
@@ -92,11 +101,12 @@ class Database:
             self._cursor.execute(command, data_values + where_values)
             self._connection.commit()
         except sqlite3.Error as e:
-            return str(e)
+            log_default(LogLevel.ERROR, f"Error while updating data in the database. {e}")
+            return DatabaseResult.ERROR
 
-        return None
+        return DatabaseResult.SUCCESS
 
-    def delete(self, data: DatabaseDeleteData) -> Optional[str]:
+    def delete(self, data: DatabaseDeleteData) -> DatabaseResult:
         keys = list(data.where.keys())
         values = tuple(data.where.values())
 
@@ -107,11 +117,12 @@ class Database:
             self._cursor.execute(command, values)
             self._connection.commit()
         except sqlite3.Error as e:
-            return str(e)
+            log_default(LogLevel.ERROR, f"Error while deleting data from the database. {e}")
+            return DatabaseResult.ERROR
 
-        return None
+        return DatabaseResult.SUCCESS
 
-    def get_single[T](self, data: DatabaseGetData, return_type: T) -> tuple[Optional[T], Optional[str]]:
+    def get_single[T](self, data: DatabaseGetData, return_type: T) -> SingleDatabaseResult[T | None]:
         where_keys = list(data.where.keys())
         where_values = tuple(data.where.values())
 
@@ -123,14 +134,16 @@ class Database:
             self._cursor.execute(command, where_values)
             fetch_result = self._cursor.fetchone()
         except sqlite3.Error as e:
-            return None, str(e)
+            log_default(LogLevel.ERROR, f"Error while fetching data from the database. {e}")
+            return SingleDatabaseResult(None, DatabaseResult.ERROR)
 
         if fetch_result is None:
-            return None, None
+            log_default(LogLevel.WARNING, f"No data found in table {data.table_name} | Query: {command}")
+            return SingleDatabaseResult(None, DatabaseResult.EMPTY)
 
         value = fetch_result[0]
 
-        if isinstance(value, type(return_type)):
-            return value, None
+        if not isinstance(value, type(return_type)):
+            return SingleDatabaseResult(None, DatabaseResult.TYPE_MISSMATCH)
 
-        return None, None
+        return SingleDatabaseResult(value, DatabaseResult.SUCCESS)
