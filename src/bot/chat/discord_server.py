@@ -1,9 +1,12 @@
 from typing import final
 from typing import override
 
-import discord
+from discord import Member as DiscordMember
+from discord.message import Message as DiscordMessage
 
 from bot.chat.chat import Chat
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_discord
 from bot.types.chat_message import ChatMessage
 from bot.types.feature_flag import FeatureFlags
 from bot.types.permission_level import PermissionLevel
@@ -27,10 +30,17 @@ class DiscordServer(Chat):
     @override
     async def send_response(self, messages: list[ResponseMessage]) -> None:
         for message in messages:
-            await message.original_message.channel.send(message.text)
+            if isinstance(message.original_message, DiscordMessage):
+                await message.original_message.channel.send(message.text)
+            else:
+                log_discord(
+                    LogLevel.ERROR,
+                    "Could not reply to provided original message doe to type missmatch: "
+                    + f"{type(message.original_message)}",
+                )
 
-    async def on_message(self, message: discord.Message) -> None:
-        def _get_permission_level(user: discord.Member) -> PermissionLevel:
+    async def on_message(self, message: DiscordMessage) -> None:
+        def _get_permission_level(user: DiscordMember) -> PermissionLevel:
             if user.guild_permissions.administrator:
                 return PermissionLevel.ADMIN
 
@@ -43,7 +53,7 @@ class DiscordServer(Chat):
             return PermissionLevel.USER
 
         # the author is a member of the server by now since the client called this method.
-        if not isinstance(message.author, discord.Member):
+        if not isinstance(message.author, DiscordMember):
             raise AssertionError("Expected author to be a Member")
 
         msg = ChatMessage(

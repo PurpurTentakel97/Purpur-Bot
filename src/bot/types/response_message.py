@@ -3,6 +3,8 @@ from typing import Any
 from typing import final
 
 from attr import dataclass
+from discord import Message as DiscordMessage
+from twitchAPI.chat import ChatMessage as TwitchChatMessage
 
 if TYPE_CHECKING:
     from bot.chat.twitch_chat import Chat
@@ -13,5 +15,5 @@ if TYPE_CHECKING:
 class ResponseMessage:
     text: str
     destination_chat: "Chat"
-    original_message: Any
+    original_message: DiscordMessage | TwitchChatMessage
     meta_data: Any
