@@ -40,9 +40,16 @@ def handle_command(message: ChatMessage) -> Optional[ResponseMessage]:
                     )
                 return edit_command(message, command_name, command_message)
 
-            case ["!command", "remove", command_name]:
+            case ["!command", "remove", command_name, *_]:
                 return remove_command(message, command_name)
 
+            case ["!command", *_]:
+                return ResponseMessage(
+                    "Invalid command format. Use '!command add|edit|remove <command_name> <command_message>'",
+                    message.sender_chat,
+                    message.original_message,
+                    message.meta_data,
+                )
             case _:
                 pass
 

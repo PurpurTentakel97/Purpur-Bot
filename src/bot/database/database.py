@@ -100,6 +100,10 @@ class Database:
         try:
             self._cursor.execute(command, data_values + where_values)
             self._connection.commit()
+
+            if self._cursor.rowcount == 0:
+                return DatabaseResult.NO_DATA_EDITED
+
         except sqlite3.Error as e:
             log_default(LogLevel.ERROR, f"Error while updating data in the database. {e}")
             return DatabaseResult.ERROR
@@ -116,6 +120,10 @@ class Database:
         try:
             self._cursor.execute(command, values)
             self._connection.commit()
+
+            if self._cursor.rowcount == 0:
+                return DatabaseResult.NO_DATA_EDITED
+
         except sqlite3.Error as e:
             log_default(LogLevel.ERROR, f"Error while deleting data from the database. {e}")
             return DatabaseResult.ERROR
@@ -138,7 +146,7 @@ class Database:
             return SingleDatabaseResult(None, DatabaseResult.ERROR)
 
         if fetch_result is None:
-            log_default(LogLevel.WARNING, f"No data found in table {data.table_name} | Query: {command}")
+            log_default(LogLevel.INFO, f"No data found in table {data.table_name} | Query: {command}")
             return SingleDatabaseResult(None, DatabaseResult.EMPTY)
 
         value = fetch_result[0]

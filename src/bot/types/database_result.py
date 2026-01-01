@@ -7,6 +7,7 @@ class DatabaseResult(Enum):
     ERROR = auto()
     EMPTY = auto()
     TYPE_MISSMATCH = auto()
+    NO_DATA_EDITED = auto()
 
 
 def is_success(result: DatabaseResult) -> bool:
