@@ -12,6 +12,6 @@ from bot.frontend.helpers.route_utils import get_templates
 router: Final = APIRouter()
 
 
-@router.get("/login")
-async def login(request: Request, templates: Annotated[Jinja2Templates, Depends(get_templates)]) -> Response:
-    return templates.TemplateResponse(request=request, name="login.html", context={})
+@router.get("/")
+async def home(request: Request, template: Annotated[Jinja2Templates, Depends(get_templates)]) -> Response:
+    return template.TemplateResponse(request=request, name="home.html", context={})
