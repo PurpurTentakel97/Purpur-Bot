@@ -14,7 +14,7 @@ from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 
 
-def _get_env_var_or_default(key: str, default: str | None) -> str | None:
+def _get_env_var_or_default[T](key: str, default: T) -> T | str:
     value = os.getenv(key)
     if value is None or not value.strip():
         log_default(LogLevel.INFO, f"Environment variable '{key}' is not set, using default '{default}'")
@@ -84,11 +84,13 @@ class AppContext:
         twitch_client_id: Optional[str],
         twitch_credentials: Optional[str],
         twitch_tokens: Optional[TwitchTokens],
+        twitch_redirect_uri: str,
     ) -> None:
         self.discord_token: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_token)
         self.twitch_client_id: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_client_id)
         self.twitch_credentials: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_credentials)
         self.twitch_tokens: OptionalAppContextEntry[TwitchTokens] = OptionalAppContextEntry(twitch_tokens)
+        self.twitch_redirect_uri: AppContextEntry[str] = AppContextEntry(twitch_redirect_uri)
 
     def update_twitch_tokens(self, new_access_token: str, new_refresh_token: str) -> None:
         self.twitch_tokens.set_value(TwitchTokens(new_access_token, new_refresh_token))
@@ -145,4 +147,5 @@ APP_CONTEXT = AppContext(
     twitch_client_id=_get_env_var_or_default("TWITCH_CLIENT_ID", None),
     twitch_credentials=_get_env_var_or_default("TWITCH_CREDENTIALS", None),
     twitch_tokens=TwitchTokens.try_load(),
+    twitch_redirect_uri=_get_env_var_or_default("TWITCH_REDIRECT_URI", "http://localhost:8000/login/twitch/callback"),
 )

@@ -155,6 +155,7 @@ def test_app_context_update_twitch_tokens(tmp_path: Path) -> None:
             twitch_client_id="c",
             twitch_credentials="cr",
             twitch_tokens=None,
+            twitch_redirect_uri="r",
         )
 
         ctx.update_twitch_tokens("new_access", "new_refresh")
