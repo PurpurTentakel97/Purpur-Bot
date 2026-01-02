@@ -1,4 +1,3 @@
-
 from bot.chat.discord_client import DiscordClient
 from bot.chat.discord_server import DiscordServer
 from bot.chat.twitch_chat import TwitchChat
