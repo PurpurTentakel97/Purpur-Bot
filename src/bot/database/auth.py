@@ -1,4 +1,5 @@
-from bot.database.database import DatabaseGetData, DatabaseSaveData
+from bot.database.database import DatabaseGetData
+from bot.database.database import DatabaseSaveData
 from bot.database.database import DatabaseUpdateData
 from bot.types.database_result import DatabaseResult
 from bot.types.programm_parts import PROGRAMM_PARTS
