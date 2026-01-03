@@ -1,29 +1,37 @@
 import asyncio
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from typing import Final
 
-from bot.core.console import handle_console
+from fastapi import FastAPI
+
 from bot.core.message_handler import handle_messages
+from bot.frontend.routes.auth import router as auth_router
+from bot.frontend.routes.home import router as home_router
+from bot.frontend.routes.login import router as login_router
 from bot.helpers.startup import startup_programm
 from bot.helpers.terminate import terminate_programm
 
 
-async def main() -> None:
+@asynccontextmanager
+async def main(_: FastAPI) -> AsyncGenerator[None]:
     await startup_programm()
     message_task = asyncio.create_task(handle_messages())
 
-    await asyncio.to_thread(handle_console)  # blocking
-
-    message_task.cancel()
     try:
-        await message_task
-    except asyncio.CancelledError:
-        pass
+        yield
 
-    await terminate_programm()
+    finally:
+        message_task.cancel()
+        try:
+            await message_task
+        except asyncio.CancelledError:
+            pass
+
+        await terminate_programm()
 
 
-def start() -> None:
-    asyncio.run(main())
-
-
-if __name__ == "__main__":
-    start()
+app: Final = FastAPI(lifespan=main)
+app.include_router(home_router)
+app.include_router(auth_router)
+app.include_router(login_router)

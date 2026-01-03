@@ -1,1 +1,10 @@
 Generic single-database configuration.
+
+upgrade:
+alembic upgrade head
+
+downgrade:
+alembic downgrade base
+
+new migration:
+alembic revision -m "title"

@@ -12,13 +12,22 @@ from dotenv import load_dotenv
 
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
+from bot.types.environment_state import Environment
 
 
-def _get_env_var_or_default(key: str, default: str | None) -> str | None:
+def _get_env_var_or_default[T](key: str, default: T) -> T | str:
     value = os.getenv(key)
     if value is None or not value.strip():
         log_default(LogLevel.INFO, f"Environment variable '{key}' is not set, using default '{default}'")
         return default
+
+    return value.strip()
+
+
+def _get_env_var_or_rise(key: str) -> str:
+    value = os.getenv(key)
+    if value is None or not value.strip():
+        raise RuntimeError(f"Environment variable '{key}' is not set")
     return value.strip()
 
 
@@ -84,11 +93,17 @@ class AppContext:
         twitch_client_id: Optional[str],
         twitch_credentials: Optional[str],
         twitch_tokens: Optional[TwitchTokens],
+        twitch_redirect_uri: str,
+        environment_state: Environment,
+        jwt_secret: str,
     ) -> None:
         self.discord_token: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_token)
         self.twitch_client_id: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_client_id)
         self.twitch_credentials: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_credentials)
         self.twitch_tokens: OptionalAppContextEntry[TwitchTokens] = OptionalAppContextEntry(twitch_tokens)
+        self.twitch_redirect_uri: AppContextEntry[str] = AppContextEntry(twitch_redirect_uri)
+        self.environment_state: AppContextEntry[Environment] = AppContextEntry(environment_state)
+        self.jwt_secret: AppContextEntry[str] = AppContextEntry(jwt_secret)
 
     def update_twitch_tokens(self, new_access_token: str, new_refresh_token: str) -> None:
         self.twitch_tokens.set_value(TwitchTokens(new_access_token, new_refresh_token))
@@ -145,4 +160,7 @@ APP_CONTEXT = AppContext(
     twitch_client_id=_get_env_var_or_default("TWITCH_CLIENT_ID", None),
     twitch_credentials=_get_env_var_or_default("TWITCH_CREDENTIALS", None),
     twitch_tokens=TwitchTokens.try_load(),
+    twitch_redirect_uri=_get_env_var_or_default("TWITCH_REDIRECT_URI", "http://localhost:8000/auth/twitch/callback"),
+    environment_state=Environment.from_string(_get_env_var_or_default("ENVIRONMENT_STATE", "production")),
+    jwt_secret=_get_env_var_or_rise("JWT_SECRET"),
 )

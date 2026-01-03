@@ -10,3 +10,4 @@ import os
 os.environ.setdefault("DISCORD_TOKEN", "DISCORD_TOKEN")
 os.environ.setdefault("TWITCH_CLIENT_ID", "TWITCH_CLIENT_ID")
 os.environ.setdefault("TWITCH_CREDENTIALS", "TWITCH_CREDENTIALS")
+os.environ.setdefault("JWT_SECRET", "JWT_SECRET")
