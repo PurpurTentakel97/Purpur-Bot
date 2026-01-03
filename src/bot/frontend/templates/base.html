@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Frontend</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-brand">
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                </div>
+            </div>
+            <div class="user-controls">
+                {% if user %}
+                    <span class="user-info">Welcome, {{ user.display_name }}!</span>
+                    <a href="/auth/logout">Logout</a>
+                {% else %}
+                    <a href="/login">Login</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <img src="/static/logo.png" alt="Logo" class="footer-logo">
+            <p>&copy; {{ now.year if now else '2026' }} Bot Project</p>
+        </div>
+    </footer>
+</body>
+</html>

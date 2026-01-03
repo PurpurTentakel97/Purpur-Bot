@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 
@@ -11,4 +12,6 @@ def get_templates() -> Jinja2Templates:
     if not path.exists():
         raise FileNotFoundError(f"Templates directory not found: {path}")
 
-    return Jinja2Templates(directory=path)
+    templates = Jinja2Templates(directory=path)
+    templates.env.globals["now"] = datetime.now()
+    return templates

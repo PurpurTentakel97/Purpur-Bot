@@ -21,6 +21,4 @@ async def home(
     template: Annotated[Jinja2Templates, Depends(get_templates)],
     twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
 ) -> Response:
-    status = "unauthenticated" if twitch_user is None else "authenticated"
-
-    return template.TemplateResponse(request=request, name="home.html", context={"status": status})
+    return template.TemplateResponse(request=request, name="home.html", context={"user": twitch_user})

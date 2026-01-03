@@ -1,7 +1,10 @@
-<h1>Homepage</h1>
-<a href="/login">Login</a>
+{% extends "base.html" %}
 
-status: {{status}}
-
-
-<a href="/auth/logout">Logout</a>
+{% block content %}
+    <h1>Homepage</h1>
+    {% if user %}
+        <p>You are logged in as {{ user.display_name }} ({{ user.login }}).</p>
+    {% else %}
+        <p>You are not logged in.</p>
+    {% endif %}
+{% endblock %}

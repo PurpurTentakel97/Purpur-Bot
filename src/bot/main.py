@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from typing import Final
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from bot.core.message_handler import handle_messages
 from bot.frontend.routes.auth import router as auth_router
@@ -32,6 +33,7 @@ async def main(_: FastAPI) -> AsyncGenerator[None]:
 
 
 app: Final = FastAPI(lifespan=main)
+app.mount("/static", StaticFiles(directory="src/bot/frontend/static"), name="static")
 app.include_router(home_router)
 app.include_router(auth_router)
 app.include_router(login_router)

@@ -1,0 +1,104 @@
+:root {
+    --primary-color: #9147ff; /* Brighter Twitch Purple for Dark Mode */
+    --secondary-color: #1f1f23;
+    --text-color: #efeff1;
+    --bg-color: #0e0e10;
+    --footer-bg: #18181b;
+    --footer-text: #adadb8;
+    --header-bg: #18181b;
+    --card-bg: #1f1f23;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-right: 1.5rem;
+    font-weight: 500;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+main {
+    flex: 1;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+footer {
+    background-color: var(--primary-color);
+    color: white;
+    text-align: center;
+    padding: 1.5rem 0;
+    margin-top: auto;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.footer-logo {
+    height: 60px;
+}
+
+h1 {
+    color: var(--primary-color);
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 0.5rem;
+}
+
+.user-info {
+    font-style: italic;
+    margin-right: 1rem;
+}
+
+.user-controls {
+    display: flex;
+    align-items: center;
+}
