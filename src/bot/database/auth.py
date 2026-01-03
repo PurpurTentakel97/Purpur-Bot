@@ -1,10 +1,32 @@
+from typing import Optional
+
+from bot.database.database import DatabaseDeleteData
 from bot.database.database import DatabaseGetData
 from bot.database.database import DatabaseSaveData
 from bot.database.database import DatabaseUpdateData
+from bot.helpers.app_context import TwitchTokens
 from bot.types.database_result import DatabaseResult
 from bot.types.programm_parts import PROGRAMM_PARTS
 
 TABLE_NAME_TWITCH = "twitch_auth"
+
+
+# get
+def get_twitch_tokens(twitch_id: str) -> Optional[TwitchTokens]:
+    twitch_tokens = PROGRAMM_PARTS.database.get_single(
+        DatabaseGetData(
+            table_name=TABLE_NAME_TWITCH, keys=["access_token", "refresh_token"], where={"twitch_id": twitch_id}
+        ),
+        {},
+    )
+
+    if not twitch_tokens.result.success or twitch_tokens.data is None:
+        return None
+
+    return TwitchTokens(twitch_tokens.data["access_token"], twitch_tokens.data["refresh_token"])
+
+
+# store update
 
 
 def save_or_update_twitch_tokens(
@@ -33,4 +55,13 @@ def save_or_update_twitch_tokens(
                 "expires_at": expires_at,
             },
         )
+    )
+
+
+# delete
+
+
+def delete_twitch_tokens(twitch_id: str) -> DatabaseResult:
+    return PROGRAMM_PARTS.database.delete(
+        DatabaseDeleteData(table_name=TABLE_NAME_TWITCH, where={"twitch_id": twitch_id})
     )

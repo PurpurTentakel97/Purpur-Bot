@@ -3,6 +3,7 @@ from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
 from http import HTTPStatus
+from typing import Annotated
 from typing import Final
 from typing import Optional
 from typing import cast
@@ -10,14 +11,19 @@ from urllib.parse import urlencode
 
 import jwt
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi import HTTPException
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from twitchAPI.helper import first
 from twitchAPI.oauth import UserAuthenticator
+from twitchAPI.oauth import revoke_token
 from twitchAPI.twitch import Twitch
 
+from bot.database.auth import delete_twitch_tokens
+from bot.database.auth import get_twitch_tokens
 from bot.database.auth import save_or_update_twitch_tokens
+from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.auth_constents import JWT_ALG
 from bot.frontend.helpers.auth_constents import JWT_EXPIRY_DAYS
 from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
@@ -26,6 +32,7 @@ from bot.helpers.log import LogLevel
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default
 from bot.helpers.log import log_exception
+from bot.types.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/auth")
 TWITCH_OAUTH_STATE_COOKIE_KEY: Final = "TWITCH_OAUTH_STATE_COOKIE"
@@ -148,15 +155,28 @@ async def auth_discord_callback(request: Request) -> RedirectResponse:
 
 
 @router.get("/logout")
-async def logout() -> RedirectResponse:
-    return RedirectResponse(url="/")
+async def logout(
+    current_twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
+) -> RedirectResponse:
+    if current_twitch_user is not None:
+        token_set = get_twitch_tokens(current_twitch_user.id_)
+        if token_set is not None:
+            try:
+                await revoke_token(
+                    APP_CONTEXT.twitch_client_id.value_or_rise(),
+                    token_set.access_token,
+                )
+                log_default(LogLevel.INFO, f"Twitch user {current_twitch_user.id_} logged out successfully")
+            except Exception as e:
+                log_default(LogLevel.ERROR, f"Failed to revoke Twitch token for user {current_twitch_user.id_}")
+                log_exception(
+                    e, LogProgram.Default, f"Failed to revoke Twitch token for user {current_twitch_user.id_}"
+                )
 
+        result = delete_twitch_tokens(current_twitch_user.id_)
+        if not result.success:
+            log_default(LogLevel.ERROR, f"Failed to delete twitch tokens for user {current_twitch_user.id_}")
 
-@router.get("/logout/twitch")
-async def logout_twitch() -> RedirectResponse:
-    return RedirectResponse(url="/")
-
-
-@router.get("/logout/discord")
-async def logout_discord() -> RedirectResponse:
-    return RedirectResponse(url="/")
+    response = RedirectResponse(url="/")
+    response.delete_cookie("TWITCH_SESSION_COOKIE", path="/")
+    return response
