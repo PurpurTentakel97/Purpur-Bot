@@ -107,6 +107,7 @@ async def auth_twitch_callback(request: Request, code: Optional[str], state: Opt
                     "sub": user.id,
                     "login": user.login,
                     "display_name": user.display_name,
+                    "profile_image_url": user.profile_image_url,
                     "exp": expires_at_timestamp,
                     "iat": int(now.timestamp()),
                 }

@@ -3,8 +3,49 @@
 {% block content %}
     <h1>Homepage</h1>
     {% if user %}
-        <p>You are logged in as {{ user.display_name }} ({{ user.login }}).</p>
+        <p>You are logged in as {{ user.display_name }}.</p>
+
+        <div class="bot-list-container">
+            <h2>Your Bots</h2>
+            <table class="bot-table">
+                <thead>
+                    <tr>
+                        <th>Bot Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bot in bots %}
+                        <tr>
+                            <td>{{ bot.name }}</td>
+                            <td>
+                                <button class="btn btn-edit">Edit</button>
+                                <button class="btn btn-delete">Delete</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% if not bots %}
+                        <tr>
+                            <td colspan="3">No bots found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            <div class="bot-actions">
+                <button class="btn btn-add">Add Bot</button>
+            </div>
+        </div>
     {% else %}
-        <p>You are not logged in.</p>
+        <div class="welcome-container">
+            <div class="info-card">
+                <h2>Welcome to Tentakel Bot!</h2>
+                <p>To manage your bots and access all features, please log in.</p>
+                <p>A Twitch login is required to generally use the Bot.</p>
+                <p>A Discord login is required to access Discord-specific features.</p>
+                <div class="login-options">
+                    <a href="/login" class="btn btn-add">Login now</a>
+                </div>
+            </div>
+        </div>
     {% endif %}
 {% endblock %}

@@ -28,6 +28,7 @@ def get_twitch_user(request: Request) -> Optional[TwitchUserInfo]:
             id_=payload["sub"],
             login=payload["login"],
             display_name=payload["display_name"],
+            profile_image_url=payload.get("profile_image_url", ""),
         )
     except (jwt.InvalidTokenError, KeyError):
         return None
