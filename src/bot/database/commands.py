@@ -1,6 +1,6 @@
 from typing import Optional
 
-from bot.database.types import Command
+from bot.database.types import BasicCommand
 from bot.types.chat_message import ChatMessage
 from bot.types.programm_parts import PROGRAMM_PARTS
 from bot.types.response_message import ResponseMessage
@@ -76,7 +76,7 @@ def remove_command(message: ChatMessage, command_name: str) -> ResponseMessage:
 
 def try_lookup_command(message: ChatMessage, command_name: str) -> Optional[ResponseMessage]:
     result = PROGRAMM_PARTS.database.find_one(
-        table_name=TABLE_NAME, where={"id": message.id_, "name": command_name.lstrip("!")}, type_=Command
+        table_name=TABLE_NAME, where={"id": message.id_, "name": command_name.lstrip("!")}, type_=BasicCommand
     )
 
     if result is None:

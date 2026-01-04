@@ -8,7 +8,9 @@ class TwitchAuth(BaseModel):
     expires_at: int
 
 
-class Command(BaseModel):
+class BasicCommand(BaseModel):
+    id: int
+    bot_id: int
     command: str
     message: str
 
@@ -21,4 +23,5 @@ class BotConfig(BaseModel):
 
 class TwitchChannel(BaseModel):
     id: int
+    bot_id: int
     channel_name: str
