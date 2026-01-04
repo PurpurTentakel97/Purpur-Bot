@@ -10,6 +10,7 @@ from starlette.requests import Request
 from bot.database.bot import create_new_bot
 from bot.database.bot import delete_bot_by_id
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
+from bot.frontend.helpers.route_utils import get_twitch_session_cookie
 from bot.types.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/api", dependencies=[Depends(get_authenticated_twitch_user)])
@@ -25,14 +26,17 @@ def new_bot(
     return JSONResponse(status_code=HTTPStatus.CREATED, content={"id": result})
 
 
-@router.post("/bot/delete/{twitch_user_id}/{bot_id:int}")
+@router.post("/bot/delete/{bot_id:int}")
 def delete_bot(
     request: Request,
-    twitch_user_id: str,
     bot_id: int,
     current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
 ) -> JSONResponse:
-    if current_twitch_user.id_ != twitch_user_id:
+    session_cookie = get_twitch_session_cookie(request)
+    if session_cookie is None:
+        return JSONResponse(status_code=HTTPStatus.UNAUTHORIZED, content={"message": "Session cookie is missing"})
+
+    if current_twitch_user.id_ != session_cookie.user_id:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "You can only delete your own bots"})
 
     result = delete_bot_by_id(bot_id, current_twitch_user.id_)

@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column("twitch_id", sa.String, nullable=False, primary_key=True),
         sa.Column("access_token", sa.String, nullable=False),
         sa.Column("refresh_token", sa.String, nullable=False),
-        sa.Column("expires_at", sa.DateTime, nullable=False),
+        sa.Column("expires_at", sa.Integer, nullable=False),
     )
 
 

@@ -32,6 +32,7 @@ from bot.helpers.log import LogLevel
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default
 from bot.helpers.log import log_exception
+from bot.types.twitch_session_cookie_jwt import TwitchSessionCookie
 from bot.types.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/auth")
@@ -103,20 +104,20 @@ async def auth_twitch_callback(request: Request, code: Optional[str], state: Opt
                         detail="Failed to save twitch tokens to a database",
                     )
 
-                payload: Final = {
-                    "sub": user.id,
-                    "login": user.login,
-                    "display_name": user.display_name,
-                    "profile_image_url": user.profile_image_url,
-                    "exp": expires_at_timestamp,
-                    "iat": int(now.timestamp()),
-                }
+                payload = TwitchSessionCookie(
+                    user_id=user.id,
+                    login=user.login,
+                    display_name=user.display_name,
+                    profile_image_url=user.profile_image_url,
+                    exp=expires_at_timestamp,
+                    iat=int(now.timestamp()),
+                )
                 log_default(
                     LogLevel.INFO,
                     f"Twitch user {user.id}({user.display_name}) logged in successfully | login: {user.login}",
                 )
                 session_jwt: Final = jwt.encode(  # type: ignore[reportUnknownMemberType]
-                    payload,
+                    payload.model_dump(),
                     APP_CONTEXT.jwt_secret.value(),
                     algorithm=JWT_ALG,
                 )
