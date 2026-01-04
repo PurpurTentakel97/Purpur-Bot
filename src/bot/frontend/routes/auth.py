@@ -97,7 +97,7 @@ async def auth_twitch_callback(request: Request, code: Optional[str], state: Opt
                 expires_at_timestamp: Final = int(expires_at.timestamp())
 
                 result = save_or_update_twitch_tokens(user.id, access_token, refresh_token, expires_at_timestamp)
-                if not result.success:
+                if not result:
                     raise HTTPException(
                         status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                         detail="Failed to save twitch tokens to a database",
@@ -175,7 +175,7 @@ async def logout(
                 )
 
         result = delete_twitch_tokens(current_twitch_user.id_)
-        if not result.success:
+        if not result:
             log_default(LogLevel.ERROR, f"Failed to delete twitch tokens for user {current_twitch_user.id_}")
 
     response = RedirectResponse(url="/")

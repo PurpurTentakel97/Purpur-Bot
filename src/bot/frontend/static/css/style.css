@@ -145,6 +145,8 @@ li {
 }
 
 .btn {
+    display: inline-block;
+    text-decoration: none;
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
@@ -175,7 +177,7 @@ li {
 .btn-add {
     background-color: var(--primary-color);
     color: white;
-    font-size: 1rem;
+    font-size: 1.1rem;
     padding: 0.75rem 1.5rem;
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s;
 }
@@ -226,10 +228,4 @@ li {
 
 .login-options {
     margin-top: 2rem;
-}
-
-.login-options .btn {
-    display: inline-block;
-    text-decoration: none;
-    font-size: 1.1rem;
 }

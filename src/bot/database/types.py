@@ -1,0 +1,13 @@
+from pydantic import BaseModel
+
+
+class TwitchAuth(BaseModel):
+    twitch_user_id: str
+    access_token: str
+    refresh_token: str
+    expires_at: int
+
+
+class Command(BaseModel):
+    command: str
+    message: str

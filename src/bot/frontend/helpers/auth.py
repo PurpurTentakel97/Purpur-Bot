@@ -34,7 +34,7 @@ def get_twitch_user(request: Request) -> Optional[TwitchUserInfo]:
         return None
 
 
-def get_authenticated_user(
+def get_authenticated_twitch_user(
     current_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
 ) -> TwitchUserInfo:
     if current_user is None:

@@ -1,11 +1,7 @@
 from typing import Optional
 
-from bot.database.database import DatabaseDeleteData
-from bot.database.database import DatabaseGetData
-from bot.database.database import DatabaseSaveData
-from bot.database.database import DatabaseUpdateData
+from bot.database.types import Command
 from bot.types.chat_message import ChatMessage
-from bot.types.database_result import DatabaseResult
 from bot.types.programm_parts import PROGRAMM_PARTS
 from bot.types.response_message import ResponseMessage
 
@@ -21,12 +17,11 @@ def add_command(message: ChatMessage, command_name: str, command_message: str) -
             message.meta_data,
         )
 
-    data = DatabaseSaveData(
+    result = PROGRAMM_PARTS.database.save(
         table_name=TABLE_NAME, data={"id": message.id_, "name": command_name, "message": command_message}
     )
 
-    result = PROGRAMM_PARTS.database.save(data)
-    if not result.success:
+    if not result:
         return ResponseMessage(
             f"Error add command '!{command_name}'", message.sender_chat, message.original_message, message.meta_data
         )
@@ -40,19 +35,12 @@ def add_command(message: ChatMessage, command_name: str, command_message: str) -
 
 
 def edit_command(message: ChatMessage, command_name: str, command_message: str) -> ResponseMessage:
-    data = DatabaseUpdateData(
-        table_name=TABLE_NAME, data={"message": command_message}, where={"id": message.id_, "name": command_name}
+    result = PROGRAMM_PARTS.database.update(
+        table_name=TABLE_NAME,
+        where={"id": message.id_, "name": command_name},
+        data={"message": command_message},
     )
-
-    result = PROGRAMM_PARTS.database.update(data)
-    if not result.success:
-        if result == DatabaseResult.NO_DATA_EDITED:
-            return ResponseMessage(
-                f"Command '!{command_name}' does not exist.",
-                message.sender_chat,
-                message.original_message,
-                message.meta_data,
-            )
+    if not result:
         return ResponseMessage(
             f"Error editing command: '!{command_name}'",
             message.sender_chat,
@@ -69,17 +57,8 @@ def edit_command(message: ChatMessage, command_name: str, command_message: str) 
 
 
 def remove_command(message: ChatMessage, command_name: str) -> ResponseMessage:
-    data = DatabaseDeleteData(table_name=TABLE_NAME, where={"id": message.id_, "name": command_name})
-
-    result = PROGRAMM_PARTS.database.delete(data)
-    if not result.success:
-        if result == DatabaseResult.NO_DATA_EDITED:
-            return ResponseMessage(
-                f"Command '!{command_name}' does not exist.",
-                message.sender_chat,
-                message.original_message,
-                message.meta_data,
-            )
+    result = PROGRAMM_PARTS.database.delete(table_name=TABLE_NAME, where={"id": message.id_, "name": command_name})
+    if not result:
         return ResponseMessage(
             f"Error removing command: '!{command_name}'",
             message.sender_chat,
@@ -96,17 +75,14 @@ def remove_command(message: ChatMessage, command_name: str) -> ResponseMessage:
 
 
 def try_lookup_command(message: ChatMessage, command_name: str) -> Optional[ResponseMessage]:
-    data = DatabaseGetData(
-        table_name=TABLE_NAME, keys=["message"], where={"id": message.id_, "name": command_name.lstrip("!")}
+    result = PROGRAMM_PARTS.database.find_one(
+        table_name=TABLE_NAME, where={"id": message.id_, "name": command_name.lstrip("!")}, type_=Command
     )
-    result = PROGRAMM_PARTS.database.get_single(data, "")
 
-    if not result.result.success:
-        return None
-    if result.data is None:
+    if result is None:
         return None
 
-    return ResponseMessage(result.data, message.sender_chat, message.original_message, message.meta_data)
+    return ResponseMessage(result.message, message.sender_chat, message.original_message, message.meta_data)
 
 
 def lookup_all_commands(message: ChatMessage) -> ResponseMessage:

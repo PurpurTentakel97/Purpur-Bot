@@ -13,5 +13,5 @@ def get_templates() -> Jinja2Templates:
         raise FileNotFoundError(f"Templates directory not found: {path}")
 
     templates = Jinja2Templates(directory=path)
-    templates.env.globals["now"] = datetime.now()
+    templates.env.globals["now"] = datetime.now()  # pyright: ignore [reportUnknownMemberType]
     return templates

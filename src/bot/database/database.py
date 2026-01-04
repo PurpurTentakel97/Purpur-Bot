@@ -1,157 +1,130 @@
 import sqlite3
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from typing import Optional
 from typing import Self
-from typing import final
+
+from pydantic import BaseModel
+from sqlalchemy import MetaData
+from sqlalchemy import Table
+from sqlalchemy import create_engine
+from sqlalchemy import insert
+from sqlalchemy import select
+from sqlalchemy.engine import Engine
 
 from bot.helpers.log import LogLevel
+from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default
-from bot.types.database_result import DatabaseResult
+from bot.helpers.log import log_exception
 
-DATABASE_PATH = Path.cwd() / "bot.db"
-
-
-@final
-@dataclass(frozen=True)
-class DatabaseSaveData:
-    table_name: str
-    data: dict[str, Any]
+DATABASE_PATH = Path(__file__).parent.parent.parent.parent / "bot.db"
 
 
-@final
-@dataclass(frozen=True)
-class DatabaseUpdateData:
-    table_name: str
-    data: dict[str, Any]
-    where: dict[str, Any]
-
-
-@final
-@dataclass(frozen=True)
-class DatabaseDeleteData:
-    table_name: str
-    where: dict[str, Any]
-
-
-@final
-@dataclass(frozen=True)
-class DatabaseGetData:
-    table_name: str
-    keys: list[str]
-    where: dict[str, Any]
-
-
-@final
-@dataclass(frozen=True)
-class SingleDatabaseResult[T]:
-    data: T
-    result: DatabaseResult
-
-
-@final
 class Database:
-    def __init__(self, connection: sqlite3.Connection, cursor: sqlite3.Cursor) -> None:
-        self._connection = connection
-        self._cursor = cursor
+    def __init__(self, engine: Engine) -> None:
+        self._engine = engine
+        self._metadata = MetaData()
 
     @classmethod
     def create(cls) -> Optional[Self]:
         try:
-            connection = sqlite3.connect(DATABASE_PATH)
-            cursor = connection.cursor()
-            return cls(connection, cursor)
-        except sqlite3.Error as e:
-            log_default(LogLevel.ERROR, f"Failed to connect to database: {e}")
+            engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+            return cls(engine)
+
+        except sqlite3.OperationalError:
+            log_default(LogLevel.ERROR, "Failed to create the database. Database isn't started.")
             return None
 
     def close(self) -> None:
-        self._cursor.close()
-        self._connection.close()
+        self._engine.dispose()
 
-    def save(self, data: DatabaseSaveData) -> DatabaseResult:
-        keys = list(data.data.keys())
-        values = tuple(data.data.values())
-
-        name_clause = ", ".join(keys)
-        value_clause = ", ".join(["?"] * len(keys))
-        command = f"INSERT INTO {data.table_name} ({name_clause}) VALUES ({value_clause})"
-
+    # get
+    def find_one[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> Optional[T]:
         try:
-            self._cursor.execute(command, values)
-            self._connection.commit()
-        except sqlite3.Error as e:
-            log_default(LogLevel.ERROR, f"Error while storing data to the database. {e}")
-            return DatabaseResult.ERROR
+            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            statement = select(table).where(**where)
 
-        return DatabaseResult.SUCCESS
+            with self._engine.begin() as connection:
+                result = connection.execute(statement).fetchone()
 
-    def update(self, data: DatabaseUpdateData) -> DatabaseResult:
-        data_keys = list(data.data.keys())
-        data_values = tuple(data.data.values())
-        where_keys = list(data.where.keys())
-        where_values = tuple(data.where.values())
+                if result is None:
+                    return None
 
-        set_clause = ", ".join([f"{key} = ?" for key in data_keys])
-        where_clause = " AND ".join([f"{key} = ?" for key in where_keys])
-        command = f"UPDATE {data.table_name} SET {set_clause} WHERE {where_clause}"
+                return type_.model_validate(dict(result))
 
+        except Exception as e:
+            log_exception(e, LogProgram.Default, f"Failed to find data in the database. | table: {table_name}")
+            return None
+
+    def find_all[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> list[T]:
         try:
-            self._cursor.execute(command, data_values + where_values)
-            self._connection.commit()
+            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            statement = select(table).where(**where)
 
-            if self._cursor.rowcount == 0:
-                return DatabaseResult.NO_DATA_EDITED
+            with self._engine.begin() as connection:
+                result = connection.execute(statement).fetchall()
+                return [type_.model_validate(dict(row)) for row in result]
 
-        except sqlite3.Error as e:
-            log_default(LogLevel.ERROR, f"Error while updating data in the database. {e}")
-            return DatabaseResult.ERROR
+        except Exception as e:
+            log_exception(e, LogProgram.Default, f"Failed to find data in the database. | table: {table_name}")
+            return []
 
-        return DatabaseResult.SUCCESS
-
-    def delete(self, data: DatabaseDeleteData) -> DatabaseResult:
-        keys = list(data.where.keys())
-        values = tuple(data.where.values())
-
-        where_clause = " AND ".join([f"{key} = ?" for key in keys])
-        command = f"DELETE FROM {data.table_name} WHERE {where_clause}"
-
+    # store
+    def save(self, table_name: str, data: dict[str, Any]) -> bool:
         try:
-            self._cursor.execute(command, values)
-            self._connection.commit()
+            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            statement = insert(table).values(**data)
 
-            if self._cursor.rowcount == 0:
-                return DatabaseResult.NO_DATA_EDITED
+            with self._engine.begin() as connection:
+                connection.execute(statement)
 
-        except sqlite3.Error as e:
-            log_default(LogLevel.ERROR, f"Error while deleting data from the database. {e}")
-            return DatabaseResult.ERROR
+            return True
 
-        return DatabaseResult.SUCCESS
+        except Exception as e:
+            log_exception(e, LogProgram.Default, f"Failed to save data to the database. | table_name: {table_name}")
+            return False
 
-    def get_single[T](self, data: DatabaseGetData, return_type: T) -> SingleDatabaseResult[T | None]:
-        where_keys = list(data.where.keys())
-        where_values = tuple(data.where.values())
-
-        keys_claus = ", ".join(data.keys)
-        where_clause = " AND ".join([f"{key} = ?" for key in where_keys])
-        command = f"SELECT {keys_claus} FROM {data.table_name} WHERE {where_clause} LIMIT 1"
-
+    def save_with_returned_id(self, table_name: str, data: dict[str, Any]) -> Optional[int]:
         try:
-            self._cursor.execute(command, where_values)
-            fetch_result = self._cursor.fetchone()
-        except sqlite3.Error as e:
-            log_default(LogLevel.ERROR, f"Error while fetching data from the database. {e}")
-            return SingleDatabaseResult(None, DatabaseResult.ERROR)
+            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            statement = insert(table).values(**data)
 
-        if fetch_result is None:
-            log_default(LogLevel.INFO, f"No data found in table {data.table_name} | Query: {command}")
-            return SingleDatabaseResult(None, DatabaseResult.EMPTY)
+            with self._engine.begin() as connection:
+                result = connection.execute(statement)
+                last_id = result.lastrowid
 
-        value = fetch_result[0]
+            return last_id
 
-        if not isinstance(value, type(return_type)):
-            return SingleDatabaseResult(None, DatabaseResult.TYPE_MISSMATCH)
+        except Exception as e:
+            log_exception(
+                e, LogProgram.Default, f"Failed to save data to the database and return id. | table_name: {table_name}"
+            )
+            return None
 
-        return SingleDatabaseResult(value, DatabaseResult.SUCCESS)
+    # update
+    def update(self, table_name: str, where: dict[str, Any], data: dict[str, Any]) -> bool:
+        try:
+            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            statement = table.update().where(**where).values(**data)
+
+            with self._engine.begin() as connection:
+                connection.execute(statement)
+                return True
+
+        except Exception as e:
+            log_exception(e, LogProgram.Default, f"Failed to update data in the database. | table_name: {table_name}")
+            return False
+
+    # delete
+    def delete(self, table_name: str, where: dict[str, Any]) -> bool:
+        try:
+            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            statement = table.delete().where(**where)
+
+            with self._engine.begin() as connection:
+                connection.execute(statement)
+                return True
+
+        except Exception as e:
+            log_exception(e, LogProgram.Default, f"Failed to delete data in the database. | table_name: {table_name}")
+            return False
