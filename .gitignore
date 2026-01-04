@@ -19,7 +19,6 @@ coverage_html/
 
 # Config
 .env
-config.json
 
 # database
 bot.db

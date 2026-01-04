@@ -1,12 +1,13 @@
-from typing import List
 from twitchAPI.twitch import Twitch
-from bot.helpers.app_context import APP_CONTEXT
+
 from bot.database.auth import get_twitch_tokens
 from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
-from bot.helpers.log import log_exception, LogProgram
+from bot.helpers.app_context import APP_CONTEXT
+from bot.helpers.log import LogProgram
+from bot.helpers.log import log_exception
 
 
-async def get_allowed_twitch_channels(user_id: str, user_login: str) -> List[str]:
+async def get_allowed_twitch_channels(user_id: str, user_login: str) -> list[str]:
     tokens = get_twitch_tokens(user_id)
     if tokens is None:
         return [user_login]
@@ -18,12 +19,7 @@ async def get_allowed_twitch_channels(user_id: str, user_login: str) -> List[str
     )
 
     try:
-        await twitch.set_user_authentication(
-            tokens.access_token,
-            TWITCH_SCOPES,
-            tokens.refresh_token,
-            validate=True
-        )
+        await twitch.set_user_authentication(tokens.access_token, TWITCH_SCOPES, tokens.refresh_token, validate=True)
 
         channels = [user_login]
 
