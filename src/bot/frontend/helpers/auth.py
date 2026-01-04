@@ -7,7 +7,9 @@ from fastapi import Depends
 from fastapi import HTTPException
 from starlette.requests import Request
 
+from bot.frontend.helpers.route_utils import get_discord_session_cookie
 from bot.frontend.helpers.route_utils import get_twitch_session_cookie
+from bot.types.discord_user_info import DiscordUserInfo
 from bot.types.twitch_user_info import TwitchUserInfo
 
 
@@ -27,9 +29,34 @@ def get_twitch_user(request: Request) -> Optional[TwitchUserInfo]:
         return None
 
 
+def get_discord_user(request: Request) -> Optional[DiscordUserInfo]:
+    session_cookie = get_discord_session_cookie(request)
+    if session_cookie is None:
+        return None
+
+    try:
+        return DiscordUserInfo(
+            id_=session_cookie.user_id,
+            username=session_cookie.username,
+            display_name=session_cookie.display_name,
+            avatar_url=session_cookie.avatar_url,
+        )
+    except (jwt.InvalidTokenError, KeyError):
+        return None
+
+
 def get_authenticated_twitch_user(
     current_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
 ) -> TwitchUserInfo:
+    if current_user is None:
+        raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Not authenticated")
+
+    return current_user
+
+
+def get_authenticated_discord_user(
+    current_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+) -> DiscordUserInfo:
     if current_user is None:
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Not authenticated")
 

@@ -2,8 +2,8 @@
 
 {% block content %}
     <h1>Homepage</h1>
-    {% if user %}
-        <p>You are logged in as {{ user.display_name }}.</p>
+    {% if twitch_user %}
+        <p>You are logged in as {{ twitch_user.display_name }}.</p>
 
         <div class="bot-list-container">
             <h2>Your Bots</h2>

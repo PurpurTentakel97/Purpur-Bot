@@ -90,6 +90,9 @@ class AppContext:
     def __init__(
         self,
         discord_token: Optional[str],
+        discord_client_id: Optional[str],
+        discord_client_secret: Optional[str],
+        discord_redirect_uri: str,
         twitch_client_id: Optional[str],
         twitch_credentials: Optional[str],
         twitch_tokens: Optional[TwitchTokens],
@@ -98,6 +101,9 @@ class AppContext:
         jwt_secret: str,
     ) -> None:
         self.discord_token: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_token)
+        self.discord_client_id: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_client_id)
+        self.discord_client_secret: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_client_secret)
+        self.discord_redirect_uri: AppContextEntry[str] = AppContextEntry(discord_redirect_uri)
         self.twitch_client_id: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_client_id)
         self.twitch_credentials: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_credentials)
         self.twitch_tokens: OptionalAppContextEntry[TwitchTokens] = OptionalAppContextEntry(twitch_tokens)
@@ -157,6 +163,11 @@ class AppContext:
 load_dotenv()
 APP_CONTEXT = AppContext(
     discord_token=_get_env_var_or_default("DISCORD_TOKEN", None),
+    discord_client_id=_get_env_var_or_default("DISCORD_CLIENT_ID", None),
+    discord_client_secret=_get_env_var_or_default("DISCORD_CLIENT_SECRET", None),
+    discord_redirect_uri=_get_env_var_or_default(
+        "DISCORD_REDIRECT_URI", "http://localhost:8000/auth/discord/callback"
+    ),
     twitch_client_id=_get_env_var_or_default("TWITCH_CLIENT_ID", None),
     twitch_credentials=_get_env_var_or_default("TWITCH_CREDENTIALS", None),
     twitch_tokens=TwitchTokens.try_load(),

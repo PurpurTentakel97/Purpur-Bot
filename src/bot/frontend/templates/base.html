@@ -16,13 +16,21 @@
                 </div>
             </div>
             <div class="user-controls">
-                {% if user %}
-                    <span class="user-info">Welcome, {{ user.display_name }}!</span>
-                    {% if user.profile_image_url %}
-                        <img src="{{ user.profile_image_url }}" alt="{{ user.display_name }}" class="profile-pic">
+                {% if twitch_user or discord_user %}
+                    {% if twitch_user.display_name %}
+                        <span class="user-info">Welcome, {{ twitch_user.display_name }}!</span>
+                    {% elif discord_user.display_name %}
+                        <span class="user-info">Welcome, {{ discord_user.display_name }}!</span>
+                    {% endif %}
+                    {% if twitch_user.profile_image_url %}
+                        <img src="{{ twitch_user.profile_image_url }}" alt="{{ twitch_user.display_name }}" class="profile-pic">
+                    {% endif %}
+                    {% if discord_user.avatar_url %}
+                        <img src="{{ discord_user.avatar_url }}" alt="{{ discord_user.display_name }}" class="profile-pic">
                     {% endif %}
                     <a href="/auth/logout">Logout</a>
-                {% else %}
+                {% endif %}
+                {% if not twitch_user or not discord_user %}
                     <a href="/login">Login</a>
                 {% endif %}
             </div>

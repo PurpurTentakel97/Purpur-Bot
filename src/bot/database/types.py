@@ -8,6 +8,13 @@ class TwitchAuth(BaseModel):
     expires_at: int
 
 
+class DiscordAuth(BaseModel):
+    discord_id: str
+    access_token: str
+    refresh_token: str
+    expires_at: int
+
+
 class BasicCommand(BaseModel):
     id: int
     bot_id: int

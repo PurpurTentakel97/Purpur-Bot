@@ -11,6 +11,7 @@ from bot.frontend.helpers.auth_constents import JWT_ALG
 from bot.helpers.app_context import APP_CONTEXT
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
+from bot.types.discord_session_cookie_jwt import DiscordSessionCookie
 from bot.types.twitch_session_cookie_jwt import TwitchSessionCookie
 
 
@@ -42,4 +43,23 @@ def get_twitch_session_cookie(request: Request) -> TwitchSessionCookie | None:
 
     except Exception as e:
         log_exception(e, LogProgram.Default, "Failed to decode Twitch Session Cookie")
+        return None
+
+
+def get_discord_session_cookie(request: Request) -> DiscordSessionCookie | None:
+    session_cookie = request.cookies.get("DISCORD_SESSION_COOKIE")
+    if session_cookie is None:
+        return None
+
+    payload: Final = jwt.decode(  # pyright: ignore [reportUnknownMemberType]
+        jwt=session_cookie,
+        key=APP_CONTEXT.jwt_secret.value(),
+        algorithms=JWT_ALG,
+    )
+
+    try:
+        return DiscordSessionCookie.model_validate(payload)
+
+    except Exception as e:
+        log_exception(e, LogProgram.Default, "Failed to decode Discord Session Cookie")
         return None
