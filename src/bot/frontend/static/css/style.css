@@ -159,6 +159,9 @@ li {
     background-color: #444;
     color: white;
     margin-right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-edit:hover {

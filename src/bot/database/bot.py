@@ -16,3 +16,8 @@ def create_new_bot(twitch_user_id: str) -> Optional[int]:
     return PROGRAMM_PARTS.database.save_with_returned_id(
         table_name="bot_config", data={"twitch_user_id": twitch_user_id}
     )
+
+
+# delete
+def delete_bot_by_id(id_: int, twitch_user_id: str) -> bool:
+    return PROGRAMM_PARTS.database.delete(table_name="bot_config", where={"id": id_, "twitch_user_id": twitch_user_id})
