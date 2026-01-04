@@ -17,11 +17,11 @@ from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.route_utils import get_twitch_session_cookie
 from bot.types.twitch_user_info import TwitchUserInfo
 
-router: Final = APIRouter(prefix="/api", dependencies=[Depends(get_authenticated_twitch_user)])
+router: Final = APIRouter(prefix="/api/bot", dependencies=[Depends(get_authenticated_twitch_user)])
 
 
 # bot
-@router.post("/bot/create")
+@router.post("/create")
 def new_bot(
     request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
 ) -> JSONResponse:
@@ -31,7 +31,7 @@ def new_bot(
     return JSONResponse(status_code=HTTPStatus.CREATED, content={"id": result})
 
 
-@router.post("/bot/edit/{bot_id:int}")
+@router.post("/edit/{bot_id:int}")
 async def edit_bot(
     request: Request,
     bot_id: int,
@@ -56,7 +56,7 @@ async def edit_bot(
         return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
-@router.post("/bot/delete/{bot_id:int}")
+@router.post("/delete/{bot_id:int}")
 def delete_bot(
     request: Request,
     bot_id: int,
@@ -74,7 +74,7 @@ def delete_bot(
 
 
 # Twitch
-@router.post("/bot/twitch/add")
+@router.post("/twitch/add")
 async def add_twitch_channel(
     request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
 ) -> JSONResponse:
@@ -95,7 +95,7 @@ async def add_twitch_channel(
     return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Twitch channel added successfully"})
 
 
-@router.post("/bot/twitch/delete")
+@router.post("/twitch/delete")
 async def delete_twitch_channel(
     request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
 ) -> JSONResponse:

@@ -10,6 +10,7 @@ from starlette.templating import Jinja2Templates
 
 from bot.database.bot import get_bot_by_id
 from bot.database.bot import get_twitch_channels_by_bot_id
+from bot.database.commands import get_commands_by_bot_id
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.twitch import get_allowed_twitch_channels
@@ -39,6 +40,8 @@ async def bot_dashboard(
     joined_channel_names = {c.channel_name.lower() for c in twitch_channels}
     filtered_allowed_channels = [c for c in allowed_channels if c.lower() not in joined_channel_names]
 
+    commands = get_commands_by_bot_id(bot_id)
+
     return template.TemplateResponse(
         request=request,
         name="bot_dashboard.html",
@@ -46,5 +49,6 @@ async def bot_dashboard(
             "bot": bot,
             "twitch_channels": twitch_channels,
             "allowed_channels": filtered_allowed_channels,
+            "commands": commands,
         },
     )
