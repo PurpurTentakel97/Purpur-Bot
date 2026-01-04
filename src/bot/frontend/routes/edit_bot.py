@@ -9,6 +9,7 @@ from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 from bot.database.bot import get_bot_by_id
+from bot.database.bot import get_twitch_channels_by_bot_id
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
 from bot.types.twitch_user_info import TwitchUserInfo
@@ -30,4 +31,10 @@ def bot_dashboard(
     if bot.twitch_user_id != current_twitch_user.id_:
         raise HTTPException(status_code=403, detail="You do not have permission to edit this bot")
 
-    return template.TemplateResponse(request=request, name="bot_dashboard.html", context={"bot": bot})
+    twitch_channels = get_twitch_channels_by_bot_id(bot_id)
+
+    return template.TemplateResponse(
+        request=request,
+        name="bot_dashboard.html",
+        context={"bot": bot, "twitch_channels": twitch_channels},
+    )

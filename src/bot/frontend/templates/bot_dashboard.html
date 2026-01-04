@@ -2,21 +2,105 @@
 
 {% block content %}
     <h1>Edit Bot</h1>
-    <div class="bot-list-container">
+    <div class="dashboard-container">
         <a href="/" class="back-link">&larr; Back to Home</a>
-        <h2>Bot Settings</h2>
-        <form id="edit-bot-form" class="edit-form">
-            <div class="form-group">
-                <label for="bot-name">Bot Name:</label>
-                <input type="text" id="bot-name" name="name" value="{{ bot.name }}" required>
+
+        <div class="tabs">
+            <button class="tab-link active" onclick="openTab(event, 'bot-settings')">Bot Settings</button>
+            <button class="tab-link" onclick="openTab(event, 'twitch-channels')">Twitch Channels</button>
+        </div>
+
+        <div id="bot-settings" class="tab-content active">
+            <h2>Bot Settings</h2>
+            <form id="edit-bot-form" class="edit-form">
+                <div class="form-group">
+                    <label for="bot-name">Bot Name:</label>
+                    <input type="text" id="bot-name" name="name" value="{{ bot.name }}" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-add">Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="twitch-channels" class="tab-content">
+            <h2>Twitch Channels</h2>
+            <table class="bot-table">
+                <thead>
+                    <tr>
+                        <th>Channel Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="twitch-channels-body">
+                    {% for channel in twitch_channels %}
+                        <tr>
+                            <td>
+                                <span class="channel-name">{{ channel.channel_name }}</span>
+                                <input type="text" class="edit-channel-input" value="{{ channel.channel_name }}" style="display: none;">
+                            </td>
+                            <td>
+                                <button class="btn btn-edit btn-small edit-btn" onclick="toggleEdit(this)">Edit</button>
+                                <button class="btn btn-add btn-small save-btn" onclick="saveChannel(this, '{{ channel.channel_name }}')" style="display: none;">Save</button>
+                                <button class="btn btn-delete btn-small" onclick="deleteChannel('{{ channel.channel_name }}')">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% if not twitch_channels %}
+                        <tr class="no-channels">
+                            <td colspan="2">No Twitch channels added.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+            <div class="add-channel-form">
+                <h3>Add New Channel</h3>
+                <div class="form-group">
+                    <input type="text" id="new-channel-name" placeholder="Channel Name">
+                </div>
+                <button class="btn btn-add" onclick="addChannel()">Add Channel</button>
             </div>
-            <div class="form-actions">
-                <button type="submit" class="btn btn-add">Save Changes</button>
-            </div>
-        </form>
+        </div>
     </div>
 
     <style>
+        .dashboard-container {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 2px solid #333;
+            margin-bottom: 2rem;
+        }
+        .tab-link {
+            background: none;
+            border: none;
+            color: var(--footer-text);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: color 0.2s, border-bottom 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-link:hover {
+            color: white;
+        }
+        .tab-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
         .edit-form {
             display: flex;
             flex-direction: column;
@@ -39,11 +123,6 @@
             background-color: #0e0e10;
             color: white;
         }
-        .form-group input:disabled {
-            background-color: #18181b;
-            color: #adadb8;
-            cursor: not-allowed;
-        }
         .form-actions {
             display: flex;
             gap: 1rem;
@@ -62,9 +141,52 @@
             color: white;
             text-decoration: underline;
         }
+        .btn-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.9rem;
+        }
+        .add-channel-form {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+        }
+        .add-channel-form h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
     </style>
 
     <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(tabName).classList.add("active");
+
+            // Find the button that corresponds to the tabName if evt is null (for initial load)
+            let targetBtn = evt ? evt.currentTarget : document.querySelector(`button[onclick*="'${tabName}'"]`);
+            if (targetBtn) {
+                targetBtn.classList.add("active");
+            }
+
+            // Update URL hash without jumping
+            history.replaceState(null, null, "#" + tabName);
+        }
+
+        // Initialize tab based on URL hash
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.substring(1);
+            if (hash && document.getElementById(hash)) {
+                openTab(null, hash);
+            }
+        });
+
         document.getElementById('edit-bot-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitButton = e.target.querySelector('button[type="submit"]');
@@ -96,5 +218,112 @@
                 submitButton.disabled = false;
             }
         });
+
+        async function addChannel() {
+            const channelNameInput = document.getElementById('new-channel-name');
+            const channelName = channelNameInput.value.trim();
+            if (!channelName) {
+                alert('Channel name is required');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/bot/twitch/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        twitch_channel: channelName
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to add channel: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while adding the channel.');
+            }
+        }
+
+        async function deleteChannel(channelName) {
+            if (!confirm(`Are you sure you want to remove ${channelName}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/bot/twitch/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        twitch_channel: channelName
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to remove channel: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while removing the channel.');
+            }
+        }
+
+        function toggleEdit(btn) {
+            const row = btn.closest('tr');
+            const span = row.querySelector('.channel-name');
+            const input = row.querySelector('.edit-channel-input');
+            const editBtn = row.querySelector('.edit-btn');
+            const saveBtn = row.querySelector('.save-btn');
+
+            span.style.display = 'none';
+            input.style.display = 'block';
+            editBtn.style.display = 'none';
+            saveBtn.style.display = 'inline-block';
+            input.focus();
+        }
+
+        async function saveChannel(btn, oldChannel) {
+            const row = btn.closest('tr');
+            const input = row.querySelector('.edit-channel-input');
+            const newChannel = input.value.trim();
+
+            if (!newChannel) {
+                alert('Channel name is required');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/bot/twitch/edit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        old_channel: oldChannel,
+                        new_channel: newChannel
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to update channel: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while updating the channel.');
+            }
+        }
     </script>
 {% endblock %}

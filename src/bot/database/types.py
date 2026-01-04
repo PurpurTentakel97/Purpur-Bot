@@ -17,3 +17,8 @@ class BotConfig(BaseModel):
     id: int
     twitch_user_id: str
     name: str
+
+
+class TwitchChannel(BaseModel):
+    id: int
+    channel_name: str
