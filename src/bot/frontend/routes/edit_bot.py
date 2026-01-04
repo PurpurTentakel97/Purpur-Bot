@@ -12,13 +12,14 @@ from bot.database.bot import get_bot_by_id
 from bot.database.bot import get_twitch_channels_by_bot_id
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
+from bot.frontend.helpers.twitch import get_allowed_twitch_channels
 from bot.types.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/dashboard", dependencies=[Depends(get_authenticated_twitch_user)])
 
 
 @router.get("/bot/edit/{bot_id:int}")
-def bot_dashboard(
+async def bot_dashboard(
     request: Request,
     bot_id: int,
     template: Annotated[Jinja2Templates, Depends(get_templates)],
@@ -32,9 +33,14 @@ def bot_dashboard(
         raise HTTPException(status_code=403, detail="You do not have permission to edit this bot")
 
     twitch_channels = get_twitch_channels_by_bot_id(bot_id)
+    allowed_channels = await get_allowed_twitch_channels(current_twitch_user.id_, current_twitch_user.login)
 
     return template.TemplateResponse(
         request=request,
         name="bot_dashboard.html",
-        context={"bot": bot, "twitch_channels": twitch_channels},
+        context={
+            "bot": bot,
+            "twitch_channels": twitch_channels,
+            "allowed_channels": allowed_channels,
+        },
     )

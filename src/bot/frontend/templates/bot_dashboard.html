@@ -37,7 +37,11 @@
                         <tr>
                             <td>
                                 <span class="channel-name">{{ channel.channel_name }}</span>
-                                <input type="text" class="edit-channel-input" value="{{ channel.channel_name }}" style="display: none;">
+                                <select class="edit-channel-input" style="display: none;">
+                                    {% for allowed in allowed_channels %}
+                                        <option value="{{ allowed }}" {% if allowed == channel.channel_name %}selected{% endif %}>{{ allowed }}</option>
+                                    {% endfor %}
+                                </select>
                             </td>
                             <td>
                                 <button class="btn btn-edit btn-small edit-btn" onclick="toggleEdit(this)">Edit</button>
@@ -57,7 +61,12 @@
             <div class="add-channel-form">
                 <h3>Add New Channel</h3>
                 <div class="form-group">
-                    <input type="text" id="new-channel-name" placeholder="Channel Name">
+                    <select id="new-channel-name">
+                        <option value="" disabled selected>Select a channel</option>
+                        {% for allowed in allowed_channels %}
+                            <option value="{{ allowed }}">{{ allowed }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <button class="btn btn-add" onclick="addChannel()">Add Channel</button>
             </div>
@@ -116,12 +125,14 @@
             font-weight: 600;
             color: var(--primary-color);
         }
-        .form-group input {
+        .form-group input, .form-group select {
             padding: 0.75rem;
             border-radius: 4px;
             border: 1px solid #333;
             background-color: #0e0e10;
             color: white;
+            width: 100%;
+            box-sizing: border-box;
         }
         .form-actions {
             display: flex;
@@ -153,6 +164,15 @@
         .add-channel-form h3 {
             color: var(--primary-color);
             margin-bottom: 1rem;
+        }
+        .edit-channel-input {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background-color: #0e0e10;
+            color: white;
+            width: 100%;
+            box-sizing: border-box;
         }
     </style>
 
