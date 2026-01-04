@@ -23,9 +23,14 @@ async def create_command(
     request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
 ) -> JSONResponse:
     data = await request.json()
-    id_ = data.get("bot_id")
-    name = data.get("command_name")
-    message = data.get("command_message")
+    id_ = data.get("bot_id").strip()
+    name = data.get("command_name").strip()
+    message = data.get("command_message").strip()
+
+    if any(char.isspace() for char in name):
+        return JSONResponse(
+            status_code=HTTPStatus.BAD_REQUEST, content={"message": "Command name cannot contain spaces"}
+        )
 
     bot = get_bot_by_id(id_)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
@@ -50,9 +55,9 @@ async def update_command_message(
     request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
 ) -> JSONResponse:
     data = await request.json()
-    id_ = data.get("bot_id")
-    name = data.get("command_name")
-    message = data.get("command_message")
+    id_ = data.get("bot_id").strip()
+    name = data.get("command_name").strip()
+    message = data.get("command_message").strip()
 
     bot = get_bot_by_id(id_)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
@@ -73,9 +78,14 @@ async def update_command_name(
     request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
 ) -> JSONResponse:
     data = await request.json()
-    id_ = data.get("bot_id")
-    old_name = data.get("old_command_name")
-    new_name = data.get("new_command_name")
+    id_ = data.get("bot_id").strip()
+    old_name = data.get("old_command_name").strip()
+    new_name = data.get("new_command_name").strip()
+
+    if any(char.isspace() for char in new_name):
+        return JSONResponse(
+            status_code=HTTPStatus.BAD_REQUEST, content={"message": "Command name cannot contain spaces"}
+        )
 
     bot = get_bot_by_id(id_)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
@@ -96,8 +106,8 @@ async def remove_command(
     request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
 ) -> JSONResponse:
     data = await request.json()
-    id_ = data.get("bot_id")
-    name = data.get("command_name")
+    id_ = data.get("bot_id").strip()
+    name = data.get("command_name").strip()
 
     bot = get_bot_by_id(id_)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
