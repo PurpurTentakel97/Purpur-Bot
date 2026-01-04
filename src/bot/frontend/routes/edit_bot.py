@@ -35,12 +35,16 @@ async def bot_dashboard(
     twitch_channels = get_twitch_channels_by_bot_id(bot_id)
     allowed_channels = await get_allowed_twitch_channels(current_twitch_user.id_, current_twitch_user.login)
 
+    # filter allowed_channels to only include those that are not yet in twitch_channels
+    joined_channel_names = {c.channel_name.lower() for c in twitch_channels}
+    filtered_allowed_channels = [c for c in allowed_channels if c.lower() not in joined_channel_names]
+
     return template.TemplateResponse(
         request=request,
         name="bot_dashboard.html",
         context={
             "bot": bot,
             "twitch_channels": twitch_channels,
-            "allowed_channels": allowed_channels,
+            "allowed_channels": filtered_allowed_channels,
         },
     )

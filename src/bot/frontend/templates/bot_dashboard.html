@@ -37,15 +37,8 @@
                         <tr>
                             <td>
                                 <span class="channel-name">{{ channel.channel_name }}</span>
-                                <select class="edit-channel-input" style="display: none;">
-                                    {% for allowed in allowed_channels %}
-                                        <option value="{{ allowed }}" {% if allowed == channel.channel_name %}selected{% endif %}>{{ allowed }}</option>
-                                    {% endfor %}
-                                </select>
                             </td>
                             <td>
-                                <button class="btn btn-edit btn-small edit-btn" onclick="toggleEdit(this)">Edit</button>
-                                <button class="btn btn-add btn-small save-btn" onclick="saveChannel(this, '{{ channel.channel_name }}')" style="display: none;">Save</button>
                                 <button class="btn btn-delete btn-small" onclick="deleteChannel('{{ channel.channel_name }}')">Remove</button>
                             </td>
                         </tr>
@@ -298,52 +291,5 @@
             }
         }
 
-        function toggleEdit(btn) {
-            const row = btn.closest('tr');
-            const span = row.querySelector('.channel-name');
-            const input = row.querySelector('.edit-channel-input');
-            const editBtn = row.querySelector('.edit-btn');
-            const saveBtn = row.querySelector('.save-btn');
-
-            span.style.display = 'none';
-            input.style.display = 'block';
-            editBtn.style.display = 'none';
-            saveBtn.style.display = 'inline-block';
-            input.focus();
-        }
-
-        async function saveChannel(btn, oldChannel) {
-            const row = btn.closest('tr');
-            const input = row.querySelector('.edit-channel-input');
-            const newChannel = input.value.trim();
-
-            if (!newChannel) {
-                alert('Channel name is required');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/bot/twitch/edit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        bot_id: "{{ bot.id }}",
-                        old_channel: oldChannel,
-                        new_channel: newChannel
-                    })
-                });
-
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    const error = await response.json();
-                    alert('Failed to update channel: ' + (error.message || 'Unknown error'));
-                }
-            } catch (err) {
-                alert('An error occurred while updating the channel.');
-            }
-        }
     </script>
 {% endblock %}
