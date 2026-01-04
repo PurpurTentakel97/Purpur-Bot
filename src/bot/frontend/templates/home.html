@@ -32,9 +32,27 @@
                 </tbody>
             </table>
             <div class="bot-actions">
-                <a href="/dashboard/bot/new" class="btn btn-add">Add Bot</a>
+                <button id="add-bot-btn" class="btn btn-add">Add Bot</button>
             </div>
         </div>
+
+        <script>
+            document.getElementById('add-bot-btn').addEventListener('click', async () => {
+                const response = await fetch('/api/bot/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to create a bot: ' + (error.message || 'Unknown error'));
+                }
+            });
+        </script>
     {% else %}
         <div class="welcome-container">
             <div class="info-card">

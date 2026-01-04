@@ -42,15 +42,15 @@ class Database:
     def find_one[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> Optional[T]:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
-            statement = select(table).where(**where)
+            statement = select(table).filter_by(**where)
 
             with self._engine.begin() as connection:
-                result = connection.execute(statement).fetchone()
+                result = connection.execute(statement).mappings().fetchone()
 
                 if result is None:
                     return None
 
-                return type_.model_validate(dict(result))
+                return type_.model_validate(result)
 
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to find data in the database. | table: {table_name}")
@@ -59,11 +59,11 @@ class Database:
     def find_all[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> list[T]:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
-            statement = select(table).where(**where)
+            statement = select(table).filter_by(**where)
 
             with self._engine.begin() as connection:
-                result = connection.execute(statement).fetchall()
-                return [type_.model_validate(dict(row)) for row in result]
+                result = connection.execute(statement).mappings().fetchall()
+                return [type_.model_validate(row) for row in result]
 
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to find data in the database. | table: {table_name}")
@@ -105,7 +105,7 @@ class Database:
     def update(self, table_name: str, where: dict[str, Any], data: dict[str, Any]) -> bool:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
-            statement = table.update().where(**where).values(**data)
+            statement = table.update().filter_by(**where).values(**data)
 
             with self._engine.begin() as connection:
                 connection.execute(statement)
@@ -119,7 +119,7 @@ class Database:
     def delete(self, table_name: str, where: dict[str, Any]) -> bool:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
-            statement = table.delete().where(**where)
+            statement = table.delete().filter_by(**where)
 
             with self._engine.begin() as connection:
                 connection.execute(statement)

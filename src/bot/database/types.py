@@ -11,3 +11,9 @@ class TwitchAuth(BaseModel):
 class Command(BaseModel):
     command: str
     message: str
+
+
+class BotConfig(BaseModel):
+    id: int
+    twitch_user_id: str
+    name: str

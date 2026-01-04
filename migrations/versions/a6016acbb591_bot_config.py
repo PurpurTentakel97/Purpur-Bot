@@ -23,8 +23,8 @@ def upgrade() -> None:
     op.create_table(
         "bot_config",
         sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column("twitch_user_id", sa.Integer, nullable=False),
-        sa.Column("name", sa.String, nullable=False, default="new bot"),
+        sa.Column("twitch_user_id", sa.String, nullable=False),
+        sa.Column("name", sa.String, nullable=False, server_default="new bot"),
     )
 
 
