@@ -38,6 +38,10 @@ class TwitchClient:
                 return message
         return None
 
+    @property
+    def chats(self) -> list[TwitchChat]:
+        return self._chats
+
     def connect_chat(self, chat: TwitchChat) -> None:
         self._chats.append(chat)
 

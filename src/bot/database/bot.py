@@ -2,6 +2,7 @@ from typing import Optional
 
 from bot.database.types import BotConfig
 from bot.database.types import TwitchChannel
+from bot.helpers.twitch_on_demand import start_single_twitch_bot, stop_single_twitch_bot
 from bot.types.programm_parts import PROGRAMM_PARTS
 
 
@@ -37,7 +38,7 @@ def get_twitch_channels_by_bot_id(bot_id: int) -> list[TwitchChannel]:
     return PROGRAMM_PARTS.database.find_all(table_name="bot_twitch_lookup", where={"id": bot_id}, type_=TwitchChannel)
 
 
-def add_twitch_channel_to_bot(bot_id: int, twitch_channel: str) -> bool:
+async def add_twitch_channel_to_bot(bot_id: int, twitch_channel: str) -> bool:
     result = PROGRAMM_PARTS.database.find_one(
         table_name="bot_twitch_lookup", where={"id": bot_id, "channel_name": twitch_channel}, type_=TwitchChannel
     )
@@ -45,20 +46,20 @@ def add_twitch_channel_to_bot(bot_id: int, twitch_channel: str) -> bool:
     if result is not None:
         return False
 
-    return PROGRAMM_PARTS.database.save(
+    result = PROGRAMM_PARTS.database.save(
         table_name="bot_twitch_lookup", data={"id": bot_id, "channel_name": twitch_channel}
     )
 
+    await start_single_twitch_bot(bot_id, twitch_channel)
 
-def edit_twitch_channel_in_bot(bot_id: int, twitch_channel: str, new_name: str) -> bool:
-    return PROGRAMM_PARTS.database.update(
-        table_name="bot_twitch_lookup",
-        where={"id": bot_id, "channel_name": twitch_channel},
-        data={"channel_name": new_name},
-    )
+    return result
 
 
-def delete_twitch_channel_from_bot(bot_id: int, twitch_channel: str) -> bool:
-    return PROGRAMM_PARTS.database.delete(
+async def delete_twitch_channel_from_bot(bot_id: int, twitch_channel: str) -> bool:
+    result = PROGRAMM_PARTS.database.delete(
         table_name="bot_twitch_lookup", where={"id": bot_id, "channel_name": twitch_channel}
     )
+
+    await stop_single_twitch_bot(bot_id, twitch_channel)
+
+    return result
