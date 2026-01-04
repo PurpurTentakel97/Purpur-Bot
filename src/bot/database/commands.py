@@ -18,7 +18,7 @@ def add_command(message: ChatMessage, command_name: str, command_message: str) -
         )
 
     result = PROGRAMM_PARTS.database.save(
-        table_name=TABLE_NAME, data={"id": message.id_, "name": command_name, "message": command_message}
+        table_name=TABLE_NAME, data={"bot_id": message.id_, "command": command_name, "message": command_message}
     )
 
     if not result:
@@ -37,7 +37,7 @@ def add_command(message: ChatMessage, command_name: str, command_message: str) -
 def edit_command(message: ChatMessage, command_name: str, command_message: str) -> ResponseMessage:
     result = PROGRAMM_PARTS.database.update(
         table_name=TABLE_NAME,
-        where={"id": message.id_, "name": command_name},
+        where={"bot_id": message.id_, "command": command_name},
         data={"message": command_message},
     )
     if not result:
@@ -57,7 +57,7 @@ def edit_command(message: ChatMessage, command_name: str, command_message: str) 
 
 
 def remove_command(message: ChatMessage, command_name: str) -> ResponseMessage:
-    result = PROGRAMM_PARTS.database.delete(table_name=TABLE_NAME, where={"id": message.id_, "name": command_name})
+    result = PROGRAMM_PARTS.database.delete(table_name=TABLE_NAME, where={"bot_id": message.id_, "command": command_name})
     if not result:
         return ResponseMessage(
             f"Error removing command: '!{command_name}'",
@@ -76,7 +76,7 @@ def remove_command(message: ChatMessage, command_name: str) -> ResponseMessage:
 
 def try_lookup_command(message: ChatMessage, command_name: str) -> Optional[ResponseMessage]:
     result = PROGRAMM_PARTS.database.find_one(
-        table_name=TABLE_NAME, where={"id": message.id_, "name": command_name.lstrip("!")}, type_=BasicCommand
+        table_name=TABLE_NAME, where={"bot_id": message.id_, "command": command_name.lstrip("!")}, type_=BasicCommand
     )
 
     if result is None:
