@@ -5,6 +5,10 @@ from bot.types.programm_parts import PROGRAMM_PARTS
 
 
 # get
+def get_bot_by_id(bot_id: int) -> Optional[BotConfig]:
+    return PROGRAMM_PARTS.database.find_one(table_name="bot_config", where={"id": bot_id}, type_=BotConfig)
+
+
 def get_bots_by_twitch_id(twitch_user_id: str) -> list[BotConfig]:
     return PROGRAMM_PARTS.database.find_all(
         table_name="bot_config", where={"twitch_user_id": twitch_user_id}, type_=BotConfig
@@ -15,6 +19,13 @@ def get_bots_by_twitch_id(twitch_user_id: str) -> list[BotConfig]:
 def create_new_bot(twitch_user_id: str) -> Optional[int]:
     return PROGRAMM_PARTS.database.save_with_returned_id(
         table_name="bot_config", data={"twitch_user_id": twitch_user_id}
+    )
+
+
+# update
+def update_bot(bot_id: int, twitch_id: str, new_name: str) -> bool:
+    return PROGRAMM_PARTS.database.update(
+        table_name="bot_config", where={"id": bot_id, "twitch_user_id": twitch_id}, data={"name": new_name}
     )
 
 

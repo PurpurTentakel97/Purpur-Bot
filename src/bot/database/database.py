@@ -108,8 +108,9 @@ class Database:
             statement = table.update().filter_by(**where).values(**data)
 
             with self._engine.begin() as connection:
-                connection.execute(statement)
-                return True
+                result = connection.execute(statement)
+
+            return result.rowcount != 0
 
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to update data in the database. | table_name: {table_name}")
@@ -122,8 +123,9 @@ class Database:
             statement = table.delete().filter_by(**where)
 
             with self._engine.begin() as connection:
-                connection.execute(statement)
-                return True
+                result = connection.execute(statement)
+
+            return result.rowcount != 0
 
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to delete data in the database. | table_name: {table_name}")

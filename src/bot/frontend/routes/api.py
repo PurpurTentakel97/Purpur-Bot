@@ -9,6 +9,7 @@ from starlette.requests import Request
 
 from bot.database.bot import create_new_bot
 from bot.database.bot import delete_bot_by_id
+from bot.database.bot import update_bot
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.route_utils import get_twitch_session_cookie
 from bot.types.twitch_user_info import TwitchUserInfo
@@ -26,6 +27,31 @@ def new_bot(
     return JSONResponse(status_code=HTTPStatus.CREATED, content={"id": result})
 
 
+@router.post("/bot/edit/{bot_id:int}")
+async def edit_bot(
+    request: Request,
+    bot_id: int,
+    current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
+) -> JSONResponse:
+    try:
+        data = await request.json()
+        new_name = data.get("name")
+        if not new_name:
+            return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Bot name is required"})
+
+        result = update_bot(bot_id, current_twitch_user.id_, new_name)
+
+        if not result:
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to update bot"}
+            )
+
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Bot updated successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
+
+
 @router.post("/bot/delete/{bot_id:int}")
 def delete_bot(
     request: Request,
@@ -35,9 +61,6 @@ def delete_bot(
     session_cookie = get_twitch_session_cookie(request)
     if session_cookie is None:
         return JSONResponse(status_code=HTTPStatus.UNAUTHORIZED, content={"message": "Session cookie is missing"})
-
-    if current_twitch_user.id_ != session_cookie.user_id:
-        return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "You can only delete your own bots"})
 
     result = delete_bot_by_id(bot_id, current_twitch_user.id_)
 
