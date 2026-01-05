@@ -20,7 +20,7 @@
                             <td>{{ bot.name }}</td>
                             <td>
                                 <a href="/dashboard/bot/edit/{{ bot.id }}" class="btn btn-edit">Edit</a>
-                                <button class="btn btn-delete" onclick="deleteBot({{ bot.id }})">Delete</button>
+                                <button class="btn btn-delete" onclick="deleteBot('{{ bot.id }}')">Delete</button>
                             </td>
                         </tr>
                     {% endfor %}
@@ -34,6 +34,21 @@
             <div class="bot-actions">
                 <button id="add-bot-btn" class="btn btn-add">Add Bot</button>
             </div>
+        </div>
+
+        <div class="discord-connection-container">
+            <h2>Discord Connection</h2>
+            {% if discord_user %}
+                <div class="discord-connected">
+                    <p class="user-name">{{ discord_user.display_name }}</p>
+                    <p class="status-msg success">Bot is connected to your Discord account.</p>
+                </div>
+            {% else %}
+                <div class="discord-disconnected">
+                    <p>Connect your Discord account to use Discord-specific features.</p>
+                    <a href="/auth/discord" class="btn btn-add">Connect Discord</a>
+                </div>
+            {% endif %}
         </div>
 
         <script>
