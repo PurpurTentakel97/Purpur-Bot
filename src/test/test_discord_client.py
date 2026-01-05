@@ -154,3 +154,35 @@ async def test_on_message_delegate_to_server(discord_client: DiscordClient) -> N
 
         await discord_client.on_message(mock_message)
         mock_server.on_message.assert_called_once_with(mock_message)
+
+
+@pytest.mark.asyncio
+async def test_leave_guild_success(discord_client: DiscordClient) -> None:
+    mock_guild = AsyncMock()
+    with patch.object(discord_client, "get_guild", return_value=mock_guild):
+        with patch("bot.chat.discord_client.log_discord") as mock_log:
+            result = await discord_client.leave_guild(123)
+            assert result is True
+            mock_guild.leave.assert_called_once()
+            assert any("Left guild 123" in str(call) for call in mock_log.call_args_list)
+
+
+@pytest.mark.asyncio
+async def test_leave_guild_not_found(discord_client: DiscordClient) -> None:
+    with patch.object(discord_client, "get_guild", return_value=None):
+        with patch("bot.chat.discord_client.log_discord") as mock_log:
+            result = await discord_client.leave_guild(123)
+            assert result is False
+            assert any("Could not leave guild 123: Guild not found" in str(call) for call in mock_log.call_args_list)
+
+
+@pytest.mark.asyncio
+async def test_leave_guild_error(discord_client: DiscordClient) -> None:
+    mock_guild = AsyncMock()
+    mock_guild.leave.side_effect = discord.HTTPException(MagicMock(), "error")
+    with patch.object(discord_client, "get_guild", return_value=mock_guild):
+        with patch("bot.chat.discord_client.log_discord") as mock_log:
+            result = await discord_client.leave_guild(123)
+            assert result is False
+            mock_guild.leave.assert_called_once()
+            assert any("Failed to leave guild 123" in str(call) for call in mock_log.call_args_list)

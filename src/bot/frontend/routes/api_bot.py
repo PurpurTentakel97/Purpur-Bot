@@ -68,7 +68,7 @@ async def edit_bot(
 
 
 @router.post("/delete/{bot_id:int}")
-def delete_bot(
+async def delete_bot(
     request: Request,
     bot_id: int,
     current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
@@ -77,7 +77,7 @@ def delete_bot(
     if session_cookie is None:
         return JSONResponse(status_code=HTTPStatus.UNAUTHORIZED, content={"message": "Session cookie is missing"})
 
-    result = delete_bot_by_id(bot_id, current_twitch_user.id_)
+    result = await delete_bot_by_id(bot_id, current_twitch_user.id_)
 
     if not result:
         return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to delete a bot"})

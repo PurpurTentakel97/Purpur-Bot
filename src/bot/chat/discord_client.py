@@ -32,6 +32,20 @@ class DiscordClient(Client):
     def servers(self) -> list[DiscordServer]:
         return list(self._servers.values())
 
+    async def leave_guild(self, server_id: int) -> bool:
+        guild = self.get_guild(server_id)
+        if guild is None:
+            log_discord(LogLevel.WARNING, f"Could not leave guild {server_id}: Guild not found.")
+            return False
+
+        try:
+            await guild.leave()
+            log_discord(LogLevel.INFO, f"Left guild {server_id}.")
+            return True
+        except discord.HTTPException as e:
+            log_discord(LogLevel.ERROR, f"Failed to leave guild {server_id}: {e}")
+            return False
+
     def connect_server(self, server: DiscordServer) -> None:
         self._servers[server.server_id] = server
         log_discord(LogLevel.INFO, f"Server {server.server_id} initialized.")

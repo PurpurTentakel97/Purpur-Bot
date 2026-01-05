@@ -33,7 +33,17 @@ def update_bot(bot_id: int, twitch_id: str, new_name: str) -> bool:
     )
 
 
-def delete_bot_by_id(id_: int, twitch_user_id: str) -> bool:
+async def delete_bot_by_id(id_: int, twitch_user_id: str) -> bool:
+    # Stop all twitch channels for this bot
+    twitch_channels = get_twitch_channels_by_bot_id(id_)
+    for channel in twitch_channels:
+        await stop_single_twitch_bot(id_, channel.channel_name)
+
+    # Stop all discord servers for this bot
+    discord_servers = get_discord_servers_by_bot_id(id_)
+    for server in discord_servers:
+        await stop_single_discord_bot(id_, server.server_id)
+
     return PROGRAMM_PARTS.database.delete(table_name="bot_config", where={"id": id_, "twitch_user_id": twitch_user_id})
 
 
