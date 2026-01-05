@@ -604,6 +604,9 @@
                 return;
             }
 
+            // Open a blank window immediately to avoid popup blocking
+            const inviteWindow = window.open('about:blank', '_blank');
+
             try {
                 const response = await fetch('/api/bot/discord/add', {
                     method: 'POST',
@@ -618,15 +621,24 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (data.invite_link) {
-                        alert('Bot is not on the server. Opening invitation link in a new tab...');
-                        window.open(data.invite_link, '_blank');
+                        if (inviteWindow) {
+                            inviteWindow.location.href = data.invite_link;
+                        } else {
+                            // Fallback if window.open failed initially
+                            window.open(data.invite_link, '_blank');
+                        }
+                    } else {
+                        // No invite needed, close the blank window if it exists
+                        if (inviteWindow) inviteWindow.close();
+                        window.location.reload();
                     }
-                    window.location.reload();
                 } else {
+                    if (inviteWindow) inviteWindow.close();
                     const error = await response.json();
                     alert('Failed to add Discord server: ' + (error.message || 'Unknown error'));
                 }
             } catch (err) {
+                if (inviteWindow) inviteWindow.close();
                 alert('An error occurred while adding the Discord server.');
             }
         }
