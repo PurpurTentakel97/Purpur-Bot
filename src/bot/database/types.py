@@ -32,3 +32,10 @@ class TwitchChannel(BaseModel):
     id: int
     bot_id: int
     channel_name: str
+
+
+class DiscordServer(BaseModel):
+    id: int
+    bot_id: int
+    server_id: str
+    server_name: str

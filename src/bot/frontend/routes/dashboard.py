@@ -9,9 +9,11 @@ from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 from bot.database.bot import get_bot_by_id
+from bot.database.bot import get_discord_servers_by_bot_id
 from bot.database.bot import get_twitch_channels_by_bot_id
 from bot.database.commands import get_commands_by_bot_id
 from bot.frontend.helpers.auth import get_authenticated_twitch_user, get_discord_user
+from bot.frontend.helpers.discord import get_allowed_discord_servers
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.twitch import get_allowed_twitch_channels
 from bot.types.discord_user_info import DiscordUserInfo
@@ -44,6 +46,13 @@ async def bot_dashboard(
 
     commands = get_commands_by_bot_id(bot_id)
 
+    discord_servers = get_discord_servers_by_bot_id(bot_id)
+    allowed_discord_servers = await get_allowed_discord_servers(current_discord_user.id_) if current_discord_user else []
+
+    # Filter allowed_discord_servers to only include those that are not yet in discord_servers
+    joined_server_ids = {s.server_id for s in discord_servers}
+    filtered_allowed_discord_servers = [s for s in allowed_discord_servers if s["id"] not in joined_server_ids]
+
     return template.TemplateResponse(
         request=request,
         name="dashboard.html",
@@ -54,5 +63,7 @@ async def bot_dashboard(
             "commands": commands,
             "twitch_user": current_twitch_user,
             "discord_user": current_discord_user,
+            "discord_servers": discord_servers,
+            "allowed_discord_servers": filtered_allowed_discord_servers,
         },
     )

@@ -8,9 +8,11 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 
 from bot.database.bot import add_twitch_channel_to_bot
+from bot.database.bot import add_discord_server_to_bot
 from bot.database.bot import create_new_bot
 from bot.database.bot import delete_bot_by_id
 from bot.database.bot import delete_twitch_channel_from_bot
+from bot.database.bot import delete_discord_server_from_bot
 from bot.database.bot import get_bot_by_id
 from bot.database.bot import update_bot
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
@@ -114,3 +116,47 @@ async def delete_twitch_channel(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to delete twitch channel"}
         )
     return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Twitch channel deleted successfully"})
+
+
+# Discord
+@router.post("/discord/add")
+async def add_discord_server(
+    request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
+) -> JSONResponse:
+    data = await request.json()
+    bot_id = data.get("bot_id")
+    server_id = data.get("server_id")
+    server_name = data.get("server_name")
+
+    bot = get_bot_by_id(bot_id)
+    if bot is None or bot.twitch_user_id != current_twitch_user.id_:
+        return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
+
+    result = add_discord_server_to_bot(bot_id, server_id, server_name)
+
+    if not result:
+        return JSONResponse(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to add a discord server to bot"}
+        )
+    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Discord server added successfully"})
+
+
+@router.post("/discord/delete")
+async def delete_discord_server(
+    request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
+) -> JSONResponse:
+    data = await request.json()
+    bot_id = data.get("bot_id")
+    server_id = data.get("server_id")
+
+    bot = get_bot_by_id(bot_id)
+    if bot is None or bot.twitch_user_id != current_twitch_user.id_:
+        return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
+
+    result = delete_discord_server_from_bot(bot_id, server_id)
+
+    if not result:
+        return JSONResponse(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to delete discord server"}
+        )
+    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Discord server deleted successfully"})

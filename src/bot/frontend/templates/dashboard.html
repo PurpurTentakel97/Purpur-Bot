@@ -122,7 +122,48 @@
 
         <div id="discord-channels" class="tab-content">
             <h2>Discord Channels</h2>
-            <p>Discord channel configuration will be available here soon.</p>
+            <table class="bot-table">
+                <thead>
+                    <tr>
+                        <th>Server Name</th>
+                        <th>Server ID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="discord-servers-body">
+                    {% for server in discord_servers %}
+                        <tr>
+                            <td>
+                                <span class="server-name">{{ server.server_name }}</span>
+                            </td>
+                            <td>
+                                <span class="server-id">{{ server.server_id }}</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-delete btn-small" onclick="deleteDiscordServer('{{ server.server_id }}')">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% if not discord_servers %}
+                        <tr class="no-servers">
+                            <td colspan="3">No Discord servers added.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+            <div class="add-channel-form">
+                <h3>Add New Discord Server</h3>
+                <div class="form-group">
+                    <select id="new-discord-server">
+                        <option value="" disabled selected>Select a server</option>
+                        {% for allowed in allowed_discord_servers %}
+                            <option value="{{ allowed.id }}" data-name="{{ allowed.name }}">{{ allowed.name }} ({{ allowed.id }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn btn-add" onclick="addDiscordServer()">Add Server</button>
+            </div>
         </div>
 
     </div>
@@ -550,6 +591,68 @@
                 }
             } catch (err) {
                 alert('An error occurred while removing the command.');
+            }
+        }
+
+        async function addDiscordServer() {
+            const select = document.getElementById('new-discord-server');
+            const serverId = select.value;
+            const serverName = select.options[select.selectedIndex].getAttribute('data-name');
+
+            if (!serverId) {
+                alert('Please select a Discord server');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/bot/discord/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        server_id: serverId,
+                        server_name: serverName
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to add Discord server: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while adding the Discord server.');
+            }
+        }
+
+        async function deleteDiscordServer(serverId) {
+            if (!confirm(`Are you sure you want to remove this Discord server?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/bot/discord/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        server_id: serverId
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to remove Discord server: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while removing the Discord server.');
             }
         }
 

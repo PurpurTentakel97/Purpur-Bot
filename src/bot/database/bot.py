@@ -1,6 +1,7 @@
 from typing import Optional
 
 from bot.database.types import BotConfig
+from bot.database.types import DiscordServer
 from bot.database.types import TwitchChannel
 from bot.helpers.twitch_on_demand import start_single_twitch_bot
 from bot.helpers.twitch_on_demand import stop_single_twitch_bot
@@ -64,3 +65,27 @@ async def delete_twitch_channel_from_bot(bot_id: int, twitch_channel: str) -> bo
     await stop_single_twitch_bot(bot_id, twitch_channel)
 
     return result
+
+
+# discord
+def get_discord_servers_by_bot_id(bot_id: int) -> list[DiscordServer]:
+    return PROGRAMM_PARTS.database.find_all(table_name="bot_discord_lookup", where={"bot_id": bot_id}, type_=DiscordServer)
+
+
+def add_discord_server_to_bot(bot_id: int, server_id: str, server_name: str) -> bool:
+    result = PROGRAMM_PARTS.database.find_one(
+        table_name="bot_discord_lookup", where={"bot_id": bot_id, "server_id": server_id}, type_=DiscordServer
+    )
+
+    if result is not None:
+        return False
+
+    return PROGRAMM_PARTS.database.save(
+        table_name="bot_discord_lookup", data={"bot_id": bot_id, "server_id": server_id, "server_name": server_name}
+    )
+
+
+def delete_discord_server_from_bot(bot_id: int, server_id: str) -> bool:
+    return PROGRAMM_PARTS.database.delete(
+        table_name="bot_discord_lookup", where={"bot_id": bot_id, "server_id": server_id}
+    )
