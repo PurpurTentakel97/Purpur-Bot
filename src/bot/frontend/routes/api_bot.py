@@ -7,16 +7,18 @@ from fastapi import Depends
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 
-from bot.database.bot import add_twitch_channel_to_bot
 from bot.database.bot import add_discord_server_to_bot
+from bot.database.bot import add_twitch_channel_to_bot
 from bot.database.bot import create_new_bot
 from bot.database.bot import delete_bot_by_id
-from bot.database.bot import delete_twitch_channel_from_bot
 from bot.database.bot import delete_discord_server_from_bot
+from bot.database.bot import delete_twitch_channel_from_bot
 from bot.database.bot import get_bot_by_id
 from bot.database.bot import update_bot
+from bot.frontend.helpers.auth import get_authenticated_discord_user
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.route_utils import get_twitch_session_cookie
+from bot.types.discord_user_info import DiscordUserInfo
 from bot.types.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/api/bot", dependencies=[Depends(get_authenticated_twitch_user)])
@@ -121,7 +123,9 @@ async def delete_twitch_channel(
 # Discord
 @router.post("/discord/add")
 async def add_discord_server(
-    request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
+    request: Request,
+    current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
+    current_discord_user: Annotated[DiscordUserInfo, Depends(get_authenticated_discord_user)],
 ) -> JSONResponse:
     data = await request.json()
     bot_id = data.get("bot_id")

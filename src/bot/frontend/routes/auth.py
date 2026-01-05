@@ -181,7 +181,9 @@ async def auth_discord() -> RedirectResponse:
 
 
 @router.get("/discord/callback")
-async def auth_discord_callback(request: Request, code: Optional[str] = None, state: Optional[str] = None) -> RedirectResponse:
+async def auth_discord_callback(
+    request: Request, code: Optional[str] = None, state: Optional[str] = None
+) -> RedirectResponse:
     expected_state: Final = request.cookies.get(DISCORD_OAUTH_STATE_COOKIE_KEY)
     if expected_state is None or state is None or code is None or expected_state != state:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="OAuth state missmatch or missing code")
@@ -315,7 +317,9 @@ async def logout(
                 log_default(LogLevel.INFO, f"Discord user {current_discord_user.id_} logged out and token revoked")
             except Exception as e:
                 log_default(LogLevel.ERROR, f"Failed to revoke Discord token for user {current_discord_user.id_}")
-                log_exception(e, LogProgram.Default, f"Failed to revoke Discord token for user {current_discord_user.id_}")
+                log_exception(
+                    e, LogProgram.Default, f"Failed to revoke Discord token for user {current_discord_user.id_}"
+                )
 
         result = delete_discord_tokens(current_discord_user.id_)
         if not result:

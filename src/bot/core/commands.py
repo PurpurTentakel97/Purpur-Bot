@@ -1,7 +1,8 @@
 from typing import Optional
 
-from bot.database.commands import delete_command, get_commands_by_bot_id
+from bot.database.commands import delete_command
 from bot.database.commands import edit_command_message
+from bot.database.commands import get_commands_by_bot_id
 from bot.database.commands import lookup_command
 from bot.database.commands import save_command
 from bot.types.chat_message import ChatMessage

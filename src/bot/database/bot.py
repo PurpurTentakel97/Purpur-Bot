@@ -69,7 +69,9 @@ async def delete_twitch_channel_from_bot(bot_id: int, twitch_channel: str) -> bo
 
 # discord
 def get_discord_servers_by_bot_id(bot_id: int) -> list[DiscordServer]:
-    return PROGRAMM_PARTS.database.find_all(table_name="bot_discord_lookup", where={"bot_id": bot_id}, type_=DiscordServer)
+    return PROGRAMM_PARTS.database.find_all(
+        table_name="bot_discord_lookup", where={"bot_id": bot_id}, type_=DiscordServer
+    )
 
 
 def add_discord_server_to_bot(bot_id: int, server_id: str, server_name: str) -> bool:

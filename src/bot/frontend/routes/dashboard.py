@@ -1,5 +1,6 @@
-from typing import Annotated, Optional
+from typing import Annotated
 from typing import Final
+from typing import Optional
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -12,7 +13,8 @@ from bot.database.bot import get_bot_by_id
 from bot.database.bot import get_discord_servers_by_bot_id
 from bot.database.bot import get_twitch_channels_by_bot_id
 from bot.database.commands import get_commands_by_bot_id
-from bot.frontend.helpers.auth import get_authenticated_twitch_user, get_discord_user
+from bot.frontend.helpers.auth import get_authenticated_twitch_user
+from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.discord import get_allowed_discord_servers
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.twitch import get_allowed_twitch_channels
@@ -47,7 +49,9 @@ async def bot_dashboard(
     commands = get_commands_by_bot_id(bot_id)
 
     discord_servers = get_discord_servers_by_bot_id(bot_id)
-    allowed_discord_servers = await get_allowed_discord_servers(current_discord_user.id_) if current_discord_user else []
+    allowed_discord_servers = (
+        await get_allowed_discord_servers(current_discord_user.id_) if current_discord_user else []
+    )
 
     # Filter allowed_discord_servers to only include those that are not yet in discord_servers
     joined_server_ids = {s.server_id for s in discord_servers}
