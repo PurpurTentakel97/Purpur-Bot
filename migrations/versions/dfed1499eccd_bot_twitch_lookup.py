@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
         sa.Column("bot_id", sa.Integer, nullable=False),
         sa.Column("channel_name", sa.String, nullable=False),
-        sa.ForeignKeyConstraint(["bot_id"], ["bot_config.id"]),
+        sa.ForeignKeyConstraint(["bot_id"], ["bot_config.id"], ondelete="CASCADE"),
     )
 
 

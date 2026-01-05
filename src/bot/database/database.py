@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import MetaData
 from sqlalchemy import Table
 from sqlalchemy import create_engine
+from sqlalchemy import event
 from sqlalchemy import insert
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
@@ -29,6 +30,13 @@ class Database:
     def create(cls) -> Optional[Self]:
         try:
             engine = create_engine(f"sqlite:///{DATABASE_PATH}")
+
+            @event.listens_for(engine, "connect")
+            def set_sqlite_pragma(dbapi_connection: Any, connection_record: Any) -> None:  # pyright: ignore [reportUnusedFunction]
+                cursor = dbapi_connection.cursor()
+                cursor.execute("PRAGMA foreign_keys=ON")
+                cursor.close()
+
             return cls(engine)
 
         except sqlite3.OperationalError:

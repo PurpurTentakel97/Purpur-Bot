@@ -26,11 +26,10 @@ def upgrade() -> None:
         sa.Column("bot_id", sa.Integer, nullable=False),
         sa.Column("command", sa.String, nullable=False),
         sa.Column("message", sa.String, nullable=False),
-        sa.ForeignKeyConstraint(["bot_id"], ["bot_config.id"]),
+        sa.ForeignKeyConstraint(["bot_id"], ["bot_config.id"], ondelete="CASCADE"),
     )
-    pass
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    pass
+    op.drop_table("basic_commands")
