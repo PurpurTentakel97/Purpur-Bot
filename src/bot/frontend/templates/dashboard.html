@@ -7,7 +7,12 @@
 
         <div class="tabs">
             <button class="tab-link active" onclick="openTab(event, 'bot-settings')">Bot Settings</button>
+            {% if twitch_user %}
             <button class="tab-link" onclick="openTab(event, 'twitch-channels')">Twitch Channels</button>
+            {% endif %}
+            {% if discord_user %}
+            <button class="tab-link" onclick="openTab(event, 'discord-channels')">Discord Channels</button>
+            {% endif %}
             <button class="tab-link" onclick="openTab(event, 'commands')">Commands</button>
         </div>
 
@@ -113,6 +118,11 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div id="discord-channels" class="tab-content">
+            <h2>Discord Channels</h2>
+            <p>Discord channel configuration will be available here soon.</p>
         </div>
 
     </div>
