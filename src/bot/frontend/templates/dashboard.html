@@ -9,6 +9,7 @@
             <button class="tab-link active" onclick="openTab(event, 'bot-settings')">Bot Settings</button>
             <button class="tab-link" onclick="openTab(event, 'twitch-channels')">Twitch Channels</button>
             <button class="tab-link" onclick="openTab(event, 'commands')">Commands</button>
+            <button class="tab-link" onclick="openTab(event, 'discord-connection')">Discord</button>
         </div>
 
         <div id="bot-settings" class="tab-content active">
@@ -114,6 +115,29 @@
                 </tbody>
             </table>
         </div>
+
+        <div id="discord-connection" class="tab-content">
+            <h2>Discord Connection</h2>
+            {% if discord_user %}
+                <div class="discord-connected">
+                    <div class="user-card">
+                        {% if discord_user.avatar_url %}
+                            <img src="{{ discord_user.avatar_url }}" alt="{{ discord_user.display_name }}" class="profile-pic-large">
+                        {% endif %}
+                        <div class="user-details">
+                            <p class="user-name">{{ discord_user.display_name }}</p>
+                            <p class="user-id">ID: {{ discord_user.id_ }}</p>
+                        </div>
+                    </div>
+                    <p class="status-msg success">Bot is connected to your Discord account.</p>
+                </div>
+            {% else %}
+                <div class="discord-disconnected">
+                    <p>Connect your Discord account to use Discord-specific features.</p>
+                    <a href="/auth/discord" class="btn btn-add">Connect Discord</a>
+                </div>
+            {% endif %}
+        </div>
     </div>
 
     <style>
@@ -216,6 +240,54 @@
             color: white;
             width: 100%;
             box-sizing: border-box;
+        }
+
+        /* Discord Tab Styles */
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background-color: #18181b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .profile-pic-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+        }
+        .user-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+            color: white;
+        }
+        .user-id {
+            font-size: 0.9rem;
+            color: var(--footer-text);
+            margin: 0.25rem 0 0 0;
+        }
+        .status-msg {
+            padding: 1rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .status-msg.success {
+            background-color: rgba(0, 255, 128, 0.1);
+            color: #00ff80;
+            border: 1px solid rgba(0, 255, 128, 0.2);
+        }
+        .discord-disconnected {
+            padding: 2rem;
+            text-align: center;
+            background-color: #18181b;
+            border-radius: 8px;
+        }
+        .discord-disconnected p {
+            margin-bottom: 1.5rem;
+            color: var(--footer-text);
         }
         .command-input-wrapper {
             display: flex;

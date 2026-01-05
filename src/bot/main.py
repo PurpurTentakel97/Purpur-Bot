@@ -12,7 +12,6 @@ from bot.frontend.routes.api_commands import router as api_commands_router
 from bot.frontend.routes.auth import router as auth_router
 from bot.frontend.routes.dashboard import router as dashboard_router
 from bot.frontend.routes.home import router as home_router
-from bot.frontend.routes.login import router as login_router
 from bot.helpers.startup import startup_programm
 from bot.helpers.terminate import terminate_programm
 
@@ -39,7 +38,6 @@ app: Final = FastAPI(lifespan=main)
 app.mount("/static", StaticFiles(directory="src/bot/frontend/static"), name="static")
 app.include_router(home_router)
 app.include_router(auth_router)
-app.include_router(login_router)
 app.include_router(api_bot_router)
 app.include_router(api_commands_router)
 app.include_router(dashboard_router)

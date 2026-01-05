@@ -6,6 +6,25 @@
     <title>Tentakel Bot</title>
     <link rel="stylesheet" href="/static/css/style.css">
     {% block styles %}{% endblock %}
+    <script>
+        function openAuthPopup(url) {
+            const width = 600;
+            const height = 800;
+            const left = (window.screen.width / 2) - (width / 2);
+            const top = (window.screen.height / 2) - (height / 2);
+
+            // Add popup=true to the URL
+            const popupUrl = new URL(url, window.location.origin);
+            popupUrl.searchParams.set('popup', 'true');
+
+            window.open(
+                popupUrl.toString(),
+                'authPopup',
+                `width=${width},height=${height},left=${left},top=${top},status=no,menubar=no,toolbar=no`
+            );
+            return false;
+        }
+    </script>
 </head>
 <body>
     <header>
@@ -30,8 +49,8 @@
                     {% endif %}
                     <a href="/auth/logout">Logout</a>
                 {% endif %}
-                {% if not twitch_user or not discord_user %}
-                    <a href="/login">Login</a>
+                {% if not twitch_user %}
+                    <a href="/auth/twitch" onclick="return openAuthPopup(this.href)">Login with Twitch</a>
                 {% endif %}
             </div>
         </nav>
