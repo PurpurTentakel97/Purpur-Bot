@@ -607,9 +607,7 @@
             try {
                 const response = await fetch('/api/bot/discord/add', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         bot_id: "{{ bot.id }}",
                         server_id: serverId,
@@ -618,6 +616,11 @@
                 });
 
                 if (response.ok) {
+                    const data = await response.json();
+                    if (data.invite_link) {
+                        alert('Bot is not on the server. Opening invitation link in a new tab...');
+                        window.open(data.invite_link, '_blank');
+                    }
                     window.location.reload();
                 } else {
                     const error = await response.json();

@@ -37,5 +37,5 @@ class TwitchChannel(BaseModel):
 class DiscordServer(BaseModel):
     id: int
     bot_id: int
-    server_id: str
+    server_id: int
     server_name: str

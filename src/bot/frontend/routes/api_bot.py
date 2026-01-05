@@ -18,7 +18,9 @@ from bot.database.bot import update_bot
 from bot.frontend.helpers.auth import get_authenticated_discord_user
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.route_utils import get_twitch_session_cookie
+from bot.helpers.app_context import APP_CONTEXT
 from bot.types.discord_user_info import DiscordUserInfo
+from bot.types.programm_parts import PROGRAMM_PARTS
 from bot.types.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/api/bot", dependencies=[Depends(get_authenticated_twitch_user)])
@@ -32,6 +34,11 @@ def new_bot(
     result = create_new_bot(current_twitch_user.id_)
     if result is None:
         return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to create a bot"})
+
+    # Check bot presence and return invite if not on server (but here we don't have server yet)
+    # The requirement says "when the user adds a bot" - this usually means creating a bot config.
+    # But start_single_discord_bot is called when adding a discord server to a bot.
+
     return JSONResponse(status_code=HTTPStatus.CREATED, content={"id": result})
 
 
@@ -142,7 +149,20 @@ async def add_discord_server(
         return JSONResponse(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to add a discord server to bot"}
         )
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Discord server added successfully"})
+
+    invite_link = None
+    if PROGRAMM_PARTS.discord is not None:
+        guild = PROGRAMM_PARTS.discord.get_guild(int(server_id))
+        if guild is None:
+            # Bot is not on the server, generate an invite link
+            client_id = APP_CONTEXT.discord_client_id.value_unsafe() or ""
+            permissions = 8  # Administrator
+            invite_link = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&permissions={permissions}&scope=bot&guild_id={server_id}&disable_guild_select=true"
+
+    return JSONResponse(
+        status_code=HTTPStatus.OK,
+        content={"message": "Discord server added successfully", "invite_link": invite_link},
+    )
 
 
 @router.post("/discord/delete")
