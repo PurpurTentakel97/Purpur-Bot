@@ -630,8 +630,8 @@
                     } else {
                         // No invite needed, close the blank window if it exists
                         if (inviteWindow) inviteWindow.close();
-                        window.location.reload();
                     }
+                    window.location.reload();
                 } else {
                     if (inviteWindow) inviteWindow.close();
                     const error = await response.json();

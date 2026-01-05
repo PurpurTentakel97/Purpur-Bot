@@ -55,7 +55,7 @@ async def bot_dashboard(
 
     # Filter allowed_discord_servers to only include those that are not yet in discord_servers
     joined_server_ids = {s.server_id for s in discord_servers}
-    filtered_allowed_discord_servers = [s for s in allowed_discord_servers if s["id"] not in joined_server_ids]
+    filtered_allowed_discord_servers = [s for s in allowed_discord_servers if int(s["id"]) not in joined_server_ids]
 
     return template.TemplateResponse(
         request=request,
