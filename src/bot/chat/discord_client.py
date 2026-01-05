@@ -28,9 +28,17 @@ class DiscordClient(Client):
                 return message
         return None
 
-    def connect_chat(self, chat: DiscordServer) -> None:
-        self._servers[chat.server_id] = chat
-        log_discord(LogLevel.INFO, f"Server {chat.server_id} initialized.")
+    @property
+    def servers(self) -> list[DiscordServer]:
+        return list(self._servers.values())
+
+    def connect_server(self, server: DiscordServer) -> None:
+        self._servers[server.server_id] = server
+        log_discord(LogLevel.INFO, f"Server {server.server_id} initialized.")
+
+    def remove_server(self, server: DiscordServer) -> None:
+        del self._servers[server.server_id]
+        log_discord(LogLevel.INFO, f"Server {server.server_id} terminated.")
 
     def _start(self) -> None:
         log_discord(LogLevel.INFO, "Connecting to Discord...")
@@ -86,7 +94,11 @@ class DiscordClient(Client):
             return
 
         if incoming_server_id not in self._servers:
-            log_discord(LogLevel.ERROR, f"Server {incoming_server_id} not found in chats")
+            log_discord(
+                LogLevel.ERROR,
+                f"Server {incoming_server_id} ({type(incoming_server_id)}) not found in chats. "
+                f"Available: {list(self._servers.keys())}",
+            )
             log_discord(LogLevel.DEBUG, f"{incoming_server_id} | {message.author}: {message.content}")
             return
 

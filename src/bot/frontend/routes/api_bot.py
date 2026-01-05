@@ -90,7 +90,7 @@ async def add_twitch_channel(
     request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
 ) -> JSONResponse:
     data = await request.json()
-    bot_id = data.get("bot_id")
+    bot_id = int(data.get("bot_id"))
     twitch_channel = data.get("twitch_channel")
 
     bot = get_bot_by_id(bot_id)
@@ -111,7 +111,7 @@ async def delete_twitch_channel(
     request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
 ) -> JSONResponse:
     data = await request.json()
-    bot_id = data.get("bot_id")
+    bot_id = int(data.get("bot_id"))
     twitch_channel = data.get("twitch_channel")
 
     bot = get_bot_by_id(bot_id)
@@ -135,8 +135,8 @@ async def add_discord_server(
     current_discord_user: Annotated[DiscordUserInfo, Depends(get_authenticated_discord_user)],
 ) -> JSONResponse:
     data = await request.json()
-    bot_id = data.get("bot_id")
-    server_id = data.get("server_id")
+    bot_id = int(data.get("bot_id"))
+    server_id = int(data.get("server_id"))
     server_name = data.get("server_name")
 
     bot = get_bot_by_id(bot_id)
@@ -170,8 +170,8 @@ async def delete_discord_server(
     request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
 ) -> JSONResponse:
     data = await request.json()
-    bot_id = data.get("bot_id")
-    server_id = data.get("server_id")
+    bot_id = int(data.get("bot_id"))
+    server_id = int(data.get("server_id"))
 
     bot = get_bot_by_id(bot_id)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
