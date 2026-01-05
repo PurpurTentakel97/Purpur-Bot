@@ -136,7 +136,7 @@ async def add_discord_server(
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 
-    result = add_discord_server_to_bot(bot_id, server_id, server_name)
+    result = await add_discord_server_to_bot(bot_id, server_id, server_name)
 
     if not result:
         return JSONResponse(
@@ -157,7 +157,7 @@ async def delete_discord_server(
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 
-    result = delete_discord_server_from_bot(bot_id, server_id)
+    result = await delete_discord_server_from_bot(bot_id, server_id)
 
     if not result:
         return JSONResponse(

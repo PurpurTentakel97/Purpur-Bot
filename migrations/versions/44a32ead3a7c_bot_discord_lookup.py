@@ -24,7 +24,7 @@ def upgrade() -> None:
         "bot_discord_lookup",
         sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
         sa.Column("bot_id", sa.Integer, nullable=False),
-        sa.Column("server_id", sa.String, nullable=False),
+        sa.Column("server_id", sa.Integer, nullable=False),
         sa.Column("server_name", sa.String, nullable=False),
         sa.ForeignKeyConstraint(["bot_id"], ["bot_config.id"]),
     )

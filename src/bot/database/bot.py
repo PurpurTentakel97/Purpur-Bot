@@ -3,6 +3,8 @@ from typing import Optional
 from bot.database.types import BotConfig
 from bot.database.types import DiscordServer
 from bot.database.types import TwitchChannel
+from bot.helpers.discord_on_demand import start_single_discord_bot
+from bot.helpers.discord_on_demand import stop_single_discord_bot
 from bot.helpers.twitch_on_demand import start_single_twitch_bot
 from bot.helpers.twitch_on_demand import stop_single_twitch_bot
 from bot.types.programm_parts import PROGRAMM_PARTS
@@ -52,7 +54,10 @@ async def add_twitch_channel_to_bot(bot_id: int, twitch_channel: str) -> bool:
         table_name="bot_twitch_lookup", data={"bot_id": bot_id, "channel_name": twitch_channel}
     )
 
-    await start_single_twitch_bot(bot_id, twitch_channel)
+    if not result:
+        return False
+
+    result = await start_single_twitch_bot(bot_id, twitch_channel)
 
     return result
 
@@ -62,7 +67,10 @@ async def delete_twitch_channel_from_bot(bot_id: int, twitch_channel: str) -> bo
         table_name="bot_twitch_lookup", where={"bot_id": bot_id, "channel_name": twitch_channel}
     )
 
-    await stop_single_twitch_bot(bot_id, twitch_channel)
+    if not result:
+        return False
+
+    result = await stop_single_twitch_bot(bot_id, twitch_channel)
 
     return result
 
@@ -74,7 +82,7 @@ def get_discord_servers_by_bot_id(bot_id: int) -> list[DiscordServer]:
     )
 
 
-def add_discord_server_to_bot(bot_id: int, server_id: str, server_name: str) -> bool:
+async def add_discord_server_to_bot(bot_id: int, server_id: int, server_name: str) -> bool:
     result = PROGRAMM_PARTS.database.find_one(
         table_name="bot_discord_lookup", where={"bot_id": bot_id, "server_id": server_id}, type_=DiscordServer
     )
@@ -82,12 +90,26 @@ def add_discord_server_to_bot(bot_id: int, server_id: str, server_name: str) -> 
     if result is not None:
         return False
 
-    return PROGRAMM_PARTS.database.save(
+    result = PROGRAMM_PARTS.database.save(
         table_name="bot_discord_lookup", data={"bot_id": bot_id, "server_id": server_id, "server_name": server_name}
     )
 
+    if not result:
+        return False
 
-def delete_discord_server_from_bot(bot_id: int, server_id: str) -> bool:
-    return PROGRAMM_PARTS.database.delete(
+    result = await start_single_discord_bot(bot_id, server_id)
+
+    return result
+
+
+async def delete_discord_server_from_bot(bot_id: int, server_id: int) -> bool:
+    result = PROGRAMM_PARTS.database.delete(
         table_name="bot_discord_lookup", where={"bot_id": bot_id, "server_id": server_id}
     )
+
+    if not result:
+        return False
+
+    result = await stop_single_discord_bot(bot_id, server_id)
+
+    return result
