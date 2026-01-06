@@ -1,5 +1,7 @@
 from bot.chat.discord_server import DiscordServer
+from bot.chat.twitch_chat import TwitchChat
 from bot.types.feature_flag import DEFAULT_DISCORD_FEATURES
+from bot.types.feature_flag import DEFAULT_TWITCH_FEATURES
 from bot.types.programm_parts import PROGRAMM_PARTS
 
 
@@ -21,6 +23,27 @@ async def stop_single_discord_bot(id_: int, server_id: int) -> bool:
         if server.id == id_ and server.server_id == server_id:
             PROGRAMM_PARTS.discord.remove_server(server)
             await PROGRAMM_PARTS.discord.leave_guild(server_id)
+            return True
+
+    return False
+
+
+async def start_single_twitch_bot(id_: int, channel_name: str) -> bool:
+    if PROGRAMM_PARTS.twitch is None:
+        return False
+
+    await TwitchChat.create(PROGRAMM_PARTS.twitch, id_, channel_name, DEFAULT_TWITCH_FEATURES)
+
+    return True
+
+
+async def stop_single_twitch_bot(id_: int, channel_name: str) -> bool:
+    if PROGRAMM_PARTS.twitch is None:
+        return False
+
+    for channel in PROGRAMM_PARTS.twitch.chats:
+        if channel.id == id_ and channel.channel_name == channel_name:
+            await channel.terminate()
             return True
 
     return False
