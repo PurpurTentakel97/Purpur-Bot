@@ -45,4 +45,4 @@ class Counter(BaseModel):
     id: int
     bot_id: int
     name: str
-    value: int
+    count: int

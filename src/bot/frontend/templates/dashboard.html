@@ -14,6 +14,7 @@
             <button class="tab-link" onclick="openTab(event, 'discord-channels')">Discord Channels</button>
             {% endif %}
             <button class="tab-link" onclick="openTab(event, 'commands')">Commands</button>
+            <button class="tab-link" onclick="openTab(event, 'counters')">Counters</button>
         </div>
 
         <div id="bot-settings" class="tab-content active">
@@ -114,6 +115,56 @@
                         </td>
                         <td>
                             <button class="btn btn-add btn-small" onclick="addCommand()">Add</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="counters" class="tab-content">
+            <h2>Counters</h2>
+            <table class="bot-table">
+                <thead>
+                    <tr>
+                        <th>Counter Name</th>
+                        <th>Value</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="counters-body">
+                        {% for counter in counters %}
+                        <tr data-counter="{{ counter.name }}">
+                            <td>
+                                <div class="command-input-wrapper">
+                                    <input type="text" class="edit-command-input" value="{{ counter.name }}"
+                                           oninput="handleCommandEdit(this)">
+                                    <button class="btn btn-add btn-small save-btn" style="display: none;"
+                                            onclick="saveCounterName('{{ counter.name }}', this)">Save</button>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="command-input-wrapper">
+                                    <input type="number" class="edit-command-input" value="{{ counter.count }}"
+                                           oninput="handleCommandEdit(this)">
+                                    <button class="btn btn-add btn-small save-btn" style="display: none;"
+                                            onclick="saveCounterValue('{{ counter.name }}', this)">Save</button>
+                                </div>
+                            </td>
+                            <td>
+                                <button class="btn btn-add btn-small" onclick="resetCounter('{{ counter.name }}')">Reset</button>
+                                <button class="btn btn-delete btn-small remove-btn" onclick="deleteCounter('{{ counter.name }}')">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="add-command-row">
+                        <td>
+                            <input type="text" id="new-counter-name" class="edit-command-input" placeholder="counter name">
+                        </td>
+                        <td>
+                            <input type="number" id="new-counter-value" class="edit-command-input" value="0" disabled>
+                        </td>
+                        <td>
+                            <button class="btn btn-add btn-small" onclick="addCounter()">Add</button>
                         </td>
                     </tr>
                 </tbody>
@@ -591,6 +642,159 @@
                 }
             } catch (err) {
                 alert('An error occurred while removing the command.');
+            }
+        }
+
+        async function addCounter() {
+            const nameInput = document.getElementById('new-counter-name');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                alert('Counter name is required');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/counter/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to add counter: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while adding the counter.');
+            }
+        }
+
+        async function saveCounterName(oldName, button) {
+            const input = button.previousElementSibling;
+            const newName = input.value.trim();
+
+            if (!newName) {
+                alert('Counter name cannot be empty');
+                return;
+            }
+
+            if (oldName === newName) {
+                resetRowButtons(button.closest('tr'));
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/counter/update/name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        old_name: oldName,
+                        new_name: newName
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to rename counter: ' + (error.message || 'Unknown error'));
+                    window.location.reload();
+                }
+            } catch (err) {
+                alert('An error occurred while renaming the counter.');
+                window.location.reload();
+            }
+        }
+
+        async function saveCounterValue(name, button) {
+            const input = button.previousElementSibling;
+            const newValue = input.value.trim();
+
+            if (newValue === "") {
+                alert('Counter value cannot be empty');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/counter/update/value', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name,
+                        count: newValue
+                    })
+                });
+
+                if (response.ok) {
+                    resetRowButtons(button.closest('tr'));
+                } else {
+                    const error = await response.json();
+                    alert('Failed to update counter value: ' + (error.message || 'Unknown error'));
+                    window.location.reload();
+                }
+            } catch (err) {
+                alert('An error occurred while updating the counter value.');
+                window.location.reload();
+            }
+        }
+
+        async function resetCounter(name) {
+            if (!confirm(`Are you sure you want to reset the counter ${name}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/counter/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to reset counter: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while resetting the counter.');
+            }
+        }
+
+        async function deleteCounter(name) {
+            if (!confirm(`Are you sure you want to remove the counter ${name}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/counter/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to remove counter: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while removing the counter.');
             }
         }
 

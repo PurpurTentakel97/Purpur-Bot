@@ -23,7 +23,7 @@ def increment_counter_by(bot_id: int, name: str, value: int) -> bool:
     if counter is None:
         return False
     return PROGRAMM_PARTS.database.update(
-        TABLE_NAME, where={"bot_id": bot_id, "name": name}, data={"value": counter.value + value}
+        TABLE_NAME, where={"bot_id": bot_id, "name": name}, data={"count": counter.count + value}
     )
 
 
@@ -32,16 +32,26 @@ def decrement_counter_by(bot_id: int, name: str, value: int) -> bool:
     if counter is None:
         return False
 
-    if counter.value - value < 0:
-        return PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data={"value": 0})
+    if counter.count - value < 0:
+        return PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data={"count": 0})
 
     return PROGRAMM_PARTS.database.update(
-        TABLE_NAME, where={"bot_id": bot_id, "name": name}, data={"value": counter.value - value}
+        TABLE_NAME, where={"bot_id": bot_id, "name": name}, data={"count": counter.count - value}
     )
 
 
+def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> bool:
+    return PROGRAMM_PARTS.database.update(
+        TABLE_NAME, where={"bot_id": bot_id, "name": old_name}, data={"name": new_name}
+    )
+
+
+def edit_counter_value(bot_id: int, name: str, value: int) -> bool:
+    return PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data={"count": value})
+
+
 def reset_counter(bot_id: int, name: str) -> bool:
-    return PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data={"value": 0})
+    return PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data={"count": 0})
 
 
 def delete_counter(bot_id: int, name: str) -> bool:
