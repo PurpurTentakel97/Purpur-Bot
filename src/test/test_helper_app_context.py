@@ -3,11 +3,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
-from bot.helpers.app_context import AppContext
-from bot.helpers.app_context import OptionalAppContextEntry
-from bot.helpers.app_context import TwitchTokens
 from bot.helpers.app_context import _get_env_var_or_default  # type: ignore[reportPrivateUsage]
+
+from bot.core.app_context import AppContext
+from bot.core.app_context import OptionalAppContextEntry
+from bot.core.app_context import TwitchTokens
 
 
 def test_optional_app_context_entry_value_or_rise() -> None:

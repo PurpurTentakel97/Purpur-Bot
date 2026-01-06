@@ -7,6 +7,7 @@ from fastapi import Depends
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 
+from bot.core.app_context import APP_CONTEXT
 from bot.database.bot import add_discord_server_to_bot
 from bot.database.bot import add_twitch_channel_to_bot
 from bot.database.bot import create_new_bot
@@ -18,7 +19,6 @@ from bot.database.bot import update_bot
 from bot.frontend.helpers.auth import get_authenticated_discord_user
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.route_utils import get_twitch_session_cookie
-from bot.helpers.app_context import APP_CONTEXT
 from bot.types.core.programm_parts import PROGRAMM_PARTS
 from bot.types.frontend.discord_user_info import DiscordUserInfo
 from bot.types.frontend.twitch_user_info import TwitchUserInfo

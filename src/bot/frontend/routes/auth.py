@@ -21,6 +21,7 @@ from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.oauth import revoke_token
 from twitchAPI.twitch import Twitch
 
+from bot.core.app_context import APP_CONTEXT
 from bot.database.auth import delete_discord_tokens
 from bot.database.auth import delete_twitch_tokens
 from bot.database.auth import get_discord_tokens
@@ -33,7 +34,6 @@ from bot.frontend.helpers.auth_constents import DISCORD_SCOPES
 from bot.frontend.helpers.auth_constents import JWT_ALG
 from bot.frontend.helpers.auth_constents import JWT_EXPIRY_DAYS
 from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
-from bot.helpers.app_context import APP_CONTEXT
 from bot.helpers.log import LogLevel
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default

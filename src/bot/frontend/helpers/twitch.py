@@ -1,8 +1,8 @@
 from twitchAPI.twitch import Twitch
 
+from bot.core.app_context import APP_CONTEXT
 from bot.database.auth import get_twitch_tokens
 from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
-from bot.helpers.app_context import APP_CONTEXT
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 

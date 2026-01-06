@@ -18,7 +18,7 @@ from twitchAPI.type import InvalidRefreshTokenException
 from twitchAPI.type import TwitchAuthorizationException
 from twitchAPI.type import UnauthorizedException
 
-from bot.helpers.app_context import APP_CONTEXT
+from bot.core.app_context import APP_CONTEXT
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_twitch
 
