@@ -1,6 +1,6 @@
 import asyncio
 
-from bot.core.commands import handle_command
+from bot.core.handle_commands import handle_command
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 from bot.helpers.log import log_discord
