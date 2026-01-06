@@ -19,8 +19,8 @@ from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.discord import get_allowed_discord_servers
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.twitch import get_allowed_twitch_channels
-from bot.types.discord_user_info import DiscordUserInfo
-from bot.types.twitch_user_info import TwitchUserInfo
+from bot.types.frontend.discord_user_info import DiscordUserInfo
+from bot.types.frontend.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/dashboard", dependencies=[Depends(get_authenticated_twitch_user)])
 

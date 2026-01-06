@@ -3,7 +3,7 @@ from typing import Optional
 from bot.database.types import DiscordAuth
 from bot.database.types import TwitchAuth
 from bot.helpers.app_context import TwitchTokens
-from bot.types.programm_parts import PROGRAMM_PARTS
+from bot.types.core.programm_parts import PROGRAMM_PARTS
 
 TABLE_NAME_TWITCH = "twitch_auth"
 TABLE_NAME_DISCORD = "discord_auth"

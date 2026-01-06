@@ -1,6 +1,6 @@
 from bot.chat.discord_server import DiscordServer
 from bot.chat.twitch_chat import TwitchChat
-from bot.types.programm_parts import PROGRAMM_PARTS
+from bot.types.core.programm_parts import PROGRAMM_PARTS
 
 
 async def start_single_discord_bot(id_: int, server_id: int) -> bool:

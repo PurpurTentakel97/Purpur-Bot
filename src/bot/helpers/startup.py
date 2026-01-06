@@ -7,7 +7,7 @@ from bot.database.types import DiscordServer as DiscordServerDB
 from bot.database.types import TwitchChannel
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
-from bot.types.programm_parts import PROGRAMM_PARTS
+from bot.types.core.programm_parts import PROGRAMM_PARTS
 
 
 def _start_database() -> None:

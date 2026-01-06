@@ -11,8 +11,8 @@ from bot.frontend.helpers.auth_constents import JWT_ALG
 from bot.helpers.app_context import APP_CONTEXT
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
-from bot.types.discord_session_cookie_jwt import DiscordSessionCookie
-from bot.types.twitch_session_cookie_jwt import TwitchSessionCookie
+from bot.types.frontend.discord_session_cookie_jwt import DiscordSessionCookie
+from bot.types.frontend.twitch_session_cookie_jwt import TwitchSessionCookie
 
 
 @lru_cache

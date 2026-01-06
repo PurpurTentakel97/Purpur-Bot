@@ -10,7 +10,7 @@ from bot.chat.discord_server import DiscordServer
 from bot.helpers.app_context import APP_CONTEXT
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord
-from bot.types.chat_message import ChatMessage
+from bot.types.chat.message import ChatMessage
 
 
 @final

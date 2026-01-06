@@ -5,12 +5,12 @@ from bot.core.commands import edit_command
 from bot.core.commands import lookup_all_commands
 from bot.core.commands import remove_command
 from bot.core.commands import try_lookup_command
-from bot.types.chat_message import ChatMessage
-from bot.types.permission_level import PermissionLevel
-from bot.types.response_message import ResponseMessage
+from bot.types.chat.message import ChatMessage
+from bot.types.chat.message_response import ChatMessageResponse
+from bot.types.core.permission_level import PermissionLevel
 
 
-def handle_command(message: ChatMessage) -> Optional[ResponseMessage]:
+def handle_command(message: ChatMessage) -> Optional[ChatMessageResponse]:
     parts = message.text.strip().split(" ")
 
     if message.sender_permission_level.is_permitted(PermissionLevel.SPECIAL_USER):
@@ -18,7 +18,7 @@ def handle_command(message: ChatMessage) -> Optional[ResponseMessage]:
             case ["!command", "add", command_name, *msg]:
                 command_message = " ".join(msg)
                 if not command_message:
-                    return ResponseMessage(
+                    return ChatMessageResponse(
                         "There was no message provided after the command name.",
                         message.sender_chat,
                         message.original_message,
@@ -29,7 +29,7 @@ def handle_command(message: ChatMessage) -> Optional[ResponseMessage]:
             case ["!command", "edit", command_name, *msg]:
                 command_message = " ".join(msg)
                 if not command_message:
-                    return ResponseMessage(
+                    return ChatMessageResponse(
                         "There was no message provided after the command name.",
                         message.sender_chat,
                         message.original_message,
@@ -41,7 +41,7 @@ def handle_command(message: ChatMessage) -> Optional[ResponseMessage]:
                 return remove_command(message, command_name)
 
             case ["!command", *_]:
-                return ResponseMessage(
+                return ChatMessageResponse(
                     "Invalid command format. Use '!command add|edit|remove <command_name> <command_message>'",
                     message.sender_chat,
                     message.original_message,

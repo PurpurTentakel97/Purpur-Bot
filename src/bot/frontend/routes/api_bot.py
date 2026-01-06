@@ -19,9 +19,9 @@ from bot.frontend.helpers.auth import get_authenticated_discord_user
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.route_utils import get_twitch_session_cookie
 from bot.helpers.app_context import APP_CONTEXT
-from bot.types.discord_user_info import DiscordUserInfo
-from bot.types.programm_parts import PROGRAMM_PARTS
-from bot.types.twitch_user_info import TwitchUserInfo
+from bot.types.core.programm_parts import PROGRAMM_PARTS
+from bot.types.frontend.discord_user_info import DiscordUserInfo
+from bot.types.frontend.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/api/bot", dependencies=[Depends(get_authenticated_twitch_user)])
 

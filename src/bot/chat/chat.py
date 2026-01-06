@@ -2,8 +2,8 @@ import asyncio
 from abc import ABC
 from abc import abstractmethod
 
-from bot.types.chat_message import ChatMessage
-from bot.types.response_message import ResponseMessage
+from bot.types.chat.message import ChatMessage
+from bot.types.chat.message_response import ChatMessageResponse
 
 
 class Chat(ABC):
@@ -21,5 +21,5 @@ class Chat(ABC):
         return await self.message_queue.get()
 
     @abstractmethod
-    async def send_response(self, messages: list[ResponseMessage]) -> None:
+    async def send_response(self, messages: list[ChatMessageResponse]) -> None:
         pass

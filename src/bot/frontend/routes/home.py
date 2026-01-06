@@ -12,8 +12,8 @@ from bot.database.bot import get_bots_by_twitch_id
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
-from bot.types.discord_user_info import DiscordUserInfo
-from bot.types.twitch_user_info import TwitchUserInfo
+from bot.types.frontend.discord_user_info import DiscordUserInfo
+from bot.types.frontend.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter()
 

@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @final
 @dataclass
-class ResponseMessage:
+class ChatMessageResponse:
     text: str
     destination_chat: "Chat"
     original_message: DiscordMessage | TwitchChatMessage

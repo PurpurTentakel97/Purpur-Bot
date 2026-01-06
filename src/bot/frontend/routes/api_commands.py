@@ -13,7 +13,7 @@ from bot.database.commands import edit_command_message
 from bot.database.commands import edit_command_name
 from bot.database.commands import save_command
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
-from bot.types.twitch_user_info import TwitchUserInfo
+from bot.types.frontend.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/api/command", dependencies=[Depends(get_authenticated_twitch_user)])
 

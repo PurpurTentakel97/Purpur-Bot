@@ -7,9 +7,9 @@ from discord.message import Message as DiscordMessage
 from bot.chat.chat import Chat
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord
-from bot.types.chat_message import ChatMessage
-from bot.types.permission_level import PermissionLevel
-from bot.types.response_message import ResponseMessage
+from bot.types.chat.message import ChatMessage
+from bot.types.chat.message_response import ChatMessageResponse
+from bot.types.core.permission_level import PermissionLevel
 
 
 @final
@@ -27,7 +27,7 @@ class DiscordServer(Chat):
         return self._server_id
 
     @override
-    async def send_response(self, messages: list[ResponseMessage]) -> None:
+    async def send_response(self, messages: list[ChatMessageResponse]) -> None:
         for message in messages:
             if isinstance(message.original_message, DiscordMessage):
                 await message.original_message.channel.send(message.text)

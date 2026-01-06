@@ -7,7 +7,7 @@ from bot.chat.on_demand import stop_single_twitch_bot
 from bot.database.types import BotConfig
 from bot.database.types import DiscordServer
 from bot.database.types import TwitchChannel
-from bot.types.programm_parts import PROGRAMM_PARTS
+from bot.types.core.programm_parts import PROGRAMM_PARTS
 
 
 # bot

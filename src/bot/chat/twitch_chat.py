@@ -13,9 +13,9 @@ from bot.chat.chat import Chat
 from bot.chat.twitch_client import TwitchClient
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_twitch
-from bot.types.chat_message import ChatMessage
-from bot.types.permission_level import PermissionLevel
-from bot.types.response_message import ResponseMessage
+from bot.types.chat.message import ChatMessage
+from bot.types.chat.message_response import ChatMessageResponse
+from bot.types.core.permission_level import PermissionLevel
 
 
 @final
@@ -56,7 +56,7 @@ class TwitchChat(Chat):
         log_twitch(LogLevel.INFO, f"Twitch chat for {self.channel_name} terminated.")
 
     @override
-    async def send_response(self, messages: list[ResponseMessage]) -> None:
+    async def send_response(self, messages: list[ChatMessageResponse]) -> None:
         for message in messages:
             await self.chat.send_message(self.channel_name, message.text)
 

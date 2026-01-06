@@ -5,16 +5,16 @@ from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 from bot.helpers.log import log_discord
 from bot.helpers.log import log_twitch
-from bot.types.chat_message import ChatMessage
-from bot.types.programm_parts import PROGRAMM_PARTS
-from bot.types.response_message import ResponseMessage
+from bot.types.chat.message import ChatMessage
+from bot.types.chat.message_response import ChatMessageResponse
+from bot.types.core.programm_parts import PROGRAMM_PARTS
 
 # !command add|edit|remove NAME MESSAGE
 # !dict add|edit|remove NAME MESSAGE
 
 
-def handle_single_message(message: ChatMessage) -> list[ResponseMessage]:
-    response_messages: list[ResponseMessage] = []
+def handle_single_message(message: ChatMessage) -> list[ChatMessageResponse]:
+    response_messages: list[ChatMessageResponse] = []
 
     if message.text.strip().startswith("!"):
         response = handle_command(message)
@@ -25,7 +25,7 @@ def handle_single_message(message: ChatMessage) -> list[ResponseMessage]:
 
 
 async def handle_messages() -> None:
-    async def send_responses(messages: list[ResponseMessage]) -> None:
+    async def send_responses(messages: list[ChatMessageResponse]) -> None:
         if not messages:
             return
 
