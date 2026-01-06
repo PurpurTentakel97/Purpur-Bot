@@ -7,14 +7,14 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from bot.chat.message_handler import handle_messages
+from bot.core.startup import startup_programm
+from bot.core.terminate import terminate_programm
 from bot.frontend.routes.api_bot import router as api_bot_router
 from bot.frontend.routes.api_commands import router as api_commands_router
 from bot.frontend.routes.api_counter import router as api_counter_router
 from bot.frontend.routes.auth import router as auth_router
 from bot.frontend.routes.dashboard import router as dashboard_router
 from bot.frontend.routes.home import router as home_router
-from bot.helpers.startup import startup_programm
-from bot.helpers.terminate import terminate_programm
 
 
 @asynccontextmanager
