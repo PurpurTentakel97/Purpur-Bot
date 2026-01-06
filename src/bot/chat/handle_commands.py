@@ -1,12 +1,12 @@
 from typing import Optional
 
+from bot.chat.types.message import ChatMessage
+from bot.chat.types.message_response import ChatMessageResponse
 from bot.core.commands import add_command
 from bot.core.commands import edit_command
 from bot.core.commands import lookup_all_commands
 from bot.core.commands import remove_command
 from bot.core.commands import try_lookup_command
-from bot.types.chat.message import ChatMessage
-from bot.types.chat.message_response import ChatMessageResponse
 from bot.types.core.permission_level import PermissionLevel
 
 

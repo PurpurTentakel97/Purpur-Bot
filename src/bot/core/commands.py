@@ -1,12 +1,12 @@
 from typing import Optional
 
+from bot.chat.types.message import ChatMessage
+from bot.chat.types.message_response import ChatMessageResponse
 from bot.database.commands import delete_command
 from bot.database.commands import edit_command_message
 from bot.database.commands import get_commands_by_bot_id
 from bot.database.commands import lookup_command
 from bot.database.commands import save_command
-from bot.types.chat.message import ChatMessage
-from bot.types.chat.message_response import ChatMessageResponse
 
 
 def add_command(message: ChatMessage, command_name: str, command_message: str) -> ChatMessageResponse:

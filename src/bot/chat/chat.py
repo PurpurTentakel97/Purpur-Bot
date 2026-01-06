@@ -2,8 +2,8 @@ import asyncio
 from abc import ABC
 from abc import abstractmethod
 
-from bot.types.chat.message import ChatMessage
-from bot.types.chat.message_response import ChatMessageResponse
+from bot.chat.types.message import ChatMessage
+from bot.chat.types.message_response import ChatMessageResponse
 
 
 class Chat(ABC):

@@ -5,10 +5,10 @@ from discord import Member as DiscordMember
 from discord.message import Message as DiscordMessage
 
 from bot.chat.chat import Chat
+from bot.chat.types.message import ChatMessage
+from bot.chat.types.message_response import ChatMessageResponse
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord
-from bot.types.chat.message import ChatMessage
-from bot.types.chat.message_response import ChatMessageResponse
 from bot.types.core.permission_level import PermissionLevel
 
 

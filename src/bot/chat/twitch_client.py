@@ -6,7 +6,7 @@ from typing import Optional
 from typing import Self
 from typing import cast
 
-from bot.types.chat.message import ChatMessage
+from bot.chat.types.message import ChatMessage
 
 if TYPE_CHECKING:
     from bot.chat.twitch_chat import TwitchChat

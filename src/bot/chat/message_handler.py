@@ -1,12 +1,12 @@
 import asyncio
 
 from bot.chat.handle_commands import handle_command
+from bot.chat.types.message import ChatMessage
+from bot.chat.types.message_response import ChatMessageResponse
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 from bot.helpers.log import log_discord
 from bot.helpers.log import log_twitch
-from bot.types.chat.message import ChatMessage
-from bot.types.chat.message_response import ChatMessageResponse
 from bot.types.core.programm_parts import PROGRAMM_PARTS
 
 # !command add|edit|remove NAME MESSAGE
