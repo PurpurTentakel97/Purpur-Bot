@@ -39,3 +39,10 @@ class DiscordServer(BaseModel):
     bot_id: int
     server_id: int
     server_name: str
+
+
+class Counter(BaseModel):
+    id: int
+    bot_id: int
+    name: str
+    value: int
