@@ -2,12 +2,12 @@ from bot.chat.discord_client import DiscordClient
 from bot.chat.discord_server import DiscordServer
 from bot.chat.twitch_chat import TwitchChat
 from bot.chat.twitch_client import TwitchClient
+from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.database import Database
 from bot.database.types import DiscordServer as DiscordServerDB
 from bot.database.types import TwitchChannel
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
-from bot.types.core.programm_parts import PROGRAMM_PARTS
 
 
 def _start_database() -> None:

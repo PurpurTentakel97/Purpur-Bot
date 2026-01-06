@@ -7,7 +7,7 @@ from bot.core.commands import edit_command
 from bot.core.commands import lookup_all_commands
 from bot.core.commands import remove_command
 from bot.core.commands import try_lookup_command
-from bot.types.core.permission_level import PermissionLevel
+from bot.core.types.permission_level import PermissionLevel
 
 
 def handle_command(message: ChatMessage) -> Optional[ChatMessageResponse]:

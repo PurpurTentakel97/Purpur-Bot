@@ -10,9 +10,9 @@ from typing import final
 
 from dotenv import load_dotenv
 
+from bot.core.types.environment_state import Environment
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
-from bot.types.core.environment_state import Environment
 
 
 def _get_env_var_or_default[T](key: str, default: T) -> T | str:

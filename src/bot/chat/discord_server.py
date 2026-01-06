@@ -7,9 +7,9 @@ from discord.message import Message as DiscordMessage
 from bot.chat.chat import Chat
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
+from bot.core.types.permission_level import PermissionLevel
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord
-from bot.types.core.permission_level import PermissionLevel
 
 
 @final

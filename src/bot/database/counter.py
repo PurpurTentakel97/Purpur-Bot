@@ -1,7 +1,7 @@
 from typing import Optional
 
+from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.types import Counter
-from bot.types.core.programm_parts import PROGRAMM_PARTS
 
 TABLE_NAME = "counter"
 

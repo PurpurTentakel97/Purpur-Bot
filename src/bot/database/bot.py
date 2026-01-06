@@ -4,10 +4,10 @@ from bot.chat.on_demand import start_single_discord_bot
 from bot.chat.on_demand import start_single_twitch_bot
 from bot.chat.on_demand import stop_single_discord_bot
 from bot.chat.on_demand import stop_single_twitch_bot
+from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.types import BotConfig
 from bot.database.types import DiscordServer
 from bot.database.types import TwitchChannel
-from bot.types.core.programm_parts import PROGRAMM_PARTS
 
 
 # bot

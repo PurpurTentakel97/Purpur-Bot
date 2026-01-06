@@ -1,4 +1,4 @@
-from bot.types.core.programm_parts import PROGRAMM_PARTS
+from bot.core.types.programm_parts import PROGRAMM_PARTS
 
 
 async def _stop_discord_bot() -> None:

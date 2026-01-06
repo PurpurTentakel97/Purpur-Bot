@@ -13,9 +13,9 @@ from bot.chat.chat import Chat
 from bot.chat.twitch_client import TwitchClient
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
+from bot.core.types.permission_level import PermissionLevel
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_twitch
-from bot.types.core.permission_level import PermissionLevel
 
 
 @final

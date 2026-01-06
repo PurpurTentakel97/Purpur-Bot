@@ -6,7 +6,7 @@ from attr import dataclass
 from discord import Message as DiscordMessage
 from twitchAPI.chat import ChatMessage as TwitchChatMessage
 
-from bot.types.core.permission_level import PermissionLevel
+from bot.core.types.permission_level import PermissionLevel
 
 if TYPE_CHECKING:
     from bot.chat.twitch_chat import Chat
