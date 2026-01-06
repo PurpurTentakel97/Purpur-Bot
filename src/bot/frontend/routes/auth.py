@@ -34,14 +34,14 @@ from bot.frontend.helpers.auth_constents import DISCORD_SCOPES
 from bot.frontend.helpers.auth_constents import JWT_ALG
 from bot.frontend.helpers.auth_constents import JWT_EXPIRY_DAYS
 from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
+from bot.frontend.types.discord_session_cookie_jwt import DiscordSessionCookie
+from bot.frontend.types.discord_user_info import DiscordUserInfo
+from bot.frontend.types.twitch_session_cookie_jwt import TwitchSessionCookie
+from bot.frontend.types.twitch_user_info import TwitchUserInfo
 from bot.helpers.log import LogLevel
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default
 from bot.helpers.log import log_exception
-from bot.types.frontend.discord_session_cookie_jwt import DiscordSessionCookie
-from bot.types.frontend.discord_user_info import DiscordUserInfo
-from bot.types.frontend.twitch_session_cookie_jwt import TwitchSessionCookie
-from bot.types.frontend.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/auth")
 TWITCH_OAUTH_STATE_COOKIE_KEY: Final = "TWITCH_OAUTH_STATE_COOKIE"

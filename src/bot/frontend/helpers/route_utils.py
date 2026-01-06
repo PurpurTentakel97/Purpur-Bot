@@ -9,10 +9,10 @@ from starlette.templating import Jinja2Templates
 
 from bot.core.app_context import APP_CONTEXT
 from bot.frontend.helpers.auth_constents import JWT_ALG
+from bot.frontend.types.discord_session_cookie_jwt import DiscordSessionCookie
+from bot.frontend.types.twitch_session_cookie_jwt import TwitchSessionCookie
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
-from bot.types.frontend.discord_session_cookie_jwt import DiscordSessionCookie
-from bot.types.frontend.twitch_session_cookie_jwt import TwitchSessionCookie
 
 
 @lru_cache

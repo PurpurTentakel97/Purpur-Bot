@@ -14,7 +14,7 @@ from bot.database.counter import edit_counter_value as edit_counter_value_db
 from bot.database.counter import reset_counter as reset_counter_db
 from bot.database.counter import save_counter as save_counter_db
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
-from bot.types.frontend.twitch_user_info import TwitchUserInfo
+from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/api/counter", dependencies=[Depends(get_authenticated_twitch_user)])
 
