@@ -7,7 +7,6 @@ from bot.database.types import DiscordServer as DiscordServerDB
 from bot.database.types import TwitchChannel
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
-
 from bot.types.feature_flag import DEFAULT_DISCORD_FEATURES
 from bot.types.feature_flag import DEFAULT_TWITCH_FEATURES
 from bot.types.programm_parts import PROGRAMM_PARTS
