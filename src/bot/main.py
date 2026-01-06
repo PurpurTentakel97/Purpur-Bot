@@ -6,7 +6,7 @@ from typing import Final
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from bot.core.message_handler import handle_messages
+from bot.chat.message_handler import handle_messages
 from bot.frontend.routes.api_bot import router as api_bot_router
 from bot.frontend.routes.api_commands import router as api_commands_router
 from bot.frontend.routes.api_counter import router as api_counter_router
