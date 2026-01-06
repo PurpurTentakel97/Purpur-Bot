@@ -1,7 +1,5 @@
 from bot.chat.discord_server import DiscordServer
 from bot.chat.twitch_chat import TwitchChat
-from bot.types.feature_flag import DEFAULT_DISCORD_FEATURES
-from bot.types.feature_flag import DEFAULT_TWITCH_FEATURES
 from bot.types.programm_parts import PROGRAMM_PARTS
 
 
@@ -9,7 +7,7 @@ async def start_single_discord_bot(id_: int, server_id: int) -> bool:
     if PROGRAMM_PARTS.discord is None:
         return False
 
-    discord_server = DiscordServer(id_, server_id, DEFAULT_DISCORD_FEATURES)
+    discord_server = DiscordServer(id_, server_id)
     PROGRAMM_PARTS.discord.connect_server(discord_server)
 
     return True
@@ -32,7 +30,7 @@ async def start_single_twitch_bot(id_: int, channel_name: str) -> bool:
     if PROGRAMM_PARTS.twitch is None:
         return False
 
-    await TwitchChat.create(PROGRAMM_PARTS.twitch, id_, channel_name, DEFAULT_TWITCH_FEATURES)
+    await TwitchChat.create(PROGRAMM_PARTS.twitch, id_, channel_name)
 
     return True
 

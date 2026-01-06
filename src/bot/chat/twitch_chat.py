@@ -14,15 +14,14 @@ from bot.chat.twitch_client import TwitchClient
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_twitch
 from bot.types.chat_message import ChatMessage
-from bot.types.feature_flag import FeatureFlags
 from bot.types.permission_level import PermissionLevel
 from bot.types.response_message import ResponseMessage
 
 
 @final
 class TwitchChat(Chat):
-    def __init__(self, chat: TwitchChatClient, id_: int, channel_name: str, feature_flags: FeatureFlags) -> None:
-        super().__init__(id_, feature_flags)
+    def __init__(self, chat: TwitchChatClient, id_: int, channel_name: str) -> None:
+        super().__init__(id_)
         self.chat: TwitchChatClient = chat
         self._channel_name: str = channel_name
 
@@ -46,9 +45,9 @@ class TwitchChat(Chat):
         return self._channel_name
 
     @classmethod
-    async def create(cls, twitch: TwitchClient, id_: int, channel_name: str, feature_flags: FeatureFlags) -> Self:
+    async def create(cls, twitch: TwitchClient, id_: int, channel_name: str) -> Self:
         chat = await TwitchChatClient(twitch.client)
-        instance = cls(chat, id_, channel_name, feature_flags)
+        instance = cls(chat, id_, channel_name)
         twitch.connect_chat(instance)
         return instance
 

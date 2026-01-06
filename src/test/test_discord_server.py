@@ -7,13 +7,12 @@ import discord
 import pytest
 
 from bot.chat.discord_server import DiscordServer
-from bot.types.feature_flag import DEFAULT_DISCORD_FEATURES
 
 
 def test_discord_server_init() -> None:
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id, DEFAULT_DISCORD_FEATURES)
+    server = DiscordServer(id_, server_id)
 
     assert server.id == id_
     assert server.server_id == server_id
@@ -23,7 +22,7 @@ def test_discord_server_init() -> None:
 async def test_discord_server_on_message() -> None:
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id, DEFAULT_DISCORD_FEATURES)
+    server = DiscordServer(id_, server_id)
     mock_message = MagicMock(spec=discord.Message)
     mock_author = MagicMock(spec=discord.Member)
     mock_author.name = "test_user"

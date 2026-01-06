@@ -8,15 +8,14 @@ from bot.chat.chat import Chat
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord
 from bot.types.chat_message import ChatMessage
-from bot.types.feature_flag import FeatureFlags
 from bot.types.permission_level import PermissionLevel
 from bot.types.response_message import ResponseMessage
 
 
 @final
 class DiscordServer(Chat):
-    def __init__(self, id_: int, server_id: int, features: FeatureFlags) -> None:
-        super().__init__(id_, features)
+    def __init__(self, id_: int, server_id: int) -> None:
+        super().__init__(id_)
         self._server_id: int = server_id
 
     @property

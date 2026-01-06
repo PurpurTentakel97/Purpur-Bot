@@ -7,8 +7,6 @@ from bot.database.types import DiscordServer as DiscordServerDB
 from bot.database.types import TwitchChannel
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
-from bot.types.feature_flag import DEFAULT_DISCORD_FEATURES
-from bot.types.feature_flag import DEFAULT_TWITCH_FEATURES
 from bot.types.programm_parts import PROGRAMM_PARTS
 
 
@@ -27,7 +25,7 @@ async def _start_discord_bot() -> None:
     servers = PROGRAMM_PARTS.database.find_all(table_name="bot_discord_lookup", where={}, type_=DiscordServerDB)
 
     for server in servers:
-        discord_server = DiscordServer(server.id, server.server_id, DEFAULT_DISCORD_FEATURES)
+        discord_server = DiscordServer(server.id, server.server_id)
         PROGRAMM_PARTS.discord.connect_server(discord_server)
 
 
@@ -40,7 +38,7 @@ async def _start_twitch_bot() -> None:
     channels = PROGRAMM_PARTS.database.find_all(table_name="bot_twitch_lookup", where={}, type_=TwitchChannel)
 
     for channel in channels:
-        await TwitchChat.create(PROGRAMM_PARTS.twitch, channel.id, channel.channel_name, DEFAULT_TWITCH_FEATURES)
+        await TwitchChat.create(PROGRAMM_PARTS.twitch, channel.id, channel.channel_name)
 
 
 async def startup_programm() -> None:
