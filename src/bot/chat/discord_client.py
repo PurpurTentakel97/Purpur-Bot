@@ -111,7 +111,7 @@ class DiscordClient(Client):
             log_discord(
                 LogLevel.ERROR,
                 f"Server {incoming_server_id} ({type(incoming_server_id)}) not found in chats. "
-                f"Available: {list(self._servers.keys())}",
+                + f"Available: {list(self._servers.keys())}",
             )
             log_discord(LogLevel.DEBUG, f"{incoming_server_id} | {message.author}: {message.content}")
             return

@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from bot.core.message_handler import handle_messages
 from bot.frontend.routes.api_bot import router as api_bot_router
 from bot.frontend.routes.api_commands import router as api_commands_router
+from bot.frontend.routes.api_counter import router as api_counter_router
 from bot.frontend.routes.auth import router as auth_router
 from bot.frontend.routes.dashboard import router as dashboard_router
 from bot.frontend.routes.home import router as home_router
@@ -36,8 +37,9 @@ async def main(_: FastAPI) -> AsyncGenerator[None]:
 
 app: Final = FastAPI(lifespan=main)
 app.mount("/static", StaticFiles(directory="src/bot/frontend/static"), name="static")
-app.include_router(home_router)
-app.include_router(auth_router)
 app.include_router(api_bot_router)
 app.include_router(api_commands_router)
+app.include_router(api_counter_router)
+app.include_router(auth_router)
 app.include_router(dashboard_router)
+app.include_router(home_router)
