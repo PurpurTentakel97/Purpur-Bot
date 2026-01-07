@@ -1,14 +1,14 @@
 from twitchAPI.twitch import Twitch
 
 from bot.core.app_context import APP_CONTEXT
-from bot.database.auth import get_twitch_tokens
+from bot.database.auth import select_twitch_tokens
 from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 
 
 async def get_allowed_twitch_channels(user_id: str, user_login: str) -> list[str]:
-    tokens = get_twitch_tokens(user_id)
+    tokens = select_twitch_tokens(user_id)
     if tokens is None:
         return [user_login]
 

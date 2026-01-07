@@ -3,47 +3,15 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import ClassVar
 from typing import Final
-from typing import NamedTuple
 from typing import Optional
-from typing import Self
 from typing import final
 
 from dotenv import load_dotenv
 
+from bot.core.helpers.env import get_env_var_or_default
+from bot.core.helpers.env import get_env_var_or_rise
 from bot.core.types.environment_state import Environment
-from bot.helpers.log import LogLevel
-from bot.helpers.log import log_default
-
-
-def _get_env_var_or_default[T](key: str, default: T) -> T | str:
-    value = os.getenv(key)
-    if value is None or not value.strip():
-        log_default(LogLevel.INFO, f"Environment variable '{key}' is not set, using default '{default}'")
-        return default
-
-    return value.strip()
-
-
-def _get_env_var_or_rise(key: str) -> str:
-    value = os.getenv(key)
-    if value is None or not value.strip():
-        raise RuntimeError(f"Environment variable '{key}' is not set")
-    return value.strip()
-
-
-@final
-class TwitchTokens(NamedTuple):
-    access_token: str
-    refresh_token: str
-
-    @classmethod
-    def try_load(cls) -> Optional[Self]:
-        access_token = _get_env_var_or_default("TWITCH_ACCESS_TOKEN", None)
-        refresh_token = _get_env_var_or_default("TWITCH_REFRESH_TOKEN", None)
-
-        if access_token is None or refresh_token is None:
-            return None
-        return cls(access_token, refresh_token)
+from bot.core.types.twitch_tokens import TwitchTokens
 
 
 @final
@@ -162,14 +130,14 @@ class AppContext:
 
 load_dotenv()
 APP_CONTEXT = AppContext(
-    discord_token=_get_env_var_or_default("DISCORD_TOKEN", None),
-    discord_client_id=_get_env_var_or_default("DISCORD_CLIENT_ID", None),
-    discord_client_secret=_get_env_var_or_default("DISCORD_CLIENT_SECRET", None),
-    discord_redirect_uri=_get_env_var_or_default("DISCORD_REDIRECT_URI", "http://localhost:8000/auth/discord/callback"),
-    twitch_client_id=_get_env_var_or_default("TWITCH_CLIENT_ID", None),
-    twitch_credentials=_get_env_var_or_default("TWITCH_CREDENTIALS", None),
+    discord_token=get_env_var_or_default("DISCORD_TOKEN", None),
+    discord_client_id=get_env_var_or_default("DISCORD_CLIENT_ID", None),
+    discord_client_secret=get_env_var_or_default("DISCORD_CLIENT_SECRET", None),
+    discord_redirect_uri=get_env_var_or_default("DISCORD_REDIRECT_URI", "http://localhost:8000/auth/discord/callback"),
+    twitch_client_id=get_env_var_or_default("TWITCH_CLIENT_ID", None),
+    twitch_credentials=get_env_var_or_default("TWITCH_CREDENTIALS", None),
     twitch_tokens=TwitchTokens.try_load(),
-    twitch_redirect_uri=_get_env_var_or_default("TWITCH_REDIRECT_URI", "http://localhost:8000/auth/twitch/callback"),
-    environment_state=Environment.from_string(_get_env_var_or_default("ENVIRONMENT_STATE", "production")),
-    jwt_secret=_get_env_var_or_rise("JWT_SECRET"),
+    twitch_redirect_uri=get_env_var_or_default("TWITCH_REDIRECT_URI", "http://localhost:8000/auth/twitch/callback"),
+    environment_state=Environment.from_string(get_env_var_or_default("ENVIRONMENT_STATE", "production")),
+    jwt_secret=get_env_var_or_rise("JWT_SECRET"),
 )

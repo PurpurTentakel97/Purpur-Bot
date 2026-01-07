@@ -25,9 +25,9 @@ from bot.core.app_context import APP_CONTEXT
 from bot.database.auth import delete_discord_tokens
 from bot.database.auth import delete_twitch_tokens
 from bot.database.auth import get_discord_tokens
-from bot.database.auth import get_twitch_tokens
 from bot.database.auth import save_or_update_discord_tokens
 from bot.database.auth import save_or_update_twitch_tokens
+from bot.database.auth import select_twitch_tokens
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.auth_constents import DISCORD_SCOPES
@@ -283,7 +283,7 @@ async def logout(
     current_discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
 ) -> RedirectResponse:
     if current_twitch_user is not None:
-        token_set = get_twitch_tokens(current_twitch_user.id_)
+        token_set = select_twitch_tokens(current_twitch_user.id_)
         if token_set is not None:
             try:
                 await revoke_token(

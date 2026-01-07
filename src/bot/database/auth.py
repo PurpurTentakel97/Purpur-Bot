@@ -10,7 +10,7 @@ TABLE_NAME_DISCORD = "discord_auth"
 
 
 # get
-def get_twitch_tokens(twitch_id: str) -> Optional[TwitchTokens]:
+def select_twitch_tokens(twitch_id: str) -> Optional[TwitchTokens]:
     twitch_tokens = PROGRAMM_PARTS.database.find_one(
         table_name=TABLE_NAME_TWITCH, where={"twitch_id": twitch_id}, type_=TwitchAuth
     )
