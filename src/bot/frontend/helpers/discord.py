@@ -1,20 +1,9 @@
-from typing import Optional
-from typing import TypedDict
-
 import httpx
 
 from bot.database.auth import get_discord_tokens
+from bot.frontend.types.discord_guild import DiscordGuild
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
-
-
-class DiscordGuild(TypedDict):
-    id: str
-    name: str
-    icon: Optional[str]
-    owner: bool
-    permissions: str
-    features: list[str]
 
 
 async def get_allowed_discord_servers(user_id: str) -> list[DiscordGuild]:
