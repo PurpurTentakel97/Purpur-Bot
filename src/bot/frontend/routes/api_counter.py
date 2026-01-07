@@ -7,12 +7,12 @@ from fastapi import Depends
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from bot.database.bot import get_bot_by_id
+from bot.database.bot import select_bot
 from bot.database.counter import delete_counter as delete_counter_db
-from bot.database.counter import edit_counter_name as edit_counter_name_db
-from bot.database.counter import edit_counter_value as edit_counter_value_db
+from bot.database.counter import insert_counter as save_counter_db
 from bot.database.counter import reset_counter as reset_counter_db
-from bot.database.counter import save_counter as save_counter_db
+from bot.database.counter import update_counter_name as edit_counter_name_db
+from bot.database.counter import update_counter_value as edit_counter_value_db
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
@@ -27,7 +27,7 @@ async def create_counter(
     name = data.get("name")
     bot_id = int(data.get("bot_id"))
 
-    bot = get_bot_by_id(bot_id)
+    bot = select_bot(bot_id)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 
@@ -46,7 +46,7 @@ async def reset_counter(
     name = data.get("name")
     bot_id = int(data.get("bot_id"))
 
-    bot = get_bot_by_id(bot_id)
+    bot = select_bot(bot_id)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 
@@ -65,7 +65,7 @@ async def delete_counter(
     name = data.get("name")
     bot_id = int(data.get("bot_id"))
 
-    bot = get_bot_by_id(bot_id)
+    bot = select_bot(bot_id)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 
@@ -85,7 +85,7 @@ async def update_counter_name(
     old_name = data.get("old_name")
     new_name = data.get("new_name")
 
-    bot = get_bot_by_id(bot_id)
+    bot = select_bot(bot_id)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 
@@ -105,7 +105,7 @@ async def update_counter_value(
     name = data.get("name")
     value = int(data.get("count"))
 
-    bot = get_bot_by_id(bot_id)
+    bot = select_bot(bot_id)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 

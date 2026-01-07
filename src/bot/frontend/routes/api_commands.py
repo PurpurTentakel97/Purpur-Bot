@@ -7,11 +7,11 @@ from fastapi import Depends
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from bot.database.bot import get_bot_by_id
+from bot.database.bot import select_bot
 from bot.database.commands import delete_command
-from bot.database.commands import edit_command_message
-from bot.database.commands import edit_command_name
-from bot.database.commands import save_command
+from bot.database.commands import insert_command
+from bot.database.commands import update_command_message
+from bot.database.commands import update_command_name
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
@@ -32,11 +32,11 @@ async def create_command(
             status_code=HTTPStatus.BAD_REQUEST, content={"message": "Command name cannot contain spaces"}
         )
 
-    bot = get_bot_by_id(id_)
+    bot = select_bot(id_)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 
-    result = save_command(
+    result = insert_command(
         bot_id=id_,
         command_name=name,
         command_message=message,
@@ -59,11 +59,11 @@ async def update_command_message(
     name = data.get("command_name").strip()
     message = data.get("command_message").strip()
 
-    bot = get_bot_by_id(id_)
+    bot = select_bot(id_)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 
-    result = edit_command_message(bot_id=id_, command_name=name, command_message=message)
+    result = update_command_message(bot_id=id_, command_name=name, command_message=message)
 
     if not result:
         return JSONResponse(
@@ -87,11 +87,11 @@ async def update_command_name(
             status_code=HTTPStatus.BAD_REQUEST, content={"message": "Command name cannot contain spaces"}
         )
 
-    bot = get_bot_by_id(id_)
+    bot = select_bot(id_)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 
-    result = edit_command_name(bot_id=id_, old_command_name=old_name, new_command_name=new_name)
+    result = update_command_name(bot_id=id_, old_command_name=old_name, new_command_name=new_name)
 
     if not result:
         return JSONResponse(
@@ -109,7 +109,7 @@ async def remove_command(
     id_ = data.get("bot_id").strip()
     name = data.get("command_name").strip()
 
-    bot = get_bot_by_id(id_)
+    bot = select_bot(id_)
     if bot is None or bot.twitch_user_id != current_twitch_user.id_:
         return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
 

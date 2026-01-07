@@ -1,13 +1,13 @@
 import httpx
 
-from bot.database.auth import get_discord_tokens
+from bot.database.twitch_auth import select_discord_tokens
 from bot.frontend.types.discord_guild import DiscordGuild
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 
 
 async def get_allowed_discord_servers(user_id: str) -> list[DiscordGuild]:
-    tokens = get_discord_tokens(user_id)
+    tokens = select_discord_tokens(user_id)
     if tokens is None:
         return []
 

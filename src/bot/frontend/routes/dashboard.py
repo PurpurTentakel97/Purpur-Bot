@@ -9,11 +9,11 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
-from bot.database.bot import get_bot_by_id
 from bot.database.bot import get_discord_servers_by_bot_id
 from bot.database.bot import get_twitch_channels_by_bot_id
-from bot.database.commands import get_commands_by_bot_id
-from bot.database.counter import get_counter_by_bot_id
+from bot.database.bot import select_bot
+from bot.database.commands import select_commands_by_bot_id
+from bot.database.counter import select_counter_by_bot_id
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.discord import get_allowed_discord_servers
@@ -33,7 +33,7 @@ async def bot_dashboard(
     current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
     current_discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
 ) -> Response:
-    bot = get_bot_by_id(bot_id)
+    bot = select_bot(bot_id)
     if bot is None:
         raise HTTPException(status_code=404, detail="Bot not found")
 
@@ -47,8 +47,8 @@ async def bot_dashboard(
     joined_channel_names = {c.channel_name.lower() for c in twitch_channels}
     filtered_allowed_channels = [c for c in allowed_channels if c.lower() not in joined_channel_names]
 
-    commands = get_commands_by_bot_id(bot_id)
-    counters = get_counter_by_bot_id(bot_id)
+    commands = select_commands_by_bot_id(bot_id)
+    counters = select_counter_by_bot_id(bot_id)
 
     discord_servers = get_discord_servers_by_bot_id(bot_id)
     allowed_discord_servers = (

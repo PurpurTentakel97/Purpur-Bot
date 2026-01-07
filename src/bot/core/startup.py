@@ -4,8 +4,8 @@ from bot.chat.twitch_chat import TwitchChat
 from bot.chat.twitch_client import TwitchClient
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.database import Database
-from bot.database.types import DiscordServer as DiscordServerDB
-from bot.database.types import TwitchChannel
+from bot.database.types.discord_server import DiscordServerDB
+from bot.database.types.twitch_channel import TwitchChannelDB
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 
@@ -22,7 +22,7 @@ async def _start_discord_bot() -> None:
     if PROGRAMM_PARTS.discord is None:
         return
 
-    servers = PROGRAMM_PARTS.database.find_all(table_name="bot_discord_lookup", where={}, type_=DiscordServerDB)
+    servers = PROGRAMM_PARTS.database.select_all(table_name="bot_discord_lookup", where={}, type_=DiscordServerDB)
 
     for server in servers:
         discord_server = DiscordServer(server.id, server.server_id)
@@ -35,7 +35,7 @@ async def _start_twitch_bot() -> None:
     if PROGRAMM_PARTS.twitch is None:
         return
 
-    channels = PROGRAMM_PARTS.database.find_all(table_name="bot_twitch_lookup", where={}, type_=TwitchChannel)
+    channels = PROGRAMM_PARTS.database.select_all(table_name="bot_twitch_lookup", where={}, type_=TwitchChannelDB)
 
     for channel in channels:
         await TwitchChat.create(PROGRAMM_PARTS.twitch, channel.id, channel.channel_name)

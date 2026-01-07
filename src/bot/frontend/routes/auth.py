@@ -22,12 +22,12 @@ from twitchAPI.oauth import revoke_token
 from twitchAPI.twitch import Twitch
 
 from bot.core.app_context import APP_CONTEXT
-from bot.database.auth import delete_discord_tokens
-from bot.database.auth import delete_twitch_tokens
-from bot.database.auth import get_discord_tokens
-from bot.database.auth import save_or_update_discord_tokens
-from bot.database.auth import save_or_update_twitch_tokens
-from bot.database.auth import select_twitch_tokens
+from bot.database.twitch_auth import delete_discord_tokens
+from bot.database.twitch_auth import delete_twitch_tokens
+from bot.database.twitch_auth import select_discord_tokens
+from bot.database.twitch_auth import save_or_update_discord_tokens
+from bot.database.twitch_auth import save_or_update_twitch_tokens
+from bot.database.twitch_auth import select_twitch_tokens
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.auth_constents import DISCORD_SCOPES
@@ -302,7 +302,7 @@ async def logout(
             log_default(LogLevel.ERROR, f"Failed to delete twitch tokens for user {current_twitch_user.id_}")
 
     if current_discord_user is not None:
-        token_set = get_discord_tokens(current_discord_user.id_)
+        token_set = select_discord_tokens(current_discord_user.id_)
         if token_set is not None:
             try:
                 async with httpx.AsyncClient() as client:

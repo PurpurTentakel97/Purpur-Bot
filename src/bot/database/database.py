@@ -26,6 +26,7 @@ class Database:
         self._engine = engine
         self._metadata = MetaData()
 
+    # core
     @classmethod
     def create(cls) -> Optional[Self]:
         try:
@@ -46,8 +47,8 @@ class Database:
     def close(self) -> None:
         self._engine.dispose()
 
-    # get
-    def find_one[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> Optional[T]:
+    # operations
+    def select_one[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> Optional[T]:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
             statement = select(table).filter_by(**where)
@@ -64,7 +65,7 @@ class Database:
             log_exception(e, LogProgram.Default, f"Failed to find data in the database. | table: {table_name}")
             return None
 
-    def find_all[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> list[T]:
+    def select_all[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> list[T]:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
             statement = select(table).filter_by(**where)
@@ -77,22 +78,7 @@ class Database:
             log_exception(e, LogProgram.Default, f"Failed to find data in the database. | table: {table_name}")
             return []
 
-    # store
-    def save(self, table_name: str, data: dict[str, Any]) -> bool:
-        try:
-            table = Table(table_name, self._metadata, autoload_with=self._engine)
-            statement = insert(table).values(**data)
-
-            with self._engine.begin() as connection:
-                connection.execute(statement)
-
-            return True
-
-        except Exception as e:
-            log_exception(e, LogProgram.Default, f"Failed to save data to the database. | table_name: {table_name}")
-            return False
-
-    def save_with_returned_id(self, table_name: str, data: dict[str, Any]) -> Optional[int]:
+    def insert(self, table_name: str, data: dict[str, Any]) -> Optional[int]:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
             statement = insert(table).values(**data)
@@ -109,7 +95,6 @@ class Database:
             )
             return None
 
-    # update
     def update(self, table_name: str, where: dict[str, Any], data: dict[str, Any]) -> bool:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
@@ -124,7 +109,6 @@ class Database:
             log_exception(e, LogProgram.Default, f"Failed to update data in the database. | table_name: {table_name}")
             return False
 
-    # delete
     def delete(self, table_name: str, where: dict[str, Any]) -> bool:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
