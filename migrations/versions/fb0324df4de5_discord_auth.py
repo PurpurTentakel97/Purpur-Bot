@@ -22,6 +22,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         "discord_auth",
+        sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
         sa.Column("discord_id", sa.String, nullable=False, primary_key=True),
         sa.Column("access_token", sa.String, nullable=False),
         sa.Column("refresh_token", sa.String, nullable=False),

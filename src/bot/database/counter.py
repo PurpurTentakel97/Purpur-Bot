@@ -1,9 +1,12 @@
+from typing import Any
 from typing import Optional
 
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.types.counter import CounterDB
 
 TABLE_NAME = "counter"
+FIELD_NAME = "name"
+FIELD_COUNTER = "count"
 
 
 def select_counter(bot_id: int, name: str) -> Optional[CounterDB]:
@@ -18,14 +21,8 @@ def insert_counter(bot_id: int, name: str) -> Optional[int]:
     return PROGRAMM_PARTS.database.insert(TABLE_NAME, {"bot_id": bot_id, "name": name})
 
 
-def update_counter_name(bot_id: int, old_name: str, new_name: str) -> bool:
-    return PROGRAMM_PARTS.database.update(
-        TABLE_NAME, where={"bot_id": bot_id, "name": old_name}, data={"name": new_name}
-    )
-
-
-def update_counter_value(bot_id: int, name: str, value: int) -> bool:
-    return PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data={"count": value})
+def update_counter(bot_id: int, name: str, data: dict[str, Any]) -> bool:
+    return PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data=data)
 
 
 def delete_counter(bot_id: int, name: str) -> bool:

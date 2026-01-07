@@ -14,13 +14,13 @@ from bot.helpers.log import log_discord
 
 @final
 class DiscordServer(Chat):
-    def __init__(self, id_: int, server_id: int) -> None:
-        super().__init__(id_)
+    def __init__(self, bot_id: int, server_id: int) -> None:
+        super().__init__(bot_id)
         self._server_id: int = server_id
 
     @property
-    def id(self) -> int:
-        return self._id
+    def bot_id(self) -> int:
+        return self.bot_id
 
     @property
     def server_id(self) -> int:
@@ -56,7 +56,7 @@ class DiscordServer(Chat):
             raise AssertionError("Expected author to be a Member")
 
         msg = ChatMessage(
-            id_=self._id,
+            id_=self.bot_id,
             text=message.content,
             sender_chat=self,
             sender_permission_level=_get_permission_level(message.author),

@@ -20,8 +20,8 @@ from bot.helpers.log import log_twitch
 
 @final
 class TwitchChat(Chat):
-    def __init__(self, chat: TwitchChatClient, id_: int, channel_name: str) -> None:
-        super().__init__(id_)
+    def __init__(self, chat: TwitchChatClient, bot_id: int, channel_name: str) -> None:
+        super().__init__(bot_id)
         self.chat: TwitchChatClient = chat
         self._channel_name: str = channel_name
 
@@ -37,8 +37,8 @@ class TwitchChat(Chat):
         self.chat.start()
 
     @property
-    def id(self) -> int:
-        return self._id
+    def bot_id(self) -> int:
+        return self.bot_id
 
     @property
     def channel_name(self) -> str:
@@ -81,7 +81,7 @@ class TwitchChat(Chat):
             return PermissionLevel.USER
 
         msg = ChatMessage(
-            id_=self._id,
+            id_=self.bot_id,
             text=message.text,
             sender_chat=self,
             sender_permission_level=_get_user_permission_level(message.user),

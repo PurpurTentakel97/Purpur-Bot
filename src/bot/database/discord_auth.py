@@ -5,6 +5,7 @@ from bot.database.types.discord_auth import DiscordAuthDB
 
 TABLE_NAME = "discord_auth"
 
+
 def select_discord_tokens(discord_id: str) -> Optional[DiscordAuthDB]:
     return PROGRAMM_PARTS.database.select_one(
         table_name=TABLE_NAME, where={"discord_id": discord_id}, type_=DiscordAuthDB

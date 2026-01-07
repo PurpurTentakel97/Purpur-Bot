@@ -1,9 +1,12 @@
+from typing import Any
 from typing import Optional
 
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.types.base_command import BasicCommandDB
 
 TABLE_NAME = "basic_commands"
+FIELD_COMMAND = "command"
+FIELD_MESSAGE = "message"
 
 
 def select_commands_by_bot_id(bot_id: int) -> list[BasicCommandDB]:
@@ -22,15 +25,9 @@ def insert_command(bot_id: int, command_name: str, command_message: str) -> Opti
     )
 
 
-def update_command_message(bot_id: int, command_name: str, command_message: str) -> bool:
+def update_command(bot_id: int, command_name: str, data: dict[str, Any]) -> bool:
     return PROGRAMM_PARTS.database.update(
-        table_name=TABLE_NAME, where={"bot_id": bot_id, "command": command_name}, data={"message": command_message}
-    )
-
-
-def update_command_name(bot_id: int, old_command_name: str, new_command_name: str) -> bool:
-    return PROGRAMM_PARTS.database.update(
-        table_name=TABLE_NAME, where={"bot_id": bot_id, "command": old_command_name}, data={"command": new_command_name}
+        table_name=TABLE_NAME, where={"bot_id": bot_id, "command": command_name}, data=data
     )
 
 

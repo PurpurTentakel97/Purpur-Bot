@@ -21,7 +21,7 @@ async def test_twitch_chat_create() -> None:
         chat = await TwitchChat.create(mock_twitch_client, 1, "channel")
 
         assert isinstance(chat, TwitchChat)
-        assert chat.id == 1
+        assert chat.bot_id == 1
         assert chat.channel_name == "channel"
         mock_chat_cls.assert_called_once_with(mock_twitch_client.client)
 

@@ -25,7 +25,7 @@ async def _start_discord_bot() -> None:
     servers = PROGRAMM_PARTS.database.select_all(table_name="bot_discord_lookup", where={}, type_=DiscordServerDB)
 
     for server in servers:
-        discord_server = DiscordServer(server.id, server.server_id)
+        discord_server = DiscordServer(server.bot_id, server.server_id)
         PROGRAMM_PARTS.discord.connect_server(discord_server)
 
 
@@ -38,7 +38,7 @@ async def _start_twitch_bot() -> None:
     channels = PROGRAMM_PARTS.database.select_all(table_name="bot_twitch_lookup", where={}, type_=TwitchChannelDB)
 
     for channel in channels:
-        await TwitchChat.create(PROGRAMM_PARTS.twitch, channel.id, channel.channel_name)
+        await TwitchChat.create(PROGRAMM_PARTS.twitch, channel.bot_id, channel.channel_name)
 
 
 async def startup_programm() -> None:

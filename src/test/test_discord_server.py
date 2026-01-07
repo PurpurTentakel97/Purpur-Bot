@@ -14,7 +14,7 @@ def test_discord_server_init() -> None:
     server_id = 123456789
     server = DiscordServer(id_, server_id)
 
-    assert server.id == id_
+    assert server.bot_id == id_
     assert server.server_id == server_id
 
 

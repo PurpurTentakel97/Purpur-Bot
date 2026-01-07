@@ -41,7 +41,7 @@ async def handle_messages() -> None:
                     break
                 log_twitch(
                     LogLevel.DEBUG,
-                    f"{message.sender_chat.id} | {message.sender_permission_level.name} | {message.text}",
+                    f"{message.sender_chat.bot_id} | {message.sender_permission_level.name} | {message.text}",
                 )
                 responses = handle_single_message(message)
                 await send_responses(responses)
@@ -53,7 +53,7 @@ async def handle_messages() -> None:
                     break
                 log_discord(
                     LogLevel.DEBUG,
-                    f"{message.sender_chat.id} | {message.sender_permission_level.name} | {message.text}",
+                    f"{message.sender_chat.bot_id} | {message.sender_permission_level.name} | {message.text}",
                 )
                 responses = handle_single_message(message)
                 await send_responses(responses)

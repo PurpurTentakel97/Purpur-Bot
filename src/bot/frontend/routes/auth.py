@@ -24,9 +24,9 @@ from twitchAPI.twitch import Twitch
 from bot.core.app_context import APP_CONTEXT
 from bot.database.twitch_auth import delete_discord_tokens
 from bot.database.twitch_auth import delete_twitch_tokens
-from bot.database.twitch_auth import select_discord_tokens
 from bot.database.twitch_auth import save_or_update_discord_tokens
 from bot.database.twitch_auth import save_or_update_twitch_tokens
+from bot.database.twitch_auth import select_discord_tokens
 from bot.database.twitch_auth import select_twitch_tokens
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user

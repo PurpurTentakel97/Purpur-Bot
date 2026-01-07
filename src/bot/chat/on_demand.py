@@ -18,12 +18,21 @@ async def stop_single_discord_bot(id_: int, server_id: int) -> bool:
         return False
 
     for server in PROGRAMM_PARTS.discord.servers:
-        if server.id == id_ and server.server_id == server_id:
+        if server.bot_id == id_ and server.server_id == server_id:
             PROGRAMM_PARTS.discord.remove_server(server)
             await PROGRAMM_PARTS.discord.leave_guild(server_id)
             return True
 
     return False
+
+
+async def stop_all_discord_bots_from_bot(bot_id: int) -> None:
+    if PROGRAMM_PARTS.discord is None:
+        return
+
+    for server in PROGRAMM_PARTS.discord.servers:
+        if server.bot_id == bot_id:
+            PROGRAMM_PARTS.discord.remove_server(server)
 
 
 async def start_single_twitch_bot(id_: int, channel_name: str) -> bool:
@@ -40,8 +49,17 @@ async def stop_single_twitch_bot(id_: int, channel_name: str) -> bool:
         return False
 
     for channel in PROGRAMM_PARTS.twitch.chats:
-        if channel.id == id_ and channel.channel_name == channel_name:
+        if channel.bot_id == id_ and channel.channel_name == channel_name:
             await channel.terminate()
             return True
 
     return False
+
+
+async def stop_all_twitch_bots_from_bot(bot_id: int) -> None:
+    if PROGRAMM_PARTS.twitch is None:
+        return
+
+    for channel in PROGRAMM_PARTS.twitch.chats:
+        if channel.bot_id == bot_id:
+            await channel.terminate()
