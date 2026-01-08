@@ -13,6 +13,8 @@ from sqlalchemy import insert
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
 
+from bot.core.types.result import Result
+from bot.core.types.result import ResultState
 from bot.helpers.log import LogLevel
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default
@@ -48,7 +50,7 @@ class Database:
         self._engine.dispose()
 
     # operations
-    def select_one[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> Optional[T]:
+    def select_one[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> Result[T]:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
             statement = select(table).filter_by(**where)
@@ -57,28 +59,28 @@ class Database:
                 result = connection.execute(statement).mappings().fetchone()
 
                 if result is None:
-                    return None
+                    return Result(ResultState.NO_DATA)
 
-                return type_.model_validate(result)
+                return Result(ResultState.SUCCESS, type_.model_validate(result))
 
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to find data in the database. | table: {table_name}")
-            return None
+            return Result(ResultState.TYPE_MISSMATCH, None)
 
-    def select_all[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> list[T]:
+    def select_all[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> Result[list[T]]:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
             statement = select(table).filter_by(**where)
 
             with self._engine.begin() as connection:
                 result = connection.execute(statement).mappings().fetchall()
-                return [type_.model_validate(row) for row in result]
+                return Result(ResultState.SUCCESS, [type_.model_validate(row) for row in result])
 
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to find data in the database. | table: {table_name}")
-            return []
+            return Result(ResultState.TYPE_MISSMATCH, None)
 
-    def insert(self, table_name: str, data: dict[str, Any]) -> Optional[int]:
+    def insert(self, table_name: str, data: dict[str, Any]) -> Result[int]:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
             statement = insert(table).values(**data)
@@ -87,15 +89,15 @@ class Database:
                 result = connection.execute(statement)
                 last_id = result.lastrowid
 
-            return last_id
+            return Result(ResultState.SUCCESS, last_id)
 
         except Exception as e:
             log_exception(
                 e, LogProgram.Default, f"Failed to save data to the database and return id. | table_name: {table_name}"
             )
-            return None
+            return Result(ResultState.ERROR, None)
 
-    def update(self, table_name: str, where: dict[str, Any], data: dict[str, Any]) -> bool:
+    def update(self, table_name: str, where: dict[str, Any], data: dict[str, Any]) -> Result[None]:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
             statement = table.update().filter_by(**where).values(**data)
@@ -103,13 +105,13 @@ class Database:
             with self._engine.begin() as connection:
                 result = connection.execute(statement)
 
-            return result.rowcount != 0
+            return Result(ResultState.SUCCESS if result.rowcount != 0 else ResultState.NO_DATA, None)
 
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to update data in the database. | table_name: {table_name}")
-            return False
+            return Result(ResultState.ERROR, None)
 
-    def delete(self, table_name: str, where: dict[str, Any]) -> bool:
+    def delete(self, table_name: str, where: dict[str, Any]) -> Result[None]:
         try:
             table = Table(table_name, self._metadata, autoload_with=self._engine)
             statement = table.delete().filter_by(**where)
@@ -117,8 +119,8 @@ class Database:
             with self._engine.begin() as connection:
                 result = connection.execute(statement)
 
-            return result.rowcount != 0
+            return Result(ResultState.SUCCESS if result.rowcount != 0 else ResultState.NO_DATA, None)
 
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to delete data in the database. | table_name: {table_name}")
-            return False
+            return Result(ResultState.ERROR, None)
