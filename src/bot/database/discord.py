@@ -9,11 +9,11 @@ def select_discord_servers_by_bot_id(bot_id: int) -> Result[list[DiscordServerDB
     return PROGRAMM_PARTS.database.select_all(table_name=TABLE_NAME, where={"bot_id": bot_id}, type_=DiscordServerDB)
 
 
-async def insert_discord_server(bot_id: int, server_id: int, server_name: str) -> Result[int]:
+def insert_discord_server(bot_id: int, server_id: int, server_name: str) -> Result[int]:
     return PROGRAMM_PARTS.database.insert(
         table_name=TABLE_NAME, data={"bot_id": bot_id, "server_id": server_id, "server_name": server_name}
     )
 
 
-async def delete_discord_server(bot_id: int, server_id: int) -> Result[None]:
+def delete_discord_server(bot_id: int, server_id: int) -> Result[None]:
     return PROGRAMM_PARTS.database.delete(table_name=TABLE_NAME, where={"bot_id": bot_id, "server_id": server_id})
