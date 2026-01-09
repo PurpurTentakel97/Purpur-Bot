@@ -22,7 +22,7 @@ def add_bot(twitch_id: str) -> Result[int]:
     return insert_bot_db(twitch_id)
 
 
-def update_bot_name(bot_id: int, name: str) -> Result[None]:
+def update_bot(bot_id: int, name: str) -> Result[None]:
     return update_bot_db(bot_id, {FIELD_NAME: name})
 
 

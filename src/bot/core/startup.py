@@ -24,7 +24,12 @@ async def _start_discord_bot() -> None:
 
     servers = PROGRAMM_PARTS.database.select_all(table_name="bot_discord_lookup", where={}, type_=DiscordServerDB)
 
-    for server in servers:
+    if (
+        servers.value is None
+    ):  # should never happen since an empty list gets returned normally when no data is available
+        return
+
+    for server in servers.value:
         discord_server = DiscordServer(server.bot_id, server.server_id)
         PROGRAMM_PARTS.discord.connect_server(discord_server)
 
@@ -37,7 +42,12 @@ async def _start_twitch_bot() -> None:
 
     channels = PROGRAMM_PARTS.database.select_all(table_name="bot_twitch_lookup", where={}, type_=TwitchChannelDB)
 
-    for channel in channels:
+    if (
+        channels.value is None
+    ):  # should never happen since an empty list gets returned normally when no data is available
+        return
+
+    for channel in channels.value:
         await TwitchChat.create(PROGRAMM_PARTS.twitch, channel.bot_id, channel.channel_name)
 
 

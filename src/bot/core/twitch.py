@@ -27,6 +27,4 @@ async def delete_twitch_channel(bot_id: int, channel: str) -> Result[None]:
     if not stop_result:
         return Result(ResultState.ERROR, None)
 
-    delete_result = delete_twitch_channel_db(bot_id, channel)
-
-    return delete_result
+    return delete_twitch_channel_db(bot_id, channel)
