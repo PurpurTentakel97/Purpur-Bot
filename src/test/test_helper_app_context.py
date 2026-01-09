@@ -53,7 +53,7 @@ def test_twitch_tokens_try_load_success() -> None:
         "TWITCH_REFRESH_TOKEN": "refresh",
     }
     with patch.dict(os.environ, env):
-        tokens = TwitchTokens.try_load()
+        tokens = TwitchTokens.try_load_from_env()
         assert tokens is not None
         assert tokens.access_token == "access"
         assert tokens.refresh_token == "refresh"
@@ -64,7 +64,7 @@ def test_twitch_tokens_try_load_missing_access() -> None:
         "TWITCH_REFRESH_TOKEN": "refresh",
     }
     with patch.dict(os.environ, env, clear=True):
-        assert TwitchTokens.try_load() is None
+        assert TwitchTokens.try_load_from_env() is None
 
 
 def test_twitch_tokens_try_load_missing_refresh() -> None:
@@ -72,7 +72,7 @@ def test_twitch_tokens_try_load_missing_refresh() -> None:
         "TWITCH_ACCESS_TOKEN": "access",
     }
     with patch.dict(os.environ, env, clear=True):
-        assert TwitchTokens.try_load() is None
+        assert TwitchTokens.try_load_from_env() is None
 
 
 def test_update_env_file_new_file(tmp_path: Path) -> None:

@@ -12,7 +12,7 @@ class TwitchTokens(NamedTuple):
     refresh_token: str
 
     @classmethod
-    def try_load(cls) -> Optional[Self]:
+    def try_load_from_env(cls) -> Optional[Self]:
         access_token = get_env_var_or_default("TWITCH_ACCESS_TOKEN", None)
         refresh_token = get_env_var_or_default("TWITCH_REFRESH_TOKEN", None)
 
