@@ -8,15 +8,14 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 
 from bot.core.app_context import APP_CONTEXT
+from bot.core.bot import add_bot as add_bot_core
+from bot.core.bot import delete_bot as delete_bot_core
+from bot.core.bot import update_bot as update_bot_core
+from bot.core.discord import add_discord_bot as add_discord_bot_core
+from bot.core.discord import delete_discord_bot as delete_discord_bot_core
+from bot.core.twitch import add_twitch_channel as add_twitch_channel_core
+from bot.core.twitch import delete_twitch_channel as delete_twitch_channel_core
 from bot.core.types.programm_parts import PROGRAMM_PARTS
-from bot.database.bot import add_discord_server_to_bot
-from bot.database.bot import add_twitch_channel_to_bot
-from bot.database.bot import delete_bot
-from bot.database.bot import delete_discord_server_from_bot
-from bot.database.bot import delete_twitch_channel_from_bot
-from bot.database.bot import insert_bot
-from bot.database.bot import select_bot
-from bot.database.bot import update_bot
 from bot.frontend.helpers.auth import get_authenticated_discord_user
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.route_utils import get_twitch_session_cookie
@@ -28,16 +27,10 @@ router: Final = APIRouter(prefix="/api/bot", dependencies=[Depends(get_authentic
 
 # bot
 @router.post("/create")
-def new_bot(
-    request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
-) -> JSONResponse:
-    result = insert_bot(current_twitch_user.id_)
-    if result is None:
+def new_bot(current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]) -> JSONResponse:
+    result = add_bot_core(current_twitch_user.id_)
+    if not result.state.is_success():
         return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to create a bot"})
-
-    # Check bot presence and return invite if not on server (but here we don't have server yet)
-    # The requirement says "when the user adds a bot" - this usually means creating a bot config.
-    # But start_single_discord_bot is called when adding a discord server to a bot.
 
     return JSONResponse(status_code=HTTPStatus.CREATED, content={"id": result})
 
@@ -46,7 +39,6 @@ def new_bot(
 async def edit_bot(
     request: Request,
     bot_id: int,
-    current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
 ) -> JSONResponse:
     try:
         data = await request.json()
@@ -54,9 +46,9 @@ async def edit_bot(
         if not new_name:
             return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Bot name is required"})
 
-        result = update_bot(bot_id, current_twitch_user.id_, new_name)
+        result = update_bot_core(bot_id, new_name)
 
-        if not result:
+        if not result.state.is_success():
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to update bot"}
             )
@@ -71,35 +63,28 @@ async def edit_bot(
 async def delete_bot(
     request: Request,
     bot_id: int,
-    current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
 ) -> JSONResponse:
     session_cookie = get_twitch_session_cookie(request)
     if session_cookie is None:
         return JSONResponse(status_code=HTTPStatus.UNAUTHORIZED, content={"message": "Session cookie is missing"})
 
-    result = await delete_bot(bot_id, current_twitch_user.id_)
+    result = await delete_bot_core(bot_id)
 
-    if not result:
+    if not result.state.is_success():
         return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to delete a bot"})
     return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Bot deleted successfully"})
 
 
 # Twitch
 @router.post("/twitch/add")
-async def add_twitch_channel(
-    request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
-) -> JSONResponse:
+async def add_twitch_channel(request: Request) -> JSONResponse:
     data = await request.json()
     bot_id = int(data.get("bot_id"))
     twitch_channel = data.get("twitch_channel")
 
-    bot = select_bot(bot_id)
-    if bot is None or bot.twitch_user_id != current_twitch_user.id_:
-        return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
+    result = await add_twitch_channel_core(bot_id, twitch_channel)
 
-    result = await add_twitch_channel_to_bot(bot_id, twitch_channel)
-
-    if not result:
+    if not result.state.is_success():
         return JSONResponse(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to add a twitch channel to bot"}
         )
@@ -107,20 +92,14 @@ async def add_twitch_channel(
 
 
 @router.post("/twitch/delete")
-async def delete_twitch_channel(
-    request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
-) -> JSONResponse:
+async def delete_twitch_channel(request: Request) -> JSONResponse:
     data = await request.json()
     bot_id = int(data.get("bot_id"))
     twitch_channel = data.get("twitch_channel")
 
-    bot = select_bot(bot_id)
-    if bot is None or bot.twitch_user_id != current_twitch_user.id_:
-        return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
+    result = await delete_twitch_channel_core(bot_id, twitch_channel)
 
-    result = await delete_twitch_channel_from_bot(bot_id, twitch_channel)
-
-    if not result:
+    if not result.state.is_success():
         return JSONResponse(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to delete twitch channel"}
         )
@@ -131,7 +110,6 @@ async def delete_twitch_channel(
 @router.post("/discord/add")
 async def add_discord_server(
     request: Request,
-    current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
     current_discord_user: Annotated[DiscordUserInfo, Depends(get_authenticated_discord_user)],
 ) -> JSONResponse:
     data = await request.json()
@@ -139,13 +117,9 @@ async def add_discord_server(
     server_id = int(data.get("server_id"))
     server_name = data.get("server_name")
 
-    bot = select_bot(bot_id)
-    if bot is None or bot.twitch_user_id != current_twitch_user.id_:
-        return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
+    result = add_discord_bot_core(bot_id, server_id, server_name)
 
-    result = await add_discord_server_to_bot(bot_id, server_id, server_name)
-
-    if not result:
+    if not result.state.is_success():
         return JSONResponse(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to add a discord server to bot"}
         )
@@ -167,19 +141,15 @@ async def add_discord_server(
 
 @router.post("/discord/delete")
 async def delete_discord_server(
-    request: Request, current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
+    request: Request, current_discord_user: Annotated[DiscordUserInfo, Depends(get_authenticated_discord_user)]
 ) -> JSONResponse:
     data = await request.json()
     bot_id = int(data.get("bot_id"))
     server_id = int(data.get("server_id"))
 
-    bot = select_bot(bot_id)
-    if bot is None or bot.twitch_user_id != current_twitch_user.id_:
-        return JSONResponse(status_code=HTTPStatus.FORBIDDEN, content={"message": "Forbidden"})
+    result = await delete_discord_bot_core(bot_id, server_id)
 
-    result = await delete_discord_server_from_bot(bot_id, server_id)
-
-    if not result:
+    if not result.state.is_success():
         return JSONResponse(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to delete discord server"}
         )
