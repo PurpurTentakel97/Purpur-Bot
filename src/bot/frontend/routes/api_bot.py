@@ -18,7 +18,7 @@ from bot.core.twitch import delete_twitch_channel as delete_twitch_channel_core
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.frontend.helpers.auth import get_authenticated_discord_user
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
-from bot.frontend.helpers.route_utils import get_twitch_session_cookie
+from bot.frontend.helpers.cast import to_int_or_raise
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
@@ -35,14 +35,15 @@ def new_bot(current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authentic
     return JSONResponse(status_code=HTTPStatus.CREATED, content={"id": result})
 
 
-@router.post("/edit/{bot_id:int}")
+@router.post("/edit")
 async def edit_bot(
     request: Request,
-    bot_id: int,
 ) -> JSONResponse:
     try:
         data = await request.json()
-        new_name = data.get("name")
+        bot_id = to_int_or_raise(data.get("bot_id"))
+        new_name = data.get("name").strip()
+
         if not new_name:
             return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Bot name is required"})
 
@@ -59,14 +60,10 @@ async def edit_bot(
         return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
-@router.post("/delete/{bot_id:int}")
-async def delete_bot(
-    request: Request,
-    bot_id: int,
-) -> JSONResponse:
-    session_cookie = get_twitch_session_cookie(request)
-    if session_cookie is None:
-        return JSONResponse(status_code=HTTPStatus.UNAUTHORIZED, content={"message": "Session cookie is missing"})
+@router.post("/delete")
+async def delete_bot(request: Request) -> JSONResponse:
+    data = await request.json()
+    bot_id = to_int_or_raise(data.get("bot_id"))
 
     result = await delete_bot_core(bot_id)
 
@@ -79,8 +76,8 @@ async def delete_bot(
 @router.post("/twitch/add")
 async def add_twitch_channel(request: Request) -> JSONResponse:
     data = await request.json()
-    bot_id = int(data.get("bot_id"))
-    twitch_channel = data.get("twitch_channel")
+    bot_id = to_int_or_raise(data.get("bot_id"))
+    twitch_channel = data.get("twitch_channel").strip()
 
     result = await add_twitch_channel_core(bot_id, twitch_channel)
 
@@ -94,8 +91,8 @@ async def add_twitch_channel(request: Request) -> JSONResponse:
 @router.post("/twitch/delete")
 async def delete_twitch_channel(request: Request) -> JSONResponse:
     data = await request.json()
-    bot_id = int(data.get("bot_id"))
-    twitch_channel = data.get("twitch_channel")
+    bot_id = to_int_or_raise(data.get("bot_id"))
+    twitch_channel = data.get("twitch_channel").strip()
 
     result = await delete_twitch_channel_core(bot_id, twitch_channel)
 
@@ -110,12 +107,14 @@ async def delete_twitch_channel(request: Request) -> JSONResponse:
 @router.post("/discord/add")
 async def add_discord_server(
     request: Request,
-    current_discord_user: Annotated[DiscordUserInfo, Depends(get_authenticated_discord_user)],
+    current_discord_user: Annotated[
+        DiscordUserInfo, Depends(get_authenticated_discord_user)
+    ],  # discord user for authentication
 ) -> JSONResponse:
     data = await request.json()
-    bot_id = int(data.get("bot_id"))
-    server_id = int(data.get("server_id"))
-    server_name = data.get("server_name")
+    bot_id = to_int_or_raise(data.get("bot_id"))
+    server_id = to_int_or_raise(data.get("server_id"))
+    server_name = data.get("server_name").strip()
 
     result = add_discord_bot_core(bot_id, server_id, server_name)
 
@@ -141,11 +140,14 @@ async def add_discord_server(
 
 @router.post("/discord/delete")
 async def delete_discord_server(
-    request: Request, current_discord_user: Annotated[DiscordUserInfo, Depends(get_authenticated_discord_user)]
+    request: Request,
+    current_discord_user: Annotated[
+        DiscordUserInfo, Depends(get_authenticated_discord_user)
+    ],  # discord user for authentication
 ) -> JSONResponse:
     data = await request.json()
-    bot_id = int(data.get("bot_id"))
-    server_id = int(data.get("server_id"))
+    bot_id = to_int_or_raise(data.get("bot_id"))
+    server_id = to_int_or_raise(data.get("server_id"))
 
     result = await delete_discord_bot_core(bot_id, server_id)
 
