@@ -42,7 +42,7 @@ async def edit_bot(
     try:
         data = await request.json()
         bot_id = to_int_or_raise(data.get("bot_id"))
-        new_name = data.get("name").strip()
+        new_name = data.get("name")
 
         if not new_name:
             return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Bot name is required"})
@@ -77,7 +77,7 @@ async def delete_bot(request: Request) -> JSONResponse:
 async def add_twitch_channel(request: Request) -> JSONResponse:
     data = await request.json()
     bot_id = to_int_or_raise(data.get("bot_id"))
-    twitch_channel = data.get("twitch_channel").strip()
+    twitch_channel = data.get("twitch_channel")
 
     result = await add_twitch_channel_core(bot_id, twitch_channel)
 
@@ -92,7 +92,7 @@ async def add_twitch_channel(request: Request) -> JSONResponse:
 async def delete_twitch_channel(request: Request) -> JSONResponse:
     data = await request.json()
     bot_id = to_int_or_raise(data.get("bot_id"))
-    twitch_channel = data.get("twitch_channel").strip()
+    twitch_channel = data.get("twitch_channel")
 
     result = await delete_twitch_channel_core(bot_id, twitch_channel)
 
@@ -114,7 +114,7 @@ async def add_discord_server(
     data = await request.json()
     bot_id = to_int_or_raise(data.get("bot_id"))
     server_id = to_int_or_raise(data.get("server_id"))
-    server_name = data.get("server_name").strip()
+    server_name = data.get("server_name")
 
     result = add_discord_bot_core(bot_id, server_id, server_name)
 
