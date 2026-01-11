@@ -12,7 +12,7 @@ from bot.core.terminate import terminate_programm
 from bot.frontend.routes.api_bot import router as api_bot_router
 from bot.frontend.routes.api_commands import router as api_commands_router
 from bot.frontend.routes.api_counter import router as api_counter_router
-from bot.frontend.routes.auth import router as auth_router
+from bot.frontend.routes.apt_auth import router as auth_router
 from bot.frontend.routes.dashboard import router as dashboard_router
 from bot.frontend.routes.home import router as home_router
 

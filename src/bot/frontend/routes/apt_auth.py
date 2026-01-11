@@ -22,12 +22,12 @@ from twitchAPI.oauth import revoke_token
 from twitchAPI.twitch import Twitch
 
 from bot.core.app_context import APP_CONTEXT
-from bot.database.twitch_auth import delete_discord_tokens
-from bot.database.twitch_auth import delete_twitch_tokens
-from bot.database.twitch_auth import save_or_update_discord_tokens
-from bot.database.twitch_auth import save_or_update_twitch_tokens
-from bot.database.twitch_auth import select_discord_tokens
-from bot.database.twitch_auth import select_twitch_tokens
+from bot.core.discord_auth import delete_discord_tokens as delete_discord_tokens_core
+from bot.core.discord_auth import get_discord_tokens as get_discord_tokens_core
+from bot.core.discord_auth import store_or_update_discord_tokens as store_or_update_discord_tokens_core
+from bot.core.twitch_auth import delete_twitch_tokens as delete_twitch_tokens_core
+from bot.core.twitch_auth import get_twitch_tokens as get_twitch_tokens_core
+from bot.core.twitch_auth import store_or_update_twitch_tokens as store_or_update_twitch_tokens_core
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.auth_constents import DISCORD_SCOPES
@@ -106,7 +106,7 @@ async def auth_twitch_callback(request: Request, code: Optional[str], state: Opt
                 expires_at: Final = now + timedelta(days=JWT_EXPIRY_DAYS)
                 expires_at_timestamp: Final = int(expires_at.timestamp())
 
-                result = save_or_update_twitch_tokens(user.id, access_token, refresh_token, expires_at_timestamp)
+                result = store_or_update_twitch_tokens_core(user.id, access_token, refresh_token, expires_at_timestamp)
                 if not result:
                     raise HTTPException(
                         status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -230,7 +230,7 @@ async def auth_discord_callback(
                 expires_at: Final = now + timedelta(seconds=expires_in)
                 expires_at_timestamp: Final = int(expires_at.timestamp())
 
-                result = save_or_update_discord_tokens(user_id, access_token, refresh_token, expires_at_timestamp)
+                result = store_or_update_discord_tokens_core(user_id, access_token, refresh_token, expires_at_timestamp)
                 if not result:
                     raise HTTPException(
                         status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -283,12 +283,12 @@ async def logout(
     current_discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
 ) -> RedirectResponse:
     if current_twitch_user is not None:
-        token_set = select_twitch_tokens(current_twitch_user.id_)
-        if token_set is not None:
+        token_set = get_twitch_tokens_core(current_twitch_user.id_)
+        if token_set.value is not None:
             try:
                 await revoke_token(
                     APP_CONTEXT.twitch_client_id.value_or_rise(),
-                    token_set.access_token,
+                    token_set.value.access_token,
                 )
                 log_default(LogLevel.INFO, f"Twitch user {current_twitch_user.id_} logged out successfully")
             except Exception as e:
@@ -297,20 +297,20 @@ async def logout(
                     e, LogProgram.Default, f"Failed to revoke Twitch token for user {current_twitch_user.id_}"
                 )
 
-        result = delete_twitch_tokens(current_twitch_user.id_)
-        if not result:
+        result = delete_twitch_tokens_core(current_twitch_user.id_)
+        if not result.state.is_success():
             log_default(LogLevel.ERROR, f"Failed to delete twitch tokens for user {current_twitch_user.id_}")
 
     if current_discord_user is not None:
-        token_set = select_discord_tokens(current_discord_user.id_)
-        if token_set is not None:
+        token_set = get_discord_tokens_core(current_discord_user.id_)
+        if token_set.value is not None:
             try:
                 async with httpx.AsyncClient() as client:
                     revoke_url = "https://discord.com/api/oauth2/token/revoke"
                     data = {
                         "client_id": APP_CONTEXT.discord_client_id.value_or_rise(),
                         "client_secret": APP_CONTEXT.discord_client_secret.value_or_rise(),
-                        "token": token_set.access_token,
+                        "token": token_set.value.access_token,
                     }
                     headers = {"Content-Type": "application/x-www-form-urlencoded"}
                     await client.post(revoke_url, data=data, headers=headers)
@@ -321,8 +321,8 @@ async def logout(
                     e, LogProgram.Default, f"Failed to revoke Discord token for user {current_discord_user.id_}"
                 )
 
-        result = delete_discord_tokens(current_discord_user.id_)
-        if not result:
+        result = delete_discord_tokens_core(current_discord_user.id_)
+        if not result.state.is_success():
             log_default(LogLevel.ERROR, f"Failed to delete discord tokens for user {current_discord_user.id_}")
 
     response = RedirectResponse(url="/")

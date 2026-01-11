@@ -7,7 +7,7 @@ from bot.database.discord_auth import update_discord_tokens as update_discord_to
 from bot.database.types.discord_auth import DiscordAuthDB
 
 
-def get_discord_auth(discord_id: int) -> Result[DiscordAuthDB]:
+def get_discord_tokens(discord_id: int) -> Result[DiscordAuthDB]:
     return select_discord_tokens_db(discord_id)
 
 
