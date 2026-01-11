@@ -195,7 +195,7 @@ def test_counter_operations() -> None:
     assert len(res_sel_all.value) == 1
 
     # update_counter_name
-    res_upd_name = counter.update_counter_name(bot_id, "deaths", "kills")
+    res_upd_name = counter.update_counter(bot_id, "deaths", {counter.FIELD_NAME: "kills"})
     assert res_upd_name.state == ResultState.SUCCESS
     assert res_upd_name.value is not None
     assert res_upd_name.value.name == "kills"

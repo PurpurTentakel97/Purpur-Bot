@@ -1,5 +1,6 @@
 from bot.core.helpers.string import strip_for_db
 from bot.core.types.result import Result
+from bot.core.types.result import ResultState
 from bot.database.twitch_auth import delete_twitch_tokens as delete_twitch_tokens_db
 from bot.database.twitch_auth import insert_twitch_tokens as insert_twitch_tokens_db
 from bot.database.twitch_auth import select_twitch_tokens as select_twitch_tokens_db
@@ -25,7 +26,10 @@ def store_or_update_twitch_tokens(
 
     update_result = update_twitch_tokens_db(twitch_id_db, access_token_db, refresh_token_db, expires_at)
 
-    return Result(update_result.state, update_result.value)
+    if update_result.state.fail and update_result.state != ResultState.NO_DATA:
+        return update_result.cast_to(int)
+
+    return Result(ResultState.SUCCESS, 0)
 
 
 def delete_twitch_tokens(twitch_id: str) -> Result[None]:

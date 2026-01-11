@@ -17,7 +17,6 @@ from bot.database.counter import insert_counter as insert_counter_db
 from bot.database.counter import select_counter as select_counter_db
 from bot.database.counter import select_counter_by_bot_id as select_counter_by_bot_id_db
 from bot.database.counter import update_counter as update_counter_db
-from bot.database.counter import update_counter_name as update_counter_name_db
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.counter import CounterDB
 
@@ -39,8 +38,11 @@ def _update_counter_names_in_commands(
         handled_commands = []
 
     commands_result = select_commands_by_bot_id_db(bot_id)
-    if commands_result.state.fail or commands_result.value is None:
+    if commands_result.state.fail and commands_result.state != ResultState.NO_DATA:
         return False
+
+    if commands_result.value is None or len(commands_result.value) == 0:
+        return True
 
     for command in commands_result.value:
         if has_counter(command.message):
@@ -70,8 +72,11 @@ def _update_counter_names_in_commands(
 
 def _can_counter_be_deleted(bot_id: int, counter_name: str) -> bool:
     commands_result = select_commands_by_bot_id_db(bot_id)
-    if commands_result.state.fail or commands_result.value is None:
+    if commands_result.state.fail and commands_result.state != ResultState.NO_DATA:
         return False
+
+    if commands_result.value is None or len(commands_result.value) == 0:
+        return True
 
     for command in commands_result.value:
         if has_counter(command.message):
@@ -145,7 +150,7 @@ def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[Count
     if _exists(bot_id, new_name_db):
         return Result(ResultState.ALREADY_EXISTS, None)
 
-    counter_result = update_counter_name_db(bot_id, old_name_db, new_name_db)
+    counter_result = update_counter_db(bot_id, old_name_db, {FIELD_NAME: new_name_db})
 
     if counter_result.state.fail:
         return counter_result

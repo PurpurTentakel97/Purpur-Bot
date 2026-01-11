@@ -52,7 +52,7 @@ class Database:
     # operations
     def select_one[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> Result[T]:
         try:
-            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            table = Table(table_name, self._metadata, extend_existing=True, autoload_with=self._engine)
             statement = select(table).filter_by(**where)
 
             with self._engine.begin() as connection:
@@ -69,7 +69,7 @@ class Database:
 
     def select_all[T: BaseModel](self, table_name: str, where: dict[str, Any], type_: type[T]) -> Result[list[T]]:
         try:
-            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            table = Table(table_name, self._metadata, extend_existing=True, autoload_with=self._engine)
             statement = select(table).filter_by(**where)
 
             with self._engine.begin() as connection:
@@ -80,11 +80,11 @@ class Database:
 
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to find data in the database. | table: {table_name}")
-            return Result(ResultState.TYPE_MISSMATCH, None)
+            return Result(ResultState.TYPE_MISSMATCH, [])
 
     def insert(self, table_name: str, data: dict[str, Any]) -> Result[int]:
         try:
-            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            table = Table(table_name, self._metadata, extend_existing=True, autoload_with=self._engine)
             statement = insert(table).values(**data)
 
             with self._engine.begin() as connection:
@@ -101,7 +101,7 @@ class Database:
 
     def update(self, table_name: str, where: dict[str, Any], data: dict[str, Any]) -> Result[None]:
         try:
-            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            table = Table(table_name, self._metadata, extend_existing=True, autoload_with=self._engine)
             statement = table.update().filter_by(**where).values(**data)
 
             with self._engine.begin() as connection:
@@ -115,7 +115,7 @@ class Database:
 
     def delete(self, table_name: str, where: dict[str, Any]) -> Result[None]:
         try:
-            table = Table(table_name, self._metadata, autoload_with=self._engine)
+            table = Table(table_name, self._metadata, extend_existing=True, autoload_with=self._engine)
             statement = table.delete().filter_by(**where)
 
             with self._engine.begin() as connection:

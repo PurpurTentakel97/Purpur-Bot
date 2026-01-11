@@ -1,5 +1,6 @@
 from bot.core.helpers.string import strip_for_db
 from bot.core.types.result import Result
+from bot.core.types.result import ResultState
 from bot.database.discord_auth import delete_discord_tokens as delete_discord_tokens_db
 from bot.database.discord_auth import insert_discord_tokens as insert_discord_tokens_db
 from bot.database.discord_auth import select_discord_tokens as select_discord_tokens_db
@@ -24,7 +25,10 @@ def store_or_update_discord_tokens(
 
     update_result = update_discord_tokens_db(discord_id, access_token_db, refresh_token_db, expires_at)
 
-    return Result(update_result.state, update_result.value)
+    if update_result.state.fail and update_result.state != ResultState.NO_DATA:
+        return update_result.cast_to(int)
+
+    return Result(ResultState.SUCCESS, discord_id)
 
 
 def delete_discord_tokens(discord_id: int) -> Result[None]:

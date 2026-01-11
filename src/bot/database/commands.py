@@ -38,7 +38,10 @@ def update_command(bot_id: int, command_name: str, data: dict[str, Any]) -> Resu
     if result.state.fail:
         return result.cast_to(BasicCommandDB)
 
-    return select_command(bot_id, command_name)
+    new_command_name = command_name
+    if FIELD_COMMAND in data:
+        new_command_name = data[FIELD_COMMAND]
+    return select_command(bot_id, new_command_name)
 
 
 def delete_command(bot_id: int, command_name: str) -> Result[None]:

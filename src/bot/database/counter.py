@@ -26,24 +26,16 @@ def insert_counter(bot_id: int, name: str) -> Result[CounterDB]:
     return select_counter(bot_id, name)
 
 
-def update_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[CounterDB]:
-    result = PROGRAMM_PARTS.database.update(
-        TABLE_NAME, where={"bot_id": bot_id, "name": old_name}, data={"name": new_name}
-    )
-
-    if result.state.fail:
-        return result.cast_to(CounterDB)
-
-    return select_counter(bot_id, new_name)
-
-
 def update_counter(bot_id: int, name: str, data: dict[str, Any]) -> Result[CounterDB]:
     result = PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data=data)
 
     if result.state.fail:
         return result.cast_to(CounterDB)
 
-    return select_counter(bot_id, name)
+    new_name = name
+    if FIELD_NAME in data:
+        new_name = data[FIELD_NAME]
+    return select_counter(bot_id, new_name)
 
 
 def delete_counter(bot_id: int, name: str) -> Result[None]:

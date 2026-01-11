@@ -139,7 +139,7 @@ def test_exception_handling(db: Database) -> None:
 
     result_all = db.select_all("non_existent", {}, MockModel)
     assert result_all.state == ResultState.TYPE_MISSMATCH
-    assert result_all.value is None
+    assert result_all.value == []
 
     result_insert = db.insert("non_existent", {"name": "test"})
     assert result_insert.state == ResultState.ERROR
