@@ -1,0 +1,957 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Edit Bot</h1>
+    <div class="dashboard-container">
+        <a href="/" class="back-link">&larr; Back to Home</a>
+
+        <div class="tabs">
+            <button class="tab-link active" onclick="openTab(event, 'bot-settings')">Bot Settings</button>
+            {% if twitch_user %}
+            <button class="tab-link" onclick="openTab(event, 'twitch-channels')">Twitch Channels</button>
+            {% endif %}
+            {% if discord_user %}
+            <button class="tab-link" onclick="openTab(event, 'discord-channels')">Discord Channels</button>
+            {% endif %}
+            <button class="tab-link" onclick="openTab(event, 'commands')">Commands</button>
+            <button class="tab-link" onclick="openTab(event, 'counters')">Counters</button>
+        </div>
+
+        <div id="bot-settings" class="tab-content active">
+            <h2>Bot Settings</h2>
+            <form id="edit-bot-form" class="edit-form">
+                <div class="form-group">
+                    <label for="bot-name">Bot Name:</label>
+                    <input type="text" id="bot-name" name="name" value="{{ bot.name }}" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-add">Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="twitch-channels" class="tab-content">
+            <h2>Twitch Channels</h2>
+            <table class="bot-table">
+                <thead>
+                    <tr>
+                        <th>Channel Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="twitch-channels-body">
+                    {% for channel in twitch_channels %}
+                        <tr>
+                            <td>
+                                <span class="channel-name">{{ channel.channel_name }}</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-delete btn-small" onclick="deleteChannel('{{ channel.channel_name }}')">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% if not twitch_channels %}
+                        <tr class="no-channels">
+                            <td colspan="2">No Twitch channels added.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+            <div class="add-channel-form">
+                <h3>Add New Channel</h3>
+                <div class="form-group">
+                    <select id="new-channel-name">
+                        <option value="" disabled selected>Select a channel</option>
+                        {% for allowed in allowed_channels %}
+                            <option value="{{ allowed }}">{{ allowed }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn btn-add" onclick="addChannel()">Add Channel</button>
+            </div>
+        </div>
+
+        <div id="commands" class="tab-content">
+            <h2>Commands</h2>
+            <table class="bot-table">
+                <thead>
+                    <tr>
+                        <th>Command Name</th>
+                        <th>Message</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="commands-body">
+                        {% for cmd in commands %}
+                        <tr data-command="{{ cmd.command }}">
+                            <td>
+                                <div class="command-input-wrapper">
+                                    <input type="text" class="edit-command-input" value="{{ cmd.command }}"
+                                           oninput="handleCommandEdit(this)">
+                                    <button class="btn btn-add btn-small save-btn" style="display: none;"
+                                            onclick="saveCommandName('{{ cmd.command }}', this)">Save</button>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="command-input-wrapper">
+                                    <input type="text" class="edit-command-input" value="{{ cmd.message }}"
+                                           oninput="handleCommandEdit(this)">
+                                    <button class="btn btn-add btn-small save-btn" style="display: none;"
+                                            onclick="saveCommandMessage('{{ cmd.command }}', this)">Save</button>
+                                </div>
+                            </td>
+                            <td>
+                                <button class="btn btn-delete btn-small remove-btn" onclick="deleteCommand('{{ cmd.command }}')">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="add-command-row">
+                        <td>
+                            <input type="text" id="new-command-name" class="edit-command-input" placeholder="command">
+                        </td>
+                        <td>
+                            <input type="text" id="new-command-message" class="edit-command-input" placeholder="Response message">
+                        </td>
+                        <td>
+                            <button class="btn btn-add btn-small" onclick="addCommand()">Add</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="counters" class="tab-content">
+            <h2>Counters</h2>
+            <table class="bot-table">
+                <thead>
+                    <tr>
+                        <th>Counter Name</th>
+                        <th>Value</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="counters-body">
+                        {% for counter in counters %}
+                        <tr data-counter="{{ counter.name }}">
+                            <td>
+                                <div class="command-input-wrapper">
+                                    <input type="text" class="edit-command-input" value="{{ counter.name }}"
+                                           oninput="handleCommandEdit(this)">
+                                    <button class="btn btn-add btn-small save-btn" style="display: none;"
+                                            onclick="saveCounterName('{{ counter.name }}', this)">Save</button>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="command-input-wrapper">
+                                    <input type="number" class="edit-command-input" value="{{ counter.count }}"
+                                           oninput="handleCommandEdit(this)">
+                                    <button class="btn btn-add btn-small save-btn" style="display: none;"
+                                            onclick="saveCounterValue('{{ counter.name }}', this)">Save</button>
+                                </div>
+                            </td>
+                            <td>
+                                <button class="btn btn-add btn-small" onclick="resetCounter('{{ counter.name }}')">Reset</button>
+                                <button class="btn btn-delete btn-small remove-btn" onclick="deleteCounter('{{ counter.name }}')">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="add-command-row">
+                        <td>
+                            <input type="text" id="new-counter-name" class="edit-command-input" placeholder="counter name">
+                        </td>
+                        <td>
+                            <input type="number" id="new-counter-value" class="edit-command-input" value="0" disabled>
+                        </td>
+                        <td>
+                            <button class="btn btn-add btn-small" onclick="addCounter()">Add</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="discord-channels" class="tab-content">
+            <h2>Discord Channels</h2>
+            <table class="bot-table">
+                <thead>
+                    <tr>
+                        <th>Server Name</th>
+                        <th>Server ID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="discord-servers-body">
+                    {% for server in discord_servers %}
+                        <tr>
+                            <td>
+                                <span class="server-name">{{ server.server_name }}</span>
+                            </td>
+                            <td>
+                                <span class="server-id">{{ server.server_id }}</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-delete btn-small" onclick="deleteDiscordServer('{{ server.server_id }}')">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% if not discord_servers %}
+                        <tr class="no-servers">
+                            <td colspan="3">No Discord servers added.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+            <div class="add-channel-form">
+                <h3>Add New Discord Server</h3>
+                <div class="form-group">
+                    <select id="new-discord-server">
+                        <option value="" disabled selected>Select a server</option>
+                        {% for allowed in allowed_discord_servers %}
+                            <option value="{{ allowed.id }}" data-name="{{ allowed.name }}">{{ allowed.name }} ({{ allowed.id }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn btn-add" onclick="addDiscordServer()">Add Server</button>
+            </div>
+        </div>
+
+    </div>
+
+    <style>
+        .dashboard-container {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 2px solid #333;
+            margin-bottom: 2rem;
+        }
+        .tab-link {
+            background: none;
+            border: none;
+            color: var(--footer-text);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: color 0.2s, border-bottom 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-link:hover {
+            color: white;
+        }
+        .tab-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 500px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        .form-group input, .form-group select {
+            padding: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background-color: #0e0e10;
+            color: white;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+        .btn-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.9rem;
+        }
+        .add-channel-form {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+        }
+        .add-channel-form h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .edit-channel-input, .edit-command-input {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background-color: #0e0e10;
+            color: white;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .command-input-wrapper {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .command-input-wrapper .edit-command-input {
+            flex: 1;
+        }
+    </style>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(tabName).classList.add("active");
+
+            // Find the button that corresponds to the tabName if evt is null (for initial load)
+            let targetBtn = evt ? evt.currentTarget : document.querySelector(`button[onclick*="'${tabName}'"]`);
+            if (targetBtn) {
+                targetBtn.classList.add("active");
+            }
+
+            // Update URL hash without jumping
+            history.replaceState(null, null, "#" + tabName);
+        }
+
+        // Initialize tab based on URL hash
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.substring(1);
+            if (hash && document.getElementById(hash)) {
+                openTab(null, hash);
+            }
+        });
+
+        async function refreshDashboard() {
+            showLoading();
+            try {
+                const response = await fetch('/dashboard/bot/edit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ bot_id: "{{ bot.id }}" })
+                });
+
+                if (response.ok) {
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.querySelector('.dashboard-container').innerHTML;
+                    document.querySelector('.dashboard-container').innerHTML = newContent;
+
+                    // Re-initialize tabs if needed, or preserve active tab
+                    const activeTab = document.querySelector('.tab-link.active').getAttribute('onclick').match(/'([^']+)'/)[1];
+                    openTab(null, activeTab);
+                } else {
+                    console.error('Failed to refresh dashboard');
+                    window.location.href = '/';
+                }
+            } catch (err) {
+                console.error('Error refreshing dashboard:', err);
+                window.location.href = '/';
+            } finally {
+                hideLoading();
+            }
+        }
+
+        document.getElementById('edit-bot-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            showLoading();
+
+            const formData = new FormData(e.target);
+            const data = {
+                name: formData.get('name')
+            };
+
+            try {
+                const response = await fetch(`/api/bot/edit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: data.name
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('Failed to save changes: ' + (error.message || 'Unknown error'));
+                } else {
+                    // No alert on success as requested
+                    await refreshDashboard();
+                }
+            } catch (err) {
+                alert('An error occurred while saving changes.');
+            } finally {
+                submitButton.disabled = false;
+                hideLoading();
+            }
+        });
+
+        async function addChannel() {
+            const channelNameInput = document.getElementById('new-channel-name');
+            const channelName = channelNameInput.value.trim();
+            if (!channelName) {
+                alert('Channel name is required');
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/bot/twitch/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        twitch_channel: channelName
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to add channel: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while adding the channel.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function deleteChannel(channelName) {
+            if (!confirm(`Are you sure you want to remove ${channelName}?`)) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/bot/twitch/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        twitch_channel: channelName
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to remove channel: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while removing the channel.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function addCommand() {
+            const nameInput = document.getElementById('new-command-name');
+            const messageInput = document.getElementById('new-command-message');
+            const name = nameInput.value.trim();
+            const message = messageInput.value.trim();
+
+            if (!name || !message) {
+                alert('Both command name and message are required');
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/command/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name,
+                        message: message
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to add command: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while adding the command.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function handleCommandEdit(input) {
+            const row = input.closest('tr');
+            const wrapper = input.closest('.command-input-wrapper');
+            const saveBtn = wrapper.querySelector('.save-btn');
+            const allSaveBtns = row.querySelectorAll('.save-btn');
+            const removeBtn = row.querySelector('.remove-btn');
+
+            // Show current save button
+            saveBtn.style.display = 'inline-block';
+
+            // Disable other save buttons in the row and the remove button
+            allSaveBtns.forEach(btn => {
+                if (btn !== saveBtn) {
+                    btn.disabled = true;
+                }
+            });
+            removeBtn.disabled = true;
+        }
+
+        async function saveCommandName(oldName, button) {
+            const input = button.previousElementSibling;
+            const newName = input.value.trim();
+
+            if (!newName) {
+                alert('Command name cannot be empty');
+                return;
+            }
+
+            if (oldName === newName) {
+                resetRowButtons(button.closest('tr'));
+                return;
+            }
+
+            const success = await updateCommandName(oldName, newName);
+            if (success) {
+                // Since updateCommandName might reload or update UI,
+                // we handle state based on its result.
+                // In this case, updateCommandName reloads on error, but not on success?
+                // Actually, let's look at it.
+            }
+        }
+
+        async function saveCommandMessage(name, button) {
+            const input = button.previousElementSibling;
+            const newMessage = input.value.trim();
+
+            if (!newMessage) {
+                alert('Command message cannot be empty');
+                return;
+            }
+
+            const success = await updateCommandMessage(name, newMessage);
+            if (success) {
+                resetRowButtons(button.closest('tr'));
+            }
+        }
+
+        function resetRowButtons(row) {
+            const saveBtns = row.querySelectorAll('.save-btn');
+            const removeBtn = row.querySelector('.remove-btn');
+            saveBtns.forEach(btn => {
+                btn.style.display = 'none';
+                btn.disabled = false;
+            });
+            removeBtn.disabled = false;
+        }
+
+        async function updateCommandName(oldName, newName) {
+            if (!newName.trim()) {
+                alert('Command name cannot be empty');
+                return false;
+            }
+            if (oldName === newName) return true;
+
+            showLoading();
+            try {
+                const response = await fetch('/api/command/update/name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        old_name: oldName,
+                        new_name: newName
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                    return true;
+                } else {
+                    const error = await response.json();
+                    alert('Failed to rename command: ' + (error.message || 'Unknown error'));
+                    await refreshDashboard();
+                    return false;
+                }
+            } catch (err) {
+                alert('An error occurred while renaming the command.');
+                await refreshDashboard();
+                return false;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function updateCommandMessage(name, newMessage) {
+            if (!newMessage.trim()) {
+                alert('Command message cannot be empty');
+                return false;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/command/update/message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name,
+                        message: newMessage
+                    })
+                });
+
+                if (response.ok) {
+                    return true;
+                } else {
+                    const error = await response.json();
+                    alert('Failed to update command message: ' + (error.message || 'Unknown error'));
+                    await refreshDashboard();
+                    return false;
+                }
+            } catch (err) {
+                alert('An error occurred while updating the command message.');
+                await refreshDashboard();
+                return false;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function deleteCommand(name) {
+            if (!confirm(`Are you sure you want to remove the command ${name}?`)) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/command/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to remove command: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while removing the command.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function addCounter() {
+            const nameInput = document.getElementById('new-counter-name');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                alert('Counter name is required');
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/counter/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to add counter: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while adding the counter.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function saveCounterName(oldName, button) {
+            const input = button.previousElementSibling;
+            const newName = input.value.trim();
+
+            if (!newName) {
+                alert('Counter name cannot be empty');
+                return;
+            }
+
+            if (oldName === newName) {
+                resetRowButtons(button.closest('tr'));
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/counter/update/name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        old_name: oldName,
+                        new_name: newName
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to rename counter: ' + (error.message || 'Unknown error'));
+                    await refreshDashboard();
+                }
+            } catch (err) {
+                alert('An error occurred while renaming the counter.');
+                await refreshDashboard();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function saveCounterValue(name, button) {
+            const input = button.previousElementSibling;
+            const newValue = input.value.trim();
+
+            if (newValue === "") {
+                alert('Counter value cannot be empty');
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/counter/update/value', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name,
+                        count: newValue
+                    })
+                });
+
+                if (response.ok) {
+                    resetRowButtons(button.closest('tr'));
+                } else {
+                    const error = await response.json();
+                    alert('Failed to update counter value: ' + (error.message || 'Unknown error'));
+                    await refreshDashboard();
+                }
+            } catch (err) {
+                alert('An error occurred while updating the counter value.');
+                await refreshDashboard();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function resetCounter(name) {
+            if (!confirm(`Are you sure you want to reset the counter ${name}?`)) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/counter/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to reset counter: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while resetting the counter.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function deleteCounter(name) {
+            if (!confirm(`Are you sure you want to remove the counter ${name}?`)) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/counter/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: name
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to remove counter: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while removing the counter.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function addDiscordServer() {
+            const select = document.getElementById('new-discord-server');
+            const serverId = select.value;
+            const serverName = select.options[select.selectedIndex].getAttribute('data-name');
+
+            if (!serverId) {
+                alert('Please select a Discord server');
+                return;
+            }
+
+            // Open a blank window immediately to avoid popup blocking
+            const inviteWindow = window.open('about:blank', '_blank');
+
+            showLoading();
+            try {
+                const response = await fetch('/api/bot/discord/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        server_id: serverId,
+                        server_name: serverName
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.invite_link) {
+                        if (inviteWindow) {
+                            inviteWindow.location.href = data.invite_link;
+                        } else {
+                            // Fallback if window.open failed initially
+                            window.open(data.invite_link, '_blank');
+                        }
+                    } else {
+                        // No invite needed, close the blank window if it exists
+                        if (inviteWindow) inviteWindow.close();
+                    }
+                    await refreshDashboard();
+                } else {
+                    if (inviteWindow) inviteWindow.close();
+                    const error = await response.json();
+                    alert('Failed to add Discord server: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                if (inviteWindow) inviteWindow.close();
+                alert('An error occurred while adding the Discord server.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function deleteDiscordServer(serverId) {
+            if (!confirm(`Are you sure you want to remove this Discord server?`)) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/bot/discord/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        server_id: serverId
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to remove Discord server: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while removing the Discord server.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+    </script>
+{% endblock %}

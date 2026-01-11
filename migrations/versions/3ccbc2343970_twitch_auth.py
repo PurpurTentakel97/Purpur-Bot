@@ -22,10 +22,11 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         "twitch_auth",
+        sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
         sa.Column("twitch_id", sa.String, nullable=False, primary_key=True),
         sa.Column("access_token", sa.String, nullable=False),
         sa.Column("refresh_token", sa.String, nullable=False),
-        sa.Column("expires_at", sa.DateTime, nullable=False),
+        sa.Column("expires_at", sa.Integer, nullable=False),
     )
 
 

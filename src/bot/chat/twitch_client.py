@@ -6,7 +6,7 @@ from typing import Optional
 from typing import Self
 from typing import cast
 
-from bot.types.chat_message import ChatMessage
+from bot.chat.types.message import ChatMessage
 
 if TYPE_CHECKING:
     from bot.chat.twitch_chat import TwitchChat
@@ -18,7 +18,7 @@ from twitchAPI.type import InvalidRefreshTokenException
 from twitchAPI.type import TwitchAuthorizationException
 from twitchAPI.type import UnauthorizedException
 
-from bot.helpers.app_context import APP_CONTEXT
+from bot.core.app_context import APP_CONTEXT
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_twitch
 
@@ -37,6 +37,10 @@ class TwitchClient:
             if message is not None:
                 return message
         return None
+
+    @property
+    def chats(self) -> list[TwitchChat]:
+        return self._chats
 
     def connect_chat(self, chat: TwitchChat) -> None:
         self._chats.append(chat)

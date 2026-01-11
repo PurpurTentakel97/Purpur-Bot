@@ -1,2 +1,140 @@
-<h1>Homepage</h1>
-<a href="/login">Login</a>
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Homepage</h1>
+    {% if twitch_user %}
+        <p>You are logged in as {{ twitch_user.display_name }}.</p>
+
+        <div class="bot-list-container">
+            <h2>Your Bots</h2>
+            <table class="bot-table">
+                <thead>
+                    <tr>
+                        <th>Bot Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bot in bots %}
+                        <tr>
+                            <td>{{ bot.name }}</td>
+                            <td>
+                                <button onclick="editBot('{{ bot.id }}')" class="btn btn-edit">Edit</button>
+                                <button class="btn btn-delete" onclick="deleteBot('{{ bot.id }}')">Delete</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% if not bots %}
+                        <tr>
+                            <td colspan="3">No bots found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            <div class="bot-actions">
+                <button id="add-bot-btn" class="btn btn-add">Add Bot</button>
+            </div>
+        </div>
+
+        <div class="discord-connection-container">
+            <h2>Discord Connection</h2>
+            {% if discord_user %}
+                <div class="discord-connected">
+                    <p class="user-name">{{ discord_user.display_name }}</p>
+                    <p class="status-msg success">Bot is connected to your Discord account.</p>
+                </div>
+            {% else %}
+                <div class="discord-disconnected">
+                    <p>Connect your Discord account to use Discord-specific features.</p>
+                    <a href="/auth/discord" class="btn btn-add">Connect Discord</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <script>
+            document.getElementById('add-bot-btn').addEventListener('click', async () => {
+                showLoading();
+                try {
+                    const response = await fetch('/api/bot/create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert('Failed to create a bot: ' + (error.message || 'Unknown error'));
+                    }
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            async function editBot(botId) {
+                showLoading();
+                try {
+                    const response = await fetch('/dashboard/bot/edit', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ bot_id: botId })
+                    });
+
+                    if (response.ok) {
+                        const html = await response.text();
+                        document.open();
+                        document.write(html);
+                        document.close();
+                    } else {
+                        const error = await response.json();
+                        alert('Failed to open dashboard: ' + (error.message || 'Unknown error'));
+                    }
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            async function deleteBot(botId) {
+                if (!confirm('Are you sure you want to delete this bot?')) {
+                    return;
+                }
+
+                showLoading();
+                try {
+                    const response = await fetch('/api/bot/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ bot_id: botId })
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert('Failed to delete the bot: ' + (error.message || 'Unknown error'));
+                    }
+                } finally {
+                    hideLoading();
+                }
+            }
+        </script>
+    {% else %}
+        <div class="welcome-container">
+            <div class="info-card">
+                <h2>Welcome to Tentakel Bot!</h2>
+                <p>To manage your bots and access all features, please log in.</p>
+                <p>A Twitch login is required to generally use the Bot.</p>
+                <p>A Discord login is required to access Discord-specific features.</p>
+                <div class="login-options">
+                    <a href="/auth/twitch" class="btn btn-add">Login with Twitch</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

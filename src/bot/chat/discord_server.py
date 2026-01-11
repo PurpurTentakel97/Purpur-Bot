@@ -5,30 +5,25 @@ from discord import Member as DiscordMember
 from discord.message import Message as DiscordMessage
 
 from bot.chat.chat import Chat
+from bot.chat.types.message import ChatMessage
+from bot.chat.types.message_response import ChatMessageResponse
+from bot.core.types.permission_level import PermissionLevel
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord
-from bot.types.chat_message import ChatMessage
-from bot.types.feature_flag import FeatureFlags
-from bot.types.permission_level import PermissionLevel
-from bot.types.response_message import ResponseMessage
 
 
 @final
 class DiscordServer(Chat):
-    def __init__(self, id_: int, server_id: int, features: FeatureFlags) -> None:
-        super().__init__(id_, features)
+    def __init__(self, bot_id: int, server_id: int) -> None:
+        super().__init__(bot_id)
         self._server_id: int = server_id
-
-    @property
-    def id(self) -> int:
-        return self._id
 
     @property
     def server_id(self) -> int:
         return self._server_id
 
     @override
-    async def send_response(self, messages: list[ResponseMessage]) -> None:
+    async def send_response(self, messages: list[ChatMessageResponse]) -> None:
         for message in messages:
             if isinstance(message.original_message, DiscordMessage):
                 await message.original_message.channel.send(message.text)
@@ -57,7 +52,7 @@ class DiscordServer(Chat):
             raise AssertionError("Expected author to be a Member")
 
         msg = ChatMessage(
-            id_=self._id,
+            bot_id=self.bot_id,
             text=message.content,
             sender_chat=self,
             sender_permission_level=_get_permission_level(message.author),

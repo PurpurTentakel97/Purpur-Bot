@@ -4,13 +4,17 @@ from contextlib import asynccontextmanager
 from typing import Final
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
-from bot.core.message_handler import handle_messages
-from bot.frontend.routes.auth import router as auth_router
+from bot.chat.message_handler import handle_messages
+from bot.core.startup import startup_programm
+from bot.core.terminate import terminate_programm
+from bot.frontend.routes.api_bot import router as api_bot_router
+from bot.frontend.routes.api_commands import router as api_commands_router
+from bot.frontend.routes.api_counter import router as api_counter_router
+from bot.frontend.routes.apt_auth import router as auth_router
+from bot.frontend.routes.dashboard import router as dashboard_router
 from bot.frontend.routes.home import router as home_router
-from bot.frontend.routes.login import router as login_router
-from bot.helpers.startup import startup_programm
-from bot.helpers.terminate import terminate_programm
 
 
 @asynccontextmanager
@@ -32,6 +36,10 @@ async def main(_: FastAPI) -> AsyncGenerator[None]:
 
 
 app: Final = FastAPI(lifespan=main)
-app.include_router(home_router)
+app.mount("/static", StaticFiles(directory="src/bot/frontend/static"), name="static")
+app.include_router(api_bot_router)
+app.include_router(api_commands_router)
+app.include_router(api_counter_router)
 app.include_router(auth_router)
-app.include_router(login_router)
+app.include_router(dashboard_router)
+app.include_router(home_router)

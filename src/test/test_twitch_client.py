@@ -8,7 +8,7 @@ from twitchAPI.type import TwitchAuthorizationException
 from twitchAPI.type import UnauthorizedException
 
 from bot.chat.twitch_client import TwitchClient
-from bot.helpers.app_context import TwitchTokens
+from bot.core.app_context import TwitchTokens
 from bot.helpers.log import LogLevel
 
 

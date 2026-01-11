@@ -11,18 +11,17 @@ from twitchAPI.chat import EventData
 
 from bot.chat.chat import Chat
 from bot.chat.twitch_client import TwitchClient
+from bot.chat.types.message import ChatMessage
+from bot.chat.types.message_response import ChatMessageResponse
+from bot.core.types.permission_level import PermissionLevel
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_twitch
-from bot.types.chat_message import ChatMessage
-from bot.types.feature_flag import FeatureFlags
-from bot.types.permission_level import PermissionLevel
-from bot.types.response_message import ResponseMessage
 
 
 @final
 class TwitchChat(Chat):
-    def __init__(self, chat: TwitchChatClient, id_: int, channel_name: str, feature_flags: FeatureFlags) -> None:
-        super().__init__(id_, feature_flags)
+    def __init__(self, chat: TwitchChatClient, bot_id: int, channel_name: str) -> None:
+        super().__init__(bot_id)
         self.chat: TwitchChatClient = chat
         self._channel_name: str = channel_name
 
@@ -38,17 +37,13 @@ class TwitchChat(Chat):
         self.chat.start()
 
     @property
-    def id(self) -> int:
-        return self._id
-
-    @property
     def channel_name(self) -> str:
         return self._channel_name
 
     @classmethod
-    async def create(cls, twitch: TwitchClient, id_: int, channel_name: str, feature_flags: FeatureFlags) -> Self:
+    async def create(cls, twitch: TwitchClient, id_: int, channel_name: str) -> Self:
         chat = await TwitchChatClient(twitch.client)
-        instance = cls(chat, id_, channel_name, feature_flags)
+        instance = cls(chat, id_, channel_name)
         twitch.connect_chat(instance)
         return instance
 
@@ -57,7 +52,7 @@ class TwitchChat(Chat):
         log_twitch(LogLevel.INFO, f"Twitch chat for {self.channel_name} terminated.")
 
     @override
-    async def send_response(self, messages: list[ResponseMessage]) -> None:
+    async def send_response(self, messages: list[ChatMessageResponse]) -> None:
         for message in messages:
             await self.chat.send_message(self.channel_name, message.text)
 
@@ -82,7 +77,7 @@ class TwitchChat(Chat):
             return PermissionLevel.USER
 
         msg = ChatMessage(
-            id_=self._id,
+            bot_id=self.bot_id,
             text=message.text,
             sender_chat=self,
             sender_permission_level=_get_user_permission_level(message.user),

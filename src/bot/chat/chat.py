@@ -2,24 +2,18 @@ import asyncio
 from abc import ABC
 from abc import abstractmethod
 
-from bot.types.chat_message import ChatMessage
-from bot.types.feature_flag import FeatureFlags
-from bot.types.response_message import ResponseMessage
+from bot.chat.types.message import ChatMessage
+from bot.chat.types.message_response import ChatMessageResponse
 
 
 class Chat(ABC):
-    def __init__(self, id_: int, features: FeatureFlags) -> None:
-        self._id: int = id_
-        self._feature_flags: FeatureFlags = features
+    def __init__(self, bot_id: int) -> None:
+        self._bot_id: int = bot_id
         self.message_queue: asyncio.Queue[ChatMessage] = asyncio.Queue()
 
     @property
-    def id(self) -> int:
-        return self._id
-
-    @property
-    def feature_flags(self) -> FeatureFlags:
-        return self._feature_flags
+    def bot_id(self) -> int:
+        return self._bot_id
 
     async def get_next_message(self) -> ChatMessage | None:
         if self.message_queue.empty():
@@ -27,5 +21,5 @@ class Chat(ABC):
         return await self.message_queue.get()
 
     @abstractmethod
-    async def send_response(self, messages: list[ResponseMessage]) -> None:
+    async def send_response(self, messages: list[ChatMessageResponse]) -> None:
         pass
