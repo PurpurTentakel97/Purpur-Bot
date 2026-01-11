@@ -19,66 +19,101 @@ router: Final = APIRouter(prefix="/api/counter", dependencies=[Depends(get_authe
 
 @router.post("/create")
 async def create_counter(request: Request) -> JSONResponse:
-    data = await request.json()
-    bot_id = to_int_or_raise(data.get("bot_id"))
-    name = data.get("name")
+    try:
+        data = await request.json()
+        bot_id = to_int_or_raise(data.get("bot_id"))
+        name = data.get("name")
 
-    result = save_counter_core(bot_id, name)
+        result = save_counter_core(bot_id, name)
 
-    if not result.state.is_success():
-        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Failed to create counter"})
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter created successfully"})
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.BAD_REQUEST,
+                content={"message": f"Failed to create counter | reason: {result.state.name}"},
+            )
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter created successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 @router.post("/reset")
 async def reset_counter(request: Request) -> JSONResponse:
-    data = await request.json()
-    name = data.get("name")
-    bot_id = to_int_or_raise(data.get("bot_id"))
+    try:
+        data = await request.json()
+        name = data.get("name")
+        bot_id = to_int_or_raise(data.get("bot_id"))
 
-    result = reset_counter_core(bot_id, name)
+        result = reset_counter_core(bot_id, name)
 
-    if not result.state.is_success():
-        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Failed to reset counter"})
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter reset successfully"})
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.BAD_REQUEST,
+                content={"message": f"Failed to reset counter | reason: {result.state.name}"},
+            )
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter reset successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 @router.post("/delete")
 async def delete_counter(request: Request) -> JSONResponse:
-    data = await request.json()
-    name = data.get("name")
-    bot_id = to_int_or_raise(data.get("bot_id"))
+    try:
+        data = await request.json()
+        name = data.get("name")
+        bot_id = to_int_or_raise(data.get("bot_id"))
 
-    result = delete_counter_core(bot_id, name)
+        result = delete_counter_core(bot_id, name)
 
-    if not result.state.is_success():
-        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Failed to delete counter"})
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter deleted successfully"})
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.BAD_REQUEST,
+                content={"message": f"Failed to delete counter | reason: {result.state.name}"},
+            )
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter deleted successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 @router.post("/update/name")
 async def update_counter_name(request: Request) -> JSONResponse:
-    data = await request.json()
-    bot_id = to_int_or_raise(data.get("bot_id"))
-    old_name = data.get("old_name")
-    new_name = data.get("new_name")
+    try:
+        data = await request.json()
+        bot_id = to_int_or_raise(data.get("bot_id"))
+        old_name = data.get("old_name")
+        new_name = data.get("new_name")
 
-    result = edit_counter_name_core(bot_id, old_name, new_name)
+        result = edit_counter_name_core(bot_id, old_name, new_name)
 
-    if not result.state.is_success():
-        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Failed to rename counter"})
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter renamed successfully"})
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.BAD_REQUEST,
+                content={"message": f"Failed to rename counter | reason: {result.state.name}"},
+            )
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter renamed successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 @router.post("/update/value")
 async def update_counter_value(request: Request) -> JSONResponse:
-    data = await request.json()
-    bot_id = to_int_or_raise(data.get("bot_id"))
-    name = data.get("name")
-    value = to_int_or_raise(data.get("count"))
+    try:
+        data = await request.json()
+        bot_id = to_int_or_raise(data.get("bot_id"))
+        name = data.get("name")
+        value = to_int_or_raise(data.get("count"))
 
-    result = edit_counter_value_core(bot_id, name, value)
+        result = edit_counter_value_core(bot_id, name, value)
 
-    if not result.state.is_success():
-        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Failed to update counter count"})
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter count updated successfully"})
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.BAD_REQUEST,
+                content={"message": f"Failed to update counter count | reason: {result.state.name}"},
+            )
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter-count updated successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})

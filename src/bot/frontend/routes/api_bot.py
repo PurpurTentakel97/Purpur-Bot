@@ -28,11 +28,18 @@ router: Final = APIRouter(prefix="/api/bot", dependencies=[Depends(get_authentic
 # bot
 @router.post("/create")
 def new_bot(current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]) -> JSONResponse:
-    result = add_bot_core(current_twitch_user.id_)
-    if result.value is None:
-        return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to create a bot"})
+    try:
+        result = add_bot_core(current_twitch_user.id_)
+        if result.value is None:
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": f"Failed to create a bot | reason: {result.state.name}"},
+            )
 
-    return JSONResponse(status_code=HTTPStatus.CREATED, content={"id": result.value})
+        return JSONResponse(status_code=HTTPStatus.CREATED, content={"id": result.value})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 @router.post("/edit")
@@ -44,14 +51,12 @@ async def edit_bot(
         bot_id = to_int_or_raise(data.get("bot_id"))
         new_name = data.get("name")
 
-        if not new_name:
-            return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Bot name is required"})
-
         result = update_bot_core(bot_id, new_name)
 
         if not result.state.is_success():
             return JSONResponse(
-                status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to update bot"}
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": f"Failed to update bot | reason: {result.state.name}"},
             )
 
         return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Bot updated successfully"})
@@ -62,45 +67,65 @@ async def edit_bot(
 
 @router.post("/delete")
 async def delete_bot(request: Request) -> JSONResponse:
-    data = await request.json()
-    bot_id = to_int_or_raise(data.get("bot_id"))
+    try:
+        data = await request.json()
+        bot_id = to_int_or_raise(data.get("bot_id"))
 
-    result = await delete_bot_core(bot_id)
+        result = await delete_bot_core(bot_id)
 
-    if not result.state.is_success():
-        return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to delete a bot"})
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Bot deleted successfully"})
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": f"Failed to delete a bot | reason: {result.state.name}"},
+            )
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Bot deleted successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 # Twitch
 @router.post("/twitch/add")
 async def add_twitch_channel(request: Request) -> JSONResponse:
-    data = await request.json()
-    bot_id = to_int_or_raise(data.get("bot_id"))
-    twitch_channel = data.get("twitch_channel")
+    try:
+        data = await request.json()
+        bot_id = to_int_or_raise(data.get("bot_id"))
+        twitch_channel = data.get("twitch_channel")
 
-    result = await add_twitch_channel_core(bot_id, twitch_channel)
+        result = await add_twitch_channel_core(bot_id, twitch_channel)
 
-    if not result.state.is_success():
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": "Failed to add a twitch channel to bot"},
+            )
         return JSONResponse(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to add a twitch channel to bot"}
+            status_code=HTTPStatus.OK,
+            content={"message": f"Twitch channel added successfully | reason: {result.state.name}"},
         )
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Twitch channel added successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 @router.post("/twitch/delete")
 async def delete_twitch_channel(request: Request) -> JSONResponse:
-    data = await request.json()
-    bot_id = to_int_or_raise(data.get("bot_id"))
-    twitch_channel = data.get("twitch_channel")
+    try:
+        data = await request.json()
+        bot_id = to_int_or_raise(data.get("bot_id"))
+        twitch_channel = data.get("twitch_channel")
 
-    result = await delete_twitch_channel_core(bot_id, twitch_channel)
+        result = await delete_twitch_channel_core(bot_id, twitch_channel)
 
-    if not result.state.is_success():
-        return JSONResponse(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to delete twitch channel"}
-        )
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Twitch channel deleted successfully"})
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": f"Failed to delete twitch channel | reason: {result.state.name}"},
+            )
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Twitch channel deleted successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 # Discord
@@ -111,31 +136,36 @@ async def add_discord_server(
         DiscordUserInfo, Depends(get_authenticated_discord_user)
     ],  # discord user for authentication
 ) -> JSONResponse:
-    data = await request.json()
-    bot_id = to_int_or_raise(data.get("bot_id"))
-    server_id = to_int_or_raise(data.get("server_id"))
-    server_name = data.get("server_name")
+    try:
+        data = await request.json()
+        bot_id = to_int_or_raise(data.get("bot_id"))
+        server_id = to_int_or_raise(data.get("server_id"))
+        server_name = data.get("server_name")
 
-    result = add_discord_bot_core(bot_id, server_id, server_name)
+        result = add_discord_bot_core(bot_id, server_id, server_name)
 
-    if not result.state.is_success():
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": f"Failed to add a discord server to bot | reason: {result.state.name}"},
+            )
+
+        invite_link = None
+        if PROGRAMM_PARTS.discord is not None:
+            guild = PROGRAMM_PARTS.discord.get_guild(int(server_id))
+            if guild is None:
+                # Bot is not on the server, generate an invite link
+                client_id = APP_CONTEXT.discord_client_id.value_unsafe() or ""
+                permissions = 8  # Administrator
+                invite_link = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&permissions={permissions}&scope=bot&guild_id={server_id}&disable_guild_select=true"
+
         return JSONResponse(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to add a discord server to bot"}
+            status_code=HTTPStatus.OK,
+            content={"message": "Discord server added successfully", "invite_link": invite_link},
         )
 
-    invite_link = None
-    if PROGRAMM_PARTS.discord is not None:
-        guild = PROGRAMM_PARTS.discord.get_guild(int(server_id))
-        if guild is None:
-            # Bot is not on the server, generate an invite link
-            client_id = APP_CONTEXT.discord_client_id.value_unsafe() or ""
-            permissions = 8  # Administrator
-            invite_link = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&permissions={permissions}&scope=bot&guild_id={server_id}&disable_guild_select=true"
-
-    return JSONResponse(
-        status_code=HTTPStatus.OK,
-        content={"message": "Discord server added successfully", "invite_link": invite_link},
-    )
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 @router.post("/discord/delete")
@@ -145,14 +175,19 @@ async def delete_discord_server(
         DiscordUserInfo, Depends(get_authenticated_discord_user)
     ],  # discord user for authentication
 ) -> JSONResponse:
-    data = await request.json()
-    bot_id = to_int_or_raise(data.get("bot_id"))
-    server_id = to_int_or_raise(data.get("server_id"))
+    try:
+        data = await request.json()
+        bot_id = to_int_or_raise(data.get("bot_id"))
+        server_id = to_int_or_raise(data.get("server_id"))
 
-    result = await delete_discord_bot_core(bot_id, server_id)
+        result = await delete_discord_bot_core(bot_id, server_id)
 
-    if not result.state.is_success():
-        return JSONResponse(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to delete discord server"}
-        )
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Discord server deleted successfully"})
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": f"Failed to delete discord server | reason: {result.state.name}"},
+            )
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Discord server deleted successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})

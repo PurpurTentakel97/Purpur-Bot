@@ -9,9 +9,6 @@ from bot.helpers.log import log_default
 from bot.helpers.log import log_discord
 from bot.helpers.log import log_twitch
 
-# !command add|edit|remove NAME MESSAGE
-# !dict add|edit|remove NAME MESSAGE
-
 
 def handle_single_message(message: ChatMessage) -> list[ChatMessageResponse]:
     response_messages: list[ChatMessageResponse] = []

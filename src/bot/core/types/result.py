@@ -12,6 +12,7 @@ class ResultState(Enum):
     NO_DATA = auto()
     TYPE_MISSMATCH = auto()
     WHITESPACE_ERROR = auto()
+    ALREADY_EXISTS = auto()
 
     def is_success(self) -> bool:
         lucky_state = {ResultState.SUCCESS}

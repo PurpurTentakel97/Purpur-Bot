@@ -23,6 +23,11 @@ def get_counter(bot_id: int, name: str) -> Result[CounterDB]:
 def save_counter(bot_id: int, name: str) -> Result[CounterDB]:
     name_db = identifier_for_db(name)
 
+    get_result = get_counter(bot_id, name_db)
+
+    if get_result.value is not None:
+        return Result(ResultState.ALREADY_EXISTS, None)
+
     if has_whitespace(name_db):
         return Result(ResultState.WHITESPACE_ERROR, None)
 
@@ -30,7 +35,13 @@ def save_counter(bot_id: int, name: str) -> Result[CounterDB]:
 
 
 def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[CounterDB]:
-    return update_counter_db(bot_id, identifier_for_db(old_name), {FIELD_NAME: identifier_for_db(new_name)})
+    old_name_db = identifier_for_db(old_name)
+
+    get_result = get_counter(bot_id, old_name_db)
+    if get_result.value is not None:
+        return Result(ResultState.ALREADY_EXISTS, None)
+
+    return update_counter_db(bot_id, old_name_db, {FIELD_NAME: identifier_for_db(new_name)})
 
 
 def edit_counter_value(bot_id: int, name: str, value: int) -> Result[CounterDB]:

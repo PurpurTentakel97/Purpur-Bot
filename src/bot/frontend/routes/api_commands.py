@@ -18,70 +18,90 @@ router: Final = APIRouter(prefix="/api/command", dependencies=[Depends(get_authe
 
 @router.post("/create")
 async def create_command(request: Request) -> JSONResponse:
-    data = await request.json()
-    id_ = to_int_or_raise(data.get("bot_id"))
-    name = data.get("name")
-    message = data.get("message")
+    try:
+        data = await request.json()
+        bot_id = to_int_or_raise(data.get("bot_id"))
+        name = data.get("name")
+        message = data.get("message")
 
-    result = save_command_core(
-        id_,
-        name,
-        message,
-    )
-
-    if not result.state.is_success():
-        return JSONResponse(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Command could not be saved"}
+        result = save_command_core(
+            bot_id,
+            name,
+            message,
         )
 
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Command saved successfully"})
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": f"Command could not be saved | reason: {result.state.name}"},
+            )
+
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Command saved successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 @router.post("/update/message")
 async def update_command_message(request: Request) -> JSONResponse:
-    data = await request.json()
-    id_ = to_int_or_raise(data.get("bot_id"))
-    name = data.get("name")
-    message = data.get("message")
+    try:
+        data = await request.json()
+        id_ = to_int_or_raise(data.get("bot_id"))
+        name = data.get("name")
+        message = data.get("message")
 
-    result = update_command_message_core(id_, name, message)
+        result = update_command_message_core(id_, name, message)
 
-    if not result.state.is_success():
-        return JSONResponse(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Command could not be edited"}
-        )
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": f"Command could not be edited | reason: {result.state.name}"},
+            )
 
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Command edited successfully"})
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Command edited successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 @router.post("/update/name")
 async def update_command_name(request: Request) -> JSONResponse:
-    data = await request.json()
-    id_ = to_int_or_raise(data.get("bot_id").strip())
-    old_name = data.get("old_name").strip()
-    new_name = data.get("new_name").strip()
+    try:
+        data = await request.json()
+        id_ = to_int_or_raise(data.get("bot_id").strip())
+        old_name = data.get("old_name").strip()
+        new_name = data.get("new_name").strip()
 
-    result = update_command_name_core(id_, old_name, new_name)
+        result = update_command_name_core(id_, old_name, new_name)
 
-    if not result.state.is_success():
-        return JSONResponse(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Command could not be renamed"}
-        )
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": f"Command could not be renamed | reason: {result.state.name}"},
+            )
 
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Command renamed successfully"})
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Command renamed successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
 
 
 @router.post("/remove")
 async def remove_command(request: Request) -> JSONResponse:
-    data = await request.json()
-    id_ = to_int_or_raise(data.get("bot_id"))
-    name = data.get("name")
+    try:
+        data = await request.json()
+        id_ = to_int_or_raise(data.get("bot_id"))
+        name = data.get("name")
 
-    result = delete_command_core(id_, name)
+        result = delete_command_core(id_, name)
 
-    if not result.state.is_success():
-        return JSONResponse(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Command could not be removed"}
-        )
+        if not result.state.is_success():
+            return JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content={"message": f"Command could not be removed | reason: {result.state.name}"},
+            )
 
-    return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Command removed successfully"})
+        return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Command removed successfully"})
+
+    except Exception as e:
+        return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": str(e)})
