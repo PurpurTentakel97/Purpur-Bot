@@ -18,7 +18,7 @@ def select_counter_by_bot_id(bot_id: int) -> Result[list[CounterDB]]:
 
 
 def insert_counter(bot_id: int, name: str) -> Result[CounterDB]:
-    result = PROGRAMM_PARTS.database.insert(TABLE_NAME, {"bot_id": bot_id, "name": name})
+    result = PROGRAMM_PARTS.database.insert(TABLE_NAME, {"bot_id": bot_id, "name": name, "count": 0})
 
     if result.state.fail:
         return result.cast_to(CounterDB)
