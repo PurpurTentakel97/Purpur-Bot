@@ -17,12 +17,22 @@ def select_counter_by_bot_id(bot_id: int) -> Result[list[CounterDB]]:
     return PROGRAMM_PARTS.database.select_all(TABLE_NAME, where={"bot_id": bot_id}, type_=CounterDB)
 
 
-def insert_counter(bot_id: int, name: str) -> Result[int]:
-    return PROGRAMM_PARTS.database.insert(TABLE_NAME, {"bot_id": bot_id, "name": name})
+def insert_counter(bot_id: int, name: str) -> Result[CounterDB]:
+    result = PROGRAMM_PARTS.database.insert(TABLE_NAME, {"bot_id": bot_id, "name": name})
+
+    if result.value is None:
+        return result.cast_to(CounterDB)
+
+    return select_counter(bot_id, name)
 
 
-def update_counter(bot_id: int, name: str, data: dict[str, Any]) -> Result[None]:
-    return PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data=data)
+def update_counter(bot_id: int, name: str, data: dict[str, Any]) -> Result[CounterDB]:
+    result = PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data=data)
+
+    if result.value is None:
+        return result.cast_to(CounterDB)
+
+    return select_counter(bot_id, name)
 
 
 def delete_counter(bot_id: int, name: str) -> Result[None]:
