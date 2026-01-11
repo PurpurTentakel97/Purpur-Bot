@@ -17,7 +17,7 @@ async def add_twitch_channel(bot_id: int, channel: str) -> Result[int]:
     channel_db = identifier_for_db(channel)
     insert_result = insert_twitch_channel_db(bot_id, channel_db)
 
-    if not insert_result.state.is_success():
+    if insert_result.state.fail:
         return insert_result
 
     start_result = await start_single_twitch_bot(bot_id, channel_db)

@@ -20,7 +20,7 @@ def select_counter_by_bot_id(bot_id: int) -> Result[list[CounterDB]]:
 def insert_counter(bot_id: int, name: str) -> Result[CounterDB]:
     result = PROGRAMM_PARTS.database.insert(TABLE_NAME, {"bot_id": bot_id, "name": name})
 
-    if result.value is None:
+    if result.state.fail:
         return result.cast_to(CounterDB)
 
     return select_counter(bot_id, name)
@@ -29,7 +29,7 @@ def insert_counter(bot_id: int, name: str) -> Result[CounterDB]:
 def update_counter(bot_id: int, name: str, data: dict[str, Any]) -> Result[CounterDB]:
     result = PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data=data)
 
-    if result.value is None:
+    if result.state.fail:
         return result.cast_to(CounterDB)
 
     return select_counter(bot_id, name)

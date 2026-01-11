@@ -30,7 +30,7 @@ async def create_command(request: Request) -> JSONResponse:
             message,
         )
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content={"message": f"Command could not be saved | reason: {result.state.name}"},
@@ -52,7 +52,7 @@ async def update_command_message(request: Request) -> JSONResponse:
 
         result = update_command_message_core(id_, name, message)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content={"message": f"Command could not be edited | reason: {result.state.name}"},
@@ -74,7 +74,7 @@ async def update_command_name(request: Request) -> JSONResponse:
 
         result = update_command_name_core(id_, old_name, new_name)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content={"message": f"Command could not be renamed | reason: {result.state.name}"},
@@ -95,7 +95,7 @@ async def remove_command(request: Request) -> JSONResponse:
 
         result = delete_command_core(id_, name)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content={"message": f"Command could not be removed | reason: {result.state.name}"},

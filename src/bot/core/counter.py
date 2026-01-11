@@ -27,22 +27,32 @@ def get_counter(bot_id: int, name: str) -> Result[CounterDB]:
 def save_counter(bot_id: int, name: str) -> Result[CounterDB]:
     name_db = identifier_for_db(name)
 
-    if _exists(bot_id, name_db):
-        return Result(ResultState.ALREADY_EXISTS, None)
+    if not name_db:
+        return Result(ResultState.EMPTY_NAME, None)
 
     if has_whitespace(name_db):
         return Result(ResultState.WHITESPACE_ERROR, None)
+
+    if _exists(bot_id, name_db):
+        return Result(ResultState.ALREADY_EXISTS, None)
 
     return insert_counter_db(bot_id, name_db)
 
 
 def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[CounterDB]:
+    new_name_db = identifier_for_db(new_name)
     old_name_db = identifier_for_db(old_name)
 
-    if _exists(bot_id, old_name_db):
+    if not new_name_db:
+        return Result(ResultState.EMPTY_NAME, None)
+
+    if has_whitespace(new_name_db):
+        return Result(ResultState.WHITESPACE_ERROR, None)
+
+    if _exists(bot_id, new_name_db):
         return Result(ResultState.ALREADY_EXISTS, None)
 
-    return update_counter_db(bot_id, old_name_db, {FIELD_NAME: identifier_for_db(new_name)})
+    return update_counter_db(bot_id, old_name_db, {FIELD_NAME: new_name_db})
 
 
 def edit_counter_value(bot_id: int, name: str, value: int) -> Result[CounterDB]:
@@ -57,14 +67,14 @@ def increment_counter_by(bot_id: int, name: str, offset: int) -> Result[CounterD
     name_db = identifier_for_db(name)
     get_result = get_counter(bot_id, name_db)
 
-    if not get_result.state.is_success() or get_result.value is None:
+    if get_result.state.fail or get_result.value is None:
         return get_result
 
     new_value = get_result.value.count + offset
 
     update_result = edit_counter_value(bot_id, name_db, new_value)
 
-    if not update_result.state.is_success():
+    if update_result.state.fail:
         return update_result.cast_to(CounterDB, None)
 
     get_result.value.count = new_value

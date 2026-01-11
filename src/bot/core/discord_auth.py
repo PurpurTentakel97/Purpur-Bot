@@ -19,7 +19,7 @@ def store_or_update_discord_tokens(
 
     insert_result = insert_discord_tokens_db(discord_id, access_token_db, refresh_token_db, expires_at)
 
-    if insert_result.state.is_success():
+    if insert_result.state.success:
         return insert_result
 
     update_result = update_discord_tokens_db(discord_id, access_token_db, refresh_token_db, expires_at)

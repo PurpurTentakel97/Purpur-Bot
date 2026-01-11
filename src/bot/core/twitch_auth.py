@@ -20,7 +20,7 @@ def store_or_update_twitch_tokens(
 
     insert_result = insert_twitch_tokens_db(twitch_id_db, access_token_db, refresh_token_db, expires_at)
 
-    if insert_result.state.is_success():
+    if insert_result.state.success:
         return insert_result
 
     update_result = update_twitch_tokens_db(twitch_id_db, access_token_db, refresh_token_db, expires_at)

@@ -298,7 +298,7 @@ async def logout(
                 )
 
         result = delete_twitch_tokens_core(current_twitch_user.id_)
-        if not result.state.is_success():
+        if result.state.fail:
             log_default(LogLevel.ERROR, f"Failed to delete twitch tokens for user {current_twitch_user.id_}")
 
     if current_discord_user is not None:
@@ -322,7 +322,7 @@ async def logout(
                 )
 
         result = delete_discord_tokens_core(current_discord_user.id_)
-        if not result.state.is_success():
+        if result.state.fail:
             log_default(LogLevel.ERROR, f"Failed to delete discord tokens for user {current_discord_user.id_}")
 
     response = RedirectResponse(url="/")

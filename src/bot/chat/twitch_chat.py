@@ -77,7 +77,7 @@ class TwitchChat(Chat):
             return PermissionLevel.USER
 
         msg = ChatMessage(
-            id_=self.bot_id,
+            bot_id=self.bot_id,
             text=message.text,
             sender_chat=self,
             sender_permission_level=_get_user_permission_level(message.user),

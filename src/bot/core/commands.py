@@ -27,27 +27,46 @@ def get_command(bot_id: int, name: str) -> Result[BasicCommandDB]:
 
 def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]:
     name_db = identifier_for_db(name)
+    message_db = strip_for_db(message)
 
-    if _exists(bot_id, name_db):
-        return Result(ResultState.ALREADY_EXISTS, None)
+    if not name_db:
+        return Result(ResultState.EMPTY_NAME, None)
+
+    if not message_db:
+        return Result(ResultState.EMPTY_MESSAGE, None)
 
     if has_whitespace(name_db):
         return Result(ResultState.WHITESPACE_ERROR, None)
 
-    return insert_command_db(bot_id, identifier_for_db(name), strip_for_db(message))
+    if _exists(bot_id, name_db):
+        return Result(ResultState.ALREADY_EXISTS, None)
+
+    return insert_command_db(bot_id, identifier_for_db(name), message_db)
 
 
 def update_command_message(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]:
-    return update_command_db(bot_id, identifier_for_db(name), {FIELD_MESSAGE: strip_for_db(message)})
+    message_db = strip_for_db(message)
+
+    if not message_db:
+        return Result(ResultState.EMPTY_MESSAGE, None)
+
+    return update_command_db(bot_id, identifier_for_db(name), {FIELD_MESSAGE: message_db})
 
 
 def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[BasicCommandDB]:
+    new_name_db = identifier_for_db(new_name)
     old_name_db = identifier_for_db(old_name)
 
-    if _exists(bot_id, old_name_db):
+    if not new_name_db:
+        return Result(ResultState.EMPTY_NAME, None)
+
+    if has_whitespace(new_name_db):
+        return Result(ResultState.WHITESPACE_ERROR, None)
+
+    if _exists(bot_id, new_name_db):
         return Result(ResultState.ALREADY_EXISTS, None)
 
-    return update_command_db(bot_id, identifier_for_db(old_name_db), {FIELD_COMMAND: identifier_for_db(new_name)})
+    return update_command_db(bot_id, old_name_db, {FIELD_COMMAND: new_name_db})
 
 
 def delete_command(bot_id: int, name: str) -> Result[None]:

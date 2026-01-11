@@ -13,10 +13,17 @@ class ResultState(Enum):
     TYPE_MISSMATCH = auto()
     WHITESPACE_ERROR = auto()
     ALREADY_EXISTS = auto()
+    EMPTY_NAME = auto()
+    EMPTY_MESSAGE = auto()
 
-    def is_success(self) -> bool:
+    @property
+    def success(self) -> bool:
         lucky_state = {ResultState.SUCCESS}
         return self in lucky_state
+
+    @property
+    def fail(self) -> bool:
+        return not self.success
 
 
 @dataclass

@@ -53,7 +53,7 @@ async def edit_bot(
 
         result = update_bot_core(bot_id, new_name)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content={"message": f"Failed to update bot | reason: {result.state.name}"},
@@ -73,7 +73,7 @@ async def delete_bot(request: Request) -> JSONResponse:
 
         result = await delete_bot_core(bot_id)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content={"message": f"Failed to delete a bot | reason: {result.state.name}"},
@@ -94,7 +94,7 @@ async def add_twitch_channel(request: Request) -> JSONResponse:
 
         result = await add_twitch_channel_core(bot_id, twitch_channel)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content={"message": "Failed to add a twitch channel to bot"},
@@ -117,7 +117,7 @@ async def delete_twitch_channel(request: Request) -> JSONResponse:
 
         result = await delete_twitch_channel_core(bot_id, twitch_channel)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content={"message": f"Failed to delete twitch channel | reason: {result.state.name}"},
@@ -144,7 +144,7 @@ async def add_discord_server(
 
         result = add_discord_bot_core(bot_id, server_id, server_name)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content={"message": f"Failed to add a discord server to bot | reason: {result.state.name}"},
@@ -182,7 +182,7 @@ async def delete_discord_server(
 
         result = await delete_discord_bot_core(bot_id, server_id)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content={"message": f"Failed to delete discord server | reason: {result.state.name}"},

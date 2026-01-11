@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 @final
 @dataclass
 class ChatMessage:
-    id_: int
+    bot_id: int
     text: str
     sender_chat: "Chat"
     sender_permission_level: PermissionLevel

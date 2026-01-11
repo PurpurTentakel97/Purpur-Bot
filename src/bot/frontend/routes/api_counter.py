@@ -26,7 +26,7 @@ async def create_counter(request: Request) -> JSONResponse:
 
         result = save_counter_core(bot_id, name)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.BAD_REQUEST,
                 content={"message": f"Failed to create counter | reason: {result.state.name}"},
@@ -46,7 +46,7 @@ async def reset_counter(request: Request) -> JSONResponse:
 
         result = reset_counter_core(bot_id, name)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.BAD_REQUEST,
                 content={"message": f"Failed to reset counter | reason: {result.state.name}"},
@@ -66,7 +66,7 @@ async def delete_counter(request: Request) -> JSONResponse:
 
         result = delete_counter_core(bot_id, name)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.BAD_REQUEST,
                 content={"message": f"Failed to delete counter | reason: {result.state.name}"},
@@ -87,7 +87,7 @@ async def update_counter_name(request: Request) -> JSONResponse:
 
         result = edit_counter_name_core(bot_id, old_name, new_name)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.BAD_REQUEST,
                 content={"message": f"Failed to rename counter | reason: {result.state.name}"},
@@ -108,7 +108,7 @@ async def update_counter_value(request: Request) -> JSONResponse:
 
         result = edit_counter_value_core(bot_id, name, value)
 
-        if not result.state.is_success():
+        if result.state.fail:
             return JSONResponse(
                 status_code=HTTPStatus.BAD_REQUEST,
                 content={"message": f"Failed to update counter count | reason: {result.state.name}"},

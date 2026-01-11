@@ -52,7 +52,7 @@ class DiscordServer(Chat):
             raise AssertionError("Expected author to be a Member")
 
         msg = ChatMessage(
-            id_=self.bot_id,
+            bot_id=self.bot_id,
             text=message.content,
             sender_chat=self,
             sender_permission_level=_get_permission_level(message.author),

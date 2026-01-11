@@ -24,7 +24,7 @@ def insert_command(bot_id: int, command_name: str, command_message: str) -> Resu
         table_name=TABLE_NAME, data={"bot_id": bot_id, "command": command_name, "message": command_message}
     )
 
-    if result.value is None:
+    if result.state.fail:
         return result.cast_to(BasicCommandDB)
 
     return select_command(bot_id, command_name)
@@ -35,7 +35,7 @@ def update_command(bot_id: int, command_name: str, data: dict[str, Any]) -> Resu
         table_name=TABLE_NAME, where={"bot_id": bot_id, "command": command_name}, data=data
     )
 
-    if result.value is None:
+    if result.state.fail:
         return result.cast_to(BasicCommandDB)
 
     return select_command(bot_id, command_name)
