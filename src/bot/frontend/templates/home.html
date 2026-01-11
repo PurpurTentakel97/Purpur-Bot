@@ -53,38 +53,48 @@
 
         <script>
             document.getElementById('add-bot-btn').addEventListener('click', async () => {
-                const response = await fetch('/api/bot/create', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+                showLoading();
+                try {
+                    const response = await fetch('/api/bot/create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
 
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    const error = await response.json();
-                    alert('Failed to create a bot: ' + (error.message || 'Unknown error'));
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert('Failed to create a bot: ' + (error.message || 'Unknown error'));
+                    }
+                } finally {
+                    hideLoading();
                 }
             });
 
             async function editBot(botId) {
-                const response = await fetch('/dashboard/bot/edit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ bot_id: botId })
-                });
+                showLoading();
+                try {
+                    const response = await fetch('/dashboard/bot/edit', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ bot_id: botId })
+                    });
 
-                if (response.ok) {
-                    const html = await response.text();
-                    document.open();
-                    document.write(html);
-                    document.close();
-                } else {
-                    const error = await response.json();
-                    alert('Failed to open dashboard: ' + (error.message || 'Unknown error'));
+                    if (response.ok) {
+                        const html = await response.text();
+                        document.open();
+                        document.write(html);
+                        document.close();
+                    } else {
+                        const error = await response.json();
+                        alert('Failed to open dashboard: ' + (error.message || 'Unknown error'));
+                    }
+                } finally {
+                    hideLoading();
                 }
             }
 
@@ -93,19 +103,24 @@
                     return;
                 }
 
-                const response = await fetch('/api/bot/delete', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ bot_id: botId })
-                });
+                showLoading();
+                try {
+                    const response = await fetch('/api/bot/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ bot_id: botId })
+                    });
 
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    const error = await response.json();
-                    alert('Failed to delete the bot: ' + (error.message || 'Unknown error'));
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert('Failed to delete the bot: ' + (error.message || 'Unknown error'));
+                    }
+                } finally {
+                    hideLoading();
                 }
             }
         </script>

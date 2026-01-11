@@ -37,10 +37,6 @@ class TwitchChat(Chat):
         self.chat.start()
 
     @property
-    def bot_id(self) -> int:
-        return self.bot_id
-
-    @property
     def channel_name(self) -> str:
         return self._channel_name
 

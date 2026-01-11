@@ -18,9 +18,6 @@ class DiscordServer(Chat):
         super().__init__(bot_id)
         self._server_id: int = server_id
 
-    @property
-    def bot_id(self) -> int:
-        return self.bot_id
 
     @property
     def server_id(self) -> int:

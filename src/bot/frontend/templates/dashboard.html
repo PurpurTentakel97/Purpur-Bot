@@ -362,10 +362,44 @@
             }
         });
 
+        async function refreshDashboard() {
+            showLoading();
+            try {
+                const response = await fetch('/dashboard/bot/edit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ bot_id: "{{ bot.id }}" })
+                });
+
+                if (response.ok) {
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.querySelector('.dashboard-container').innerHTML;
+                    document.querySelector('.dashboard-container').innerHTML = newContent;
+
+                    // Re-initialize tabs if needed, or preserve active tab
+                    const activeTab = document.querySelector('.tab-link.active').getAttribute('onclick').match(/'([^']+)'/)[1];
+                    openTab(null, activeTab);
+                } else {
+                    console.error('Failed to refresh dashboard');
+                    window.location.href = '/';
+                }
+            } catch (err) {
+                console.error('Error refreshing dashboard:', err);
+                window.location.href = '/';
+            } finally {
+                hideLoading();
+            }
+        }
+
         document.getElementById('edit-bot-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitButton = e.target.querySelector('button[type="submit"]');
             submitButton.disabled = true;
+            showLoading();
 
             const formData = new FormData(e.target);
             const data = {
@@ -388,12 +422,14 @@
                     const error = await response.json();
                     alert('Failed to save changes: ' + (error.message || 'Unknown error'));
                 } else {
-                    alert('Changes saved successfully!');
+                    // No alert on success as requested
+                    await refreshDashboard();
                 }
             } catch (err) {
                 alert('An error occurred while saving changes.');
             } finally {
                 submitButton.disabled = false;
+                hideLoading();
             }
         });
 
@@ -405,6 +441,7 @@
                 return;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/bot/twitch/add', {
                     method: 'POST',
@@ -418,13 +455,15 @@
                 });
 
                 if (response.ok) {
-                    window.location.reload();
+                    await refreshDashboard();
                 } else {
                     const error = await response.json();
                     alert('Failed to add channel: ' + (error.message || 'Unknown error'));
                 }
             } catch (err) {
                 alert('An error occurred while adding the channel.');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -433,6 +472,7 @@
                 return;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/bot/twitch/delete', {
                     method: 'POST',
@@ -446,13 +486,15 @@
                 });
 
                 if (response.ok) {
-                    window.location.reload();
+                    await refreshDashboard();
                 } else {
                     const error = await response.json();
                     alert('Failed to remove channel: ' + (error.message || 'Unknown error'));
                 }
             } catch (err) {
                 alert('An error occurred while removing the channel.');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -467,6 +509,7 @@
                 return;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/command/create', {
                     method: 'POST',
@@ -479,13 +522,15 @@
                 });
 
                 if (response.ok) {
-                    window.location.reload();
+                    await refreshDashboard();
                 } else {
                     const error = await response.json();
                     alert('Failed to add command: ' + (error.message || 'Unknown error'));
                 }
             } catch (err) {
                 alert('An error occurred while adding the command.');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -563,6 +608,7 @@
             }
             if (oldName === newName) return true;
 
+            showLoading();
             try {
                 const response = await fetch('/api/command/update/name', {
                     method: 'POST',
@@ -575,18 +621,20 @@
                 });
 
                 if (response.ok) {
-                    window.location.reload(); // Refresh to update oldName in attributes
+                    await refreshDashboard();
                     return true;
                 } else {
                     const error = await response.json();
                     alert('Failed to rename command: ' + (error.message || 'Unknown error'));
-                    window.location.reload();
+                    await refreshDashboard();
                     return false;
                 }
             } catch (err) {
                 alert('An error occurred while renaming the command.');
-                window.location.reload();
+                await refreshDashboard();
                 return false;
+            } finally {
+                hideLoading();
             }
         }
 
@@ -596,6 +644,7 @@
                 return false;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/command/update/message', {
                     method: 'POST',
@@ -612,13 +661,15 @@
                 } else {
                     const error = await response.json();
                     alert('Failed to update command message: ' + (error.message || 'Unknown error'));
-                    window.location.reload();
+                    await refreshDashboard();
                     return false;
                 }
             } catch (err) {
                 alert('An error occurred while updating the command message.');
-                window.location.reload();
+                await refreshDashboard();
                 return false;
+            } finally {
+                hideLoading();
             }
         }
 
@@ -627,6 +678,7 @@
                 return;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/command/remove', {
                     method: 'POST',
@@ -638,13 +690,15 @@
                 });
 
                 if (response.ok) {
-                    window.location.reload();
+                    await refreshDashboard();
                 } else {
                     const error = await response.json();
                     alert('Failed to remove command: ' + (error.message || 'Unknown error'));
                 }
             } catch (err) {
                 alert('An error occurred while removing the command.');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -657,6 +711,7 @@
                 return;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/counter/create', {
                     method: 'POST',
@@ -668,13 +723,15 @@
                 });
 
                 if (response.ok) {
-                    window.location.reload();
+                    await refreshDashboard();
                 } else {
                     const error = await response.json();
                     alert('Failed to add counter: ' + (error.message || 'Unknown error'));
                 }
             } catch (err) {
                 alert('An error occurred while adding the counter.');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -692,6 +749,7 @@
                 return;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/counter/update/name', {
                     method: 'POST',
@@ -704,15 +762,17 @@
                 });
 
                 if (response.ok) {
-                    window.location.reload();
+                    await refreshDashboard();
                 } else {
                     const error = await response.json();
                     alert('Failed to rename counter: ' + (error.message || 'Unknown error'));
-                    window.location.reload();
+                    await refreshDashboard();
                 }
             } catch (err) {
                 alert('An error occurred while renaming the counter.');
-                window.location.reload();
+                await refreshDashboard();
+            } finally {
+                hideLoading();
             }
         }
 
@@ -725,6 +785,7 @@
                 return;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/counter/update/value', {
                     method: 'POST',
@@ -741,11 +802,13 @@
                 } else {
                     const error = await response.json();
                     alert('Failed to update counter value: ' + (error.message || 'Unknown error'));
-                    window.location.reload();
+                    await refreshDashboard();
                 }
             } catch (err) {
                 alert('An error occurred while updating the counter value.');
-                window.location.reload();
+                await refreshDashboard();
+            } finally {
+                hideLoading();
             }
         }
 
@@ -754,6 +817,7 @@
                 return;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/counter/reset', {
                     method: 'POST',
@@ -765,13 +829,15 @@
                 });
 
                 if (response.ok) {
-                    window.location.reload();
+                    await refreshDashboard();
                 } else {
                     const error = await response.json();
                     alert('Failed to reset counter: ' + (error.message || 'Unknown error'));
                 }
             } catch (err) {
                 alert('An error occurred while resetting the counter.');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -780,6 +846,7 @@
                 return;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/counter/delete', {
                     method: 'POST',
@@ -791,13 +858,15 @@
                 });
 
                 if (response.ok) {
-                    window.location.reload();
+                    await refreshDashboard();
                 } else {
                     const error = await response.json();
                     alert('Failed to remove counter: ' + (error.message || 'Unknown error'));
                 }
             } catch (err) {
                 alert('An error occurred while removing the counter.');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -814,6 +883,7 @@
             // Open a blank window immediately to avoid popup blocking
             const inviteWindow = window.open('about:blank', '_blank');
 
+            showLoading();
             try {
                 const response = await fetch('/api/bot/discord/add', {
                     method: 'POST',
@@ -838,7 +908,7 @@
                         // No invite needed, close the blank window if it exists
                         if (inviteWindow) inviteWindow.close();
                     }
-                    window.location.reload();
+                    await refreshDashboard();
                 } else {
                     if (inviteWindow) inviteWindow.close();
                     const error = await response.json();
@@ -847,6 +917,8 @@
             } catch (err) {
                 if (inviteWindow) inviteWindow.close();
                 alert('An error occurred while adding the Discord server.');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -855,6 +927,7 @@
                 return;
             }
 
+            showLoading();
             try {
                 const response = await fetch('/api/bot/discord/delete', {
                     method: 'POST',
@@ -868,13 +941,15 @@
                 });
 
                 if (response.ok) {
-                    window.location.reload();
+                    await refreshDashboard();
                 } else {
                     const error = await response.json();
                     alert('Failed to remove Discord server: ' + (error.message || 'Unknown error'));
                 }
             } catch (err) {
                 alert('An error occurred while removing the Discord server.');
+            } finally {
+                hideLoading();
             }
         }
 

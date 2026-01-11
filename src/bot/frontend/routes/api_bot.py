@@ -29,10 +29,10 @@ router: Final = APIRouter(prefix="/api/bot", dependencies=[Depends(get_authentic
 @router.post("/create")
 def new_bot(current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]) -> JSONResponse:
     result = add_bot_core(current_twitch_user.id_)
-    if not result.state.is_success():
+    if result.value is None:
         return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"message": "Failed to create a bot"})
 
-    return JSONResponse(status_code=HTTPStatus.CREATED, content={"id": result})
+    return JSONResponse(status_code=HTTPStatus.CREATED, content={"id": result.value})
 
 
 @router.post("/edit")
