@@ -12,6 +12,10 @@ from bot.database.counter import update_counter as update_counter_db
 from bot.database.types.counter import CounterDB
 
 
+def _exists(bot_id: int, name: str) -> bool:
+    return get_counter(bot_id, name).value is not None
+
+
 def get_counters_by_bot_id(bot_id: int) -> Result[list[CounterDB]]:
     return select_counter_by_bot_id_db(bot_id)
 
@@ -23,9 +27,7 @@ def get_counter(bot_id: int, name: str) -> Result[CounterDB]:
 def save_counter(bot_id: int, name: str) -> Result[CounterDB]:
     name_db = identifier_for_db(name)
 
-    get_result = get_counter(bot_id, name_db)
-
-    if get_result.value is not None:
+    if _exists(bot_id, name_db):
         return Result(ResultState.ALREADY_EXISTS, None)
 
     if has_whitespace(name_db):
@@ -37,8 +39,7 @@ def save_counter(bot_id: int, name: str) -> Result[CounterDB]:
 def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[CounterDB]:
     old_name_db = identifier_for_db(old_name)
 
-    get_result = get_counter(bot_id, old_name_db)
-    if get_result.value is not None:
+    if _exists(bot_id, old_name_db):
         return Result(ResultState.ALREADY_EXISTS, None)
 
     return update_counter_db(bot_id, old_name_db, {FIELD_NAME: identifier_for_db(new_name)})
