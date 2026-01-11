@@ -1,20 +1,21 @@
 import httpx
 
-from bot.database.twitch_auth import select_discord_tokens
+from bot.database.discord_auth import select_discord_tokens
 from bot.frontend.types.discord_guild import DiscordGuild
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 
 
-async def get_allowed_discord_servers(user_id: str) -> list[DiscordGuild]:
+async def get_allowed_discord_servers(user_id: int) -> list[DiscordGuild]:
     tokens = select_discord_tokens(user_id)
-    if tokens is None:
+    if tokens.value is None:
         return []
 
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(
-                "https://discord.com/api/users/@me/guilds", headers={"Authorization": f"Bearer {tokens.access_token}"}
+                "https://discord.com/api/users/@me/guilds",
+                headers={"Authorization": f"Bearer {tokens.value.access_token}"},
             )
             response.raise_for_status()
             guilds: list[DiscordGuild] = response.json()

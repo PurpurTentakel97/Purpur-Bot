@@ -1,15 +1,15 @@
 from twitchAPI.twitch import Twitch
 
 from bot.core.app_context import APP_CONTEXT
-from bot.database.twitch_auth import select_twitch_tokens
+from bot.core.twitch_auth import get_twitch_tokens as get_twitch_tokens_core
 from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 
 
 async def get_allowed_twitch_channels(user_id: str, user_login: str) -> list[str]:
-    tokens = select_twitch_tokens(user_id)
-    if tokens is None:
+    tokens = get_twitch_tokens_core(user_id)
+    if tokens.value is None:
         return [user_login]
 
     twitch = await Twitch(
@@ -19,7 +19,9 @@ async def get_allowed_twitch_channels(user_id: str, user_login: str) -> list[str
     )
 
     try:
-        await twitch.set_user_authentication(tokens.access_token, TWITCH_SCOPES, tokens.refresh_token, validate=True)
+        await twitch.set_user_authentication(
+            tokens.value.access_token, TWITCH_SCOPES, tokens.value.refresh_token, validate=True
+        )
 
         channels = [user_login]
 

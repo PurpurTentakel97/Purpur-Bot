@@ -5,6 +5,12 @@ from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.twitch import delete_twitch_channel as delete_twitch_channel_db
 from bot.database.twitch import insert_twitch_channel as insert_twitch_channel_db
+from bot.database.twitch import select_twitch_channels_by_bot_id as select_twitch_channels_db
+from bot.database.types.twitch_channel import TwitchChannelDB
+
+
+def get_twitch_channels_from_bot(bot_id: int) -> Result[list[TwitchChannelDB]]:
+    return select_twitch_channels_db(bot_id)
 
 
 async def add_twitch_channel(bot_id: int, channel: str) -> Result[int]:

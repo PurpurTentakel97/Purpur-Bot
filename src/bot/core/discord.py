@@ -5,6 +5,12 @@ from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.discord import delete_discord_server as delete_discord_server_db
 from bot.database.discord import insert_discord_server as insert_discord_server_db
+from bot.database.discord import select_discord_servers_by_bot_id as select_discord_servers_by_bot_id_db
+from bot.database.types.discord_server import DiscordServerDB
+
+
+def get_discord_servers_by_bot_id(bot_id: int) -> Result[list[DiscordServerDB]]:
+    return select_discord_servers_by_bot_id_db(bot_id)
 
 
 def add_discord_bot(bot_id: int, discord_id: int, server_name: str) -> Result[int]:

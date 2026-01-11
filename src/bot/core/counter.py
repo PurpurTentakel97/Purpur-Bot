@@ -6,13 +6,18 @@ from bot.database.counter import FIELD_COUNTER
 from bot.database.counter import FIELD_NAME
 from bot.database.counter import delete_counter as delete_counter_db
 from bot.database.counter import insert_counter as insert_counter_db
-from bot.database.counter import select_counter
+from bot.database.counter import select_counter as select_counter_db
+from bot.database.counter import select_counter_by_bot_id as select_counter_by_bot_id_db
 from bot.database.counter import update_counter as update_counter_db
 from bot.database.types.counter import CounterDB
 
 
+def get_counters_by_bot_id(bot_id: int) -> Result[list[CounterDB]]:
+    return select_counter_by_bot_id_db(bot_id)
+
+
 def get_counter(bot_id: int, name: str) -> Result[CounterDB]:
-    return select_counter(bot_id, identifier_for_db(name))
+    return select_counter_db(bot_id, identifier_for_db(name))
 
 
 def save_counter(bot_id: int, name: str) -> Result[CounterDB]:
