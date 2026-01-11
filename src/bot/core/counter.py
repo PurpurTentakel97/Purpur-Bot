@@ -1,5 +1,9 @@
+import re
+
 from bot.core.helpers.string import has_whitespace
 from bot.core.helpers.string import identifier_for_db
+from bot.core.types.counter_instructions import CounterInstructions
+from bot.core.types.counter_instructions import CounterOperation
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.counter import FIELD_COUNTER
@@ -14,6 +18,32 @@ from bot.database.types.counter import CounterDB
 
 def _exists(bot_id: int, name: str) -> bool:
     return get_counter(bot_id, name).value is not None
+
+
+_COUNTER_PATTERN = re.compile(r"\{(?P<name>[a-zA-ZäöüÄÖÜ]\w*)(?:(?P<op>[+-])(?P<value>\d+))?\}")
+
+
+def has_counter(message: str) -> bool:
+    return _COUNTER_PATTERN.search(message) is not None
+
+
+def get_counter_instructions(message: str) -> list[CounterInstructions]:
+    output: list[CounterInstructions] = []
+
+    for match in _COUNTER_PATTERN.finditer(message):
+        name = str(match.group("name"))
+        op_raw = match.group("op")
+        value_raw = match.group("value")
+
+        if op_raw and value_raw:
+            op = CounterOperation(op_raw)
+            value = int(value_raw)
+            if value != 0:
+                output.append(CounterInstructions(name, op, value))
+
+        output.append(CounterInstructions(name, None, None))
+
+    return output
 
 
 def get_counters_by_bot_id(bot_id: int) -> Result[list[CounterDB]]:

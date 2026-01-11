@@ -148,6 +148,7 @@ async def test_twitch_chat_terminate() -> None:
 @pytest.mark.asyncio
 async def test_twitch_chat_send_response() -> None:
     from bot.chat.types.message_response import ChatMessageResponse
+
     mock_chat = MagicMock()
     mock_chat.send_message = AsyncMock()
     chat = TwitchChat(mock_chat, 1, "channel")
@@ -155,7 +156,7 @@ async def test_twitch_chat_send_response() -> None:
     mock_original_message = MagicMock()
     responses = [
         ChatMessageResponse("msg1", chat, mock_original_message, None),
-        ChatMessageResponse("msg2", chat, mock_original_message, None)
+        ChatMessageResponse("msg2", chat, mock_original_message, None),
     ]
     await chat.send_response(responses)
 

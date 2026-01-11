@@ -15,6 +15,7 @@ class ResultState(Enum):
     ALREADY_EXISTS = auto()
     EMPTY_NAME = auto()
     EMPTY_MESSAGE = auto()
+    COUNTER_ERROR = auto()
 
     @property
     def success(self) -> bool:

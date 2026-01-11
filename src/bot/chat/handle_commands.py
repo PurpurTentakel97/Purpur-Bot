@@ -3,7 +3,7 @@ from typing import Optional
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
 from bot.core.commands import delete_command as delete_command_core
-from bot.core.commands import get_command as get_command_core
+from bot.core.commands import get_command_with_counter as get_command_core
 from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_core
 from bot.core.commands import save_command as save_command_core
 from bot.core.commands import update_command_message as update_command_message_core
@@ -82,9 +82,12 @@ def handle_command(message: ChatMessage) -> Optional[ChatMessageResponse]:
             result = get_commands_by_bot_id_core(message.bot_id)
 
             if result.state.success and result.value is not None:
-                return message.to_response_message(
-                    f"Commands: {', '.join([message.command for message in result.value])}"
+                commands = (
+                    ", ".join([message.command for message in result.value])
+                    if len(result.value) > 0
+                    else "(no commands)"
                 )
+                return message.to_response_message(f"Commands: {commands}")
 
             return message.to_response_message("No commands found.")
 

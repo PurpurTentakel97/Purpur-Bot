@@ -3,11 +3,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from bot.core.helpers.env import get_env_var_or_default
 
 from bot.core.app_context import AppContext
 from bot.core.app_context import OptionalAppContextEntry
 from bot.core.app_context import TwitchTokens
+from bot.core.helpers.env import get_env_var_or_default
 
 
 def test_optional_app_context_entry_value_or_rise() -> None:
@@ -155,6 +155,7 @@ def test_optional_app_context_entry_value_unsafe() -> None:
 
 def test_app_context_update_twitch_tokens(tmp_path: Path) -> None:
     from bot.core.types.environment_state import Environment
+
     env_file = tmp_path / ".env"
     # Set the class variable to point to our temp file
     with patch.object(AppContext, "_ENV_FILE_PATH", env_file):
@@ -168,7 +169,7 @@ def test_app_context_update_twitch_tokens(tmp_path: Path) -> None:
             twitch_tokens=None,
             twitch_redirect_uri="r",
             environment_state=Environment.PRODUCTION,
-            jwt_secret="j"
+            jwt_secret="j",
         )
 
         ctx.update_twitch_tokens("new_access", "new_refresh")

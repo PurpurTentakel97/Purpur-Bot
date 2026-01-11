@@ -1,7 +1,9 @@
 # pyright: reportPrivateUsage=false
 
 
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import discord
 import pytest
@@ -73,7 +75,7 @@ async def test_discord_server_permissions() -> None:
     mock_vip.author = MagicMock(spec=discord.Member)
     mock_vip.author.guild_permissions.administrator = False
     mock_vip.author.guild_permissions.manage_messages = False
-    mock_vip.author.roles = ["vip"] # Matching the code's expected (buggy) behavior
+    mock_vip.author.roles = ["vip"]  # Matching the code's expected (buggy) behavior
     mock_vip.content = "vip"
     await server.on_message(mock_vip)
     msg = await server.message_queue.get()
@@ -94,6 +96,7 @@ async def test_discord_server_permissions() -> None:
 @pytest.mark.asyncio
 async def test_discord_server_send_response_type_mismatch() -> None:
     from bot.chat.types.message_response import ChatMessageResponse
+
     id_ = 1
     server_id = 123456789
     server = DiscordServer(id_, server_id)
@@ -111,6 +114,7 @@ async def test_discord_server_send_response_type_mismatch() -> None:
 @pytest.mark.asyncio
 async def test_discord_server_send_response_success() -> None:
     from bot.chat.types.message_response import ChatMessageResponse
+
     id_ = 1
     server_id = 123456789
     server = DiscordServer(id_, server_id)
