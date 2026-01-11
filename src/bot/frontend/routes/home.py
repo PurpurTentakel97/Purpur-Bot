@@ -4,6 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter
 from fastapi import Depends
+from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
@@ -34,8 +35,11 @@ async def home(
 
     bots = get_bots_by_twitch_id_core(twitch_user.id_) if twitch_user else Result(ResultState.NO_DATA, [])
 
+    if bots.value is None:
+        raise HTTPException(status_code=404, detail="Bots not found")
+
     return template.TemplateResponse(
         request=request,
         name="home.html",
-        context={"twitch_user": twitch_user, "discord_user": discord_user, "bots": bots},
+        context={"twitch_user": twitch_user, "discord_user": discord_user, "bots": bots.value},
     )

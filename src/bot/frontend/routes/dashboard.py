@@ -26,7 +26,7 @@ from bot.frontend.types.twitch_user_info import TwitchUserInfo
 router: Final = APIRouter(prefix="/dashboard", dependencies=[Depends(get_authenticated_twitch_user)])
 
 
-@router.get("/bot/edit")
+@router.post("/bot/edit")
 async def bot_dashboard(
     request: Request,
     template: Annotated[Jinja2Templates, Depends(get_templates)],

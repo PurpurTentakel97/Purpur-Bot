@@ -68,7 +68,7 @@ async def auth_twitch() -> RedirectResponse:
         httponly=True,
         secure=APP_CONTEXT.environment_state.value().is_production(),
         samesite="lax",
-        path="/auth/twitch",
+        path="/auth",
     )
     return response
 
@@ -136,7 +136,7 @@ async def auth_twitch_callback(request: Request, code: Optional[str], state: Opt
 
         session_jwt: Final = await _do_login()
         return_response = RedirectResponse(url="/", status_code=HTTPStatus.SEE_OTHER)
-        return_response.delete_cookie(TWITCH_OAUTH_STATE_COOKIE_KEY)
+        return_response.delete_cookie(TWITCH_OAUTH_STATE_COOKIE_KEY, path="/auth")
         return_response.set_cookie(
             key="TWITCH_SESSION_COOKIE",
             value=session_jwt,
@@ -175,7 +175,7 @@ async def auth_discord() -> RedirectResponse:
         httponly=True,
         secure=APP_CONTEXT.environment_state.value().is_production(),
         samesite="lax",
-        path="/auth/discord",
+        path="/auth",
     )
     return response
 
@@ -258,7 +258,7 @@ async def auth_discord_callback(
 
         session_jwt: Final = await _do_login()
         return_response = RedirectResponse(url="/", status_code=HTTPStatus.SEE_OTHER)
-        return_response.delete_cookie(DISCORD_OAUTH_STATE_COOKIE_KEY)
+        return_response.delete_cookie(DISCORD_OAUTH_STATE_COOKIE_KEY, path="/auth")
         return_response.set_cookie(
             key="DISCORD_SESSION_COOKIE",
             value=session_jwt,

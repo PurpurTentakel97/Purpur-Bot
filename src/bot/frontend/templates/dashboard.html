@@ -373,12 +373,15 @@
             };
 
             try {
-                const response = await fetch(`/api/bot/edit/{{ bot.id }}`, {
+                const response = await fetch(`/api/bot/edit`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        name: data.name
+                    })
                 });
 
                 if (!response.ok) {
@@ -470,8 +473,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         bot_id: "{{ bot.id }}",
-                        command_name: name,
-                        command_message: message
+                        name: name,
+                        message: message
                     })
                 });
 
@@ -566,8 +569,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         bot_id: "{{ bot.id }}",
-                        old_command_name: oldName,
-                        new_command_name: newName
+                        old_name: oldName,
+                        new_name: newName
                     })
                 });
 
@@ -599,8 +602,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         bot_id: "{{ bot.id }}",
-                        command_name: name,
-                        command_message: newMessage
+                        name: name,
+                        message: newMessage
                     })
                 });
 
@@ -630,7 +633,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         bot_id: "{{ bot.id }}",
-                        command_name: name
+                        name: name
                     })
                 });
 
