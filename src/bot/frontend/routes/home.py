@@ -8,7 +8,9 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
-from bot.database.bot import select_bots_by_twitch_id
+from bot.core.bot import get_bots_by_twitch_id as get_bots_by_twitch_id_core
+from bot.core.types.result import Result
+from bot.core.types.result import ResultState
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
@@ -30,7 +32,7 @@ async def home(
             request=request, name="home.html", context={"twitch_user": twitch_user, "discord_user": discord_user}
         )
 
-    bots = select_bots_by_twitch_id(twitch_user.id_) if twitch_user else []
+    bots = get_bots_by_twitch_id_core(twitch_user.id_) if twitch_user else Result(ResultState.NO_DATA, [])
 
     return template.TemplateResponse(
         request=request,

@@ -74,6 +74,8 @@ class Database:
 
             with self._engine.begin() as connection:
                 result = connection.execute(statement).mappings().fetchall()
+                if result.count == 0:
+                    return Result(ResultState.NO_DATA, [])
                 return Result(ResultState.SUCCESS, [type_.model_validate(row) for row in result])
 
         except Exception as e:
