@@ -23,5 +23,5 @@ class Result[T]:
     state: ResultState
     value: Optional[T] = None
 
-    def has_value(self) -> bool:
-        return self.value is not None
+    def cast_to[V](self, new_type: type[V], new_value: Optional[V] = None) -> "Result[V]":
+        return Result(self.state, new_value)

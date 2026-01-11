@@ -1,5 +1,6 @@
 from bot.chat.on_demand import stop_all_discord_bots_from_bot
 from bot.chat.on_demand import stop_all_twitch_bots_from_bot
+from bot.core.helpers.string import id_for_db, name_for_db
 from bot.core.types.result import Result
 from bot.database.bot import FIELD_NAME
 from bot.database.bot import delete_bot as delete_bot_db
@@ -15,15 +16,15 @@ def get_bot(bot_id: int) -> Result[BotConfigDB]:
 
 
 def get_bots_by_twitch_id(twitch_id: str) -> Result[list[BotConfigDB]]:
-    return select_bots_by_twitch_id_db(twitch_id)
+    return select_bots_by_twitch_id_db(id_for_db(twitch_id))
 
 
 def add_bot(twitch_id: str) -> Result[int]:
-    return insert_bot_db(twitch_id)
+    return insert_bot_db(id_for_db(twitch_id))
 
 
 def update_bot(bot_id: int, name: str) -> Result[None]:
-    return update_bot_db(bot_id, {FIELD_NAME: name})
+    return update_bot_db(bot_id, {FIELD_NAME: name_for_db(name)})
 
 
 async def delete_bot(bot_id: int) -> Result[None]:

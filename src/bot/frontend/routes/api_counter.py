@@ -6,13 +6,13 @@ from fastapi import Depends
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from bot.frontend.helpers.auth import get_authenticated_twitch_user
-from bot.frontend.helpers.cast import to_int_or_raise
-from bot.core.counter import save_counter as save_counter_core
+from bot.core.counter import delete_counter as delete_counter_core
 from bot.core.counter import edit_counter_name as edit_counter_name_core
 from bot.core.counter import edit_counter_value as edit_counter_value_core
 from bot.core.counter import reset_counter as reset_counter_core
-from bot.core.counter import delete_counter as delete_counter_core
+from bot.core.counter import save_counter as save_counter_core
+from bot.frontend.helpers.auth import get_authenticated_twitch_user
+from bot.frontend.helpers.cast import to_int_or_raise
 
 router: Final = APIRouter(prefix="/api/counter", dependencies=[Depends(get_authenticated_twitch_user)])
 
