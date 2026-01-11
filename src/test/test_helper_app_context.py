@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from bot.helpers.app_context import _get_env_var_or_default  # type: ignore[reportPrivateUsage]
+from bot.core.helpers.env import get_env_var_or_default
 
 from bot.core.app_context import AppContext
 from bot.core.app_context import OptionalAppContextEntry
@@ -37,12 +37,12 @@ def test_optional_app_context_entry_is_valid() -> None:
 
 def test_get_env_var_or_default_success() -> None:
     with patch.dict(os.environ, {"TEST_VAR": "value"}):
-        assert _get_env_var_or_default("TEST_VAR", "default") == "value"
+        assert get_env_var_or_default("TEST_VAR", "default") == "value"
 
 
 def test_get_env_var_or_default_fallback(capsys: pytest.CaptureFixture[str]) -> None:
     with patch.dict(os.environ, {}, clear=True):
-        assert _get_env_var_or_default("TEST_VAR", "default") == "default"
+        assert get_env_var_or_default("TEST_VAR", "default") == "default"
         captured = capsys.readouterr()
         assert "Environment variable 'TEST_VAR' is not set, using default 'default'" in captured.out
 
