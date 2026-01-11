@@ -38,12 +38,12 @@ def update_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[Cou
 
 
 def update_counter(bot_id: int, name: str, data: dict[str, Any]) -> Result[CounterDB]:
-   result = PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data=data)
+    result = PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data=data)
 
-   if result.state.fail:
-       return result.cast_to(CounterDB)
+    if result.state.fail:
+        return result.cast_to(CounterDB)
 
-   return select_counter(bot_id, name)
+    return select_counter(bot_id, name)
 
 
 def delete_counter(bot_id: int, name: str) -> Result[None]:

@@ -16,8 +16,8 @@ from bot.database.counter import delete_counter as delete_counter_db
 from bot.database.counter import insert_counter as insert_counter_db
 from bot.database.counter import select_counter as select_counter_db
 from bot.database.counter import select_counter_by_bot_id as select_counter_by_bot_id_db
-from bot.database.counter import update_counter_name as update_counter_name_db
 from bot.database.counter import update_counter as update_counter_db
+from bot.database.counter import update_counter_name as update_counter_name_db
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.counter import CounterDB
 
