@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class DiscordSessionCookie(BaseModel):
-    user_id: str
+    user_id: int
     username: str
     display_name: str
     avatar_url: str
