@@ -1,8 +1,10 @@
-from bot.core.counter import decrement_counter_by, save_counter, delete_counter
+from bot.core.counter import decrement_counter_by
+from bot.core.counter import delete_counter
 from bot.core.counter import get_counter
 from bot.core.counter import get_counter_instructions
 from bot.core.counter import has_counter
 from bot.core.counter import increment_counter_by
+from bot.core.counter import save_counter
 from bot.core.helpers.string import has_whitespace
 from bot.core.helpers.string import identifier_for_db
 from bot.core.helpers.string import strip_for_db

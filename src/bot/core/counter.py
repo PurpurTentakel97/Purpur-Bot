@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 
 from bot.core.helpers.string import has_whitespace
 from bot.core.helpers.string import identifier_for_db
@@ -6,21 +7,80 @@ from bot.core.types.counter_instructions import CounterInstructions
 from bot.core.types.counter_instructions import CounterOperation
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
+from bot.database.commands import FIELD_MESSAGE
+from bot.database.commands import select_commands_by_bot_id as select_commands_by_bot_id_db
+from bot.database.commands import update_command as update_command_db
 from bot.database.counter import FIELD_COUNTER
 from bot.database.counter import FIELD_NAME
 from bot.database.counter import delete_counter as delete_counter_db
 from bot.database.counter import insert_counter as insert_counter_db
 from bot.database.counter import select_counter as select_counter_db
 from bot.database.counter import select_counter_by_bot_id as select_counter_by_bot_id_db
+from bot.database.counter import update_counter_name as update_counter_name_db
 from bot.database.counter import update_counter as update_counter_db
+from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.counter import CounterDB
+
+_COUNTER_PATTERN = re.compile(r"\{(?P<name>[a-zA-ZäöüÄÖÜ]\w*)(?:(?P<op>[+-])(?P<value>\d+))?\}")
 
 
 def _exists(bot_id: int, name: str) -> bool:
     return get_counter(bot_id, name).value is not None
 
 
-_COUNTER_PATTERN = re.compile(r"\{(?P<name>[a-zA-ZäöüÄÖÜ]\w*)(?:(?P<op>[+-])(?P<value>\d+))?\}")
+def _update_counter_names_in_commands(
+    bot_id: int,
+    old_counter_name: str,
+    new_counter_name: str,
+    handle_rollback: bool = True,
+    handled_commands: Optional[list[BasicCommandDB]] = None,
+) -> bool:
+    if handled_commands is None:
+        handled_commands = []
+
+    commands_result = select_commands_by_bot_id_db(bot_id)
+    if commands_result.state.fail or commands_result.value is None:
+        return False
+
+    for command in commands_result.value:
+        if has_counter(command.message):
+            instructions = get_counter_instructions(command.message)
+            for instruction in instructions:
+                if instruction.name == old_counter_name:
+                    if instruction.operation and instruction.value:
+                        pattern = f"{{{old_counter_name}{instruction.operation.value}{str(instruction.value)}}}"
+                        command.message = command.message.replace(
+                            pattern, f"{{{new_counter_name}{instruction.operation.value}{str(instruction.value)}}}"
+                        )
+                    else:
+                        pattern = f"{{{old_counter_name}}}"
+                        command.message = command.message.replace(pattern, f"{{{new_counter_name}}}")
+
+                    update_result = update_command_db(bot_id, command.command, {FIELD_MESSAGE: command.message})
+                    handled_commands.append(command)
+                    if update_result.state.fail:
+                        if handle_rollback:
+                            _update_counter_names_in_commands(
+                                bot_id, new_counter_name, old_counter_name, False, handled_commands
+                            )
+                        return False
+
+    return True
+
+
+def _can_counter_be_deleted(bot_id: int, counter_name: str) -> bool:
+    commands_result = select_commands_by_bot_id_db(bot_id)
+    if commands_result.state.fail or commands_result.value is None:
+        return False
+
+    for command in commands_result.value:
+        if has_counter(command.message):
+            instructions = get_counter_instructions(command.message)
+            for instruction in instructions:
+                if instruction.name == counter_name:
+                    return False
+
+    return True
 
 
 def has_counter(message: str) -> bool:
@@ -73,6 +133,9 @@ def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[Count
     new_name_db = identifier_for_db(new_name)
     old_name_db = identifier_for_db(old_name)
 
+    def handle_rollback(bot_id: int, old_name_db: str, new_name_db: str) -> None:
+        update_counter_db(bot_id, new_name_db, {FIELD_NAME: old_name_db})
+
     if not new_name_db:
         return Result(ResultState.EMPTY_NAME, None)
 
@@ -82,7 +145,16 @@ def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[Count
     if _exists(bot_id, new_name_db):
         return Result(ResultState.ALREADY_EXISTS, None)
 
-    return update_counter_db(bot_id, old_name_db, {FIELD_NAME: new_name_db})
+    counter_result = update_counter_name_db(bot_id, old_name_db, new_name_db)
+
+    if counter_result.state.fail:
+        return counter_result
+
+    if not _update_counter_names_in_commands(bot_id, old_name_db, new_name_db):
+        handle_rollback(bot_id, old_name_db, new_name_db)
+        return Result(ResultState.COUNTER_ERROR, None)
+
+    return counter_result
 
 
 def edit_counter_value(bot_id: int, name: str, value: int) -> Result[CounterDB]:
@@ -124,4 +196,9 @@ def decrement_counter(bot_id: int, name: str) -> Result[CounterDB]:
 
 
 def delete_counter(bot_id: int, name: str) -> Result[None]:
-    return delete_counter_db(bot_id, identifier_for_db(name))
+    name_db = identifier_for_db(name)
+
+    if not _can_counter_be_deleted(bot_id, name_db):
+        return Result(ResultState.SILL_IN_USE, None)
+
+    return delete_counter_db(bot_id, name_db)
