@@ -25,7 +25,7 @@ async def create_counter(request: Request) -> JSONResponse:
 
     result = save_counter_core(bot_id, name)
 
-    if not result:
+    if not result.state.is_success():
         return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Failed to create counter"})
     return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter created successfully"})
 
@@ -38,7 +38,7 @@ async def reset_counter(request: Request) -> JSONResponse:
 
     result = reset_counter_core(bot_id, name)
 
-    if not result:
+    if not result.state.is_success():
         return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Failed to reset counter"})
     return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter reset successfully"})
 
@@ -51,7 +51,7 @@ async def delete_counter(request: Request) -> JSONResponse:
 
     result = delete_counter_core(bot_id, name)
 
-    if not result:
+    if not result.state.is_success():
         return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Failed to delete counter"})
     return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter deleted successfully"})
 
@@ -65,7 +65,7 @@ async def update_counter_name(request: Request) -> JSONResponse:
 
     result = edit_counter_name_core(bot_id, old_name, new_name)
 
-    if not result:
+    if not result.state.is_success():
         return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Failed to rename counter"})
     return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter renamed successfully"})
 
@@ -79,6 +79,6 @@ async def update_counter_value(request: Request) -> JSONResponse:
 
     result = edit_counter_value_core(bot_id, name, value)
 
-    if not result:
+    if not result.state.is_success():
         return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"message": "Failed to update counter count"})
     return JSONResponse(status_code=HTTPStatus.OK, content={"message": "Counter count updated successfully"})

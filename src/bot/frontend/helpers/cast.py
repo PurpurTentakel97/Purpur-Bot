@@ -11,7 +11,7 @@ def to_int(value: str) -> Optional[int]:
 
 
 def to_int_or_raise(value: str) -> int:
-    result = to_int(value)
+    result = to_int(value.strip())
 
     if not result:
         raise HTTPException(status_code=400, detail="Invalid int value")
