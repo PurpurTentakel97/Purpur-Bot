@@ -93,6 +93,9 @@ class Database:
 
             return Result(ResultState.SUCCESS, last_id)
 
+        except sqlite3.IntegrityError:
+            return Result(ResultState.ALREADY_EXISTS, None)
+
         except Exception as e:
             log_exception(
                 e, LogProgram.Default, f"Failed to save data to the database and return id. | table_name: {table_name}"
@@ -108,6 +111,9 @@ class Database:
                 result = connection.execute(statement)
 
             return Result(ResultState.SUCCESS if result.rowcount != 0 else ResultState.NO_DATA, None)
+
+        except sqlite3.IntegrityError:
+            return Result(ResultState.ALREADY_EXISTS, None)
 
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to update data in the database. | table_name: {table_name}")
