@@ -12,6 +12,10 @@ from bot.database.alias_dict import update_dict_entry as update_dict_entry_db
 from bot.database.types.alias_dict_entry import AliasDictEntry
 
 
+def select_dict_from_bot(bot_id: int) -> Result[list[AliasDictEntry]]:
+    return select_dict_from_bot_db(bot_id)
+
+
 def alias_lookup(bot_id: int, message: str) -> Result[list[str]]:
     alias_dict = select_dict_from_bot_db(bot_id)
 
