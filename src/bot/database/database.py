@@ -12,6 +12,7 @@ from sqlalchemy import event
 from sqlalchemy import insert
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import IntegrityError
 
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
@@ -93,7 +94,7 @@ class Database:
 
             return Result(ResultState.SUCCESS, last_id)
 
-        except sqlite3.IntegrityError:
+        except IntegrityError:
             return Result(ResultState.ALREADY_EXISTS, None)
 
         except Exception as e:
@@ -112,7 +113,7 @@ class Database:
 
             return Result(ResultState.SUCCESS if result.rowcount != 0 else ResultState.NO_DATA, None)
 
-        except sqlite3.IntegrityError:
+        except IntegrityError:
             return Result(ResultState.ALREADY_EXISTS, None)
 
         except Exception as e:
