@@ -2,6 +2,10 @@ from typing import Optional
 
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
+from bot.core.alias_dict import add_alias as add_alias_core
+from bot.core.alias_dict import delete_alias as delete_alias_core
+from bot.core.alias_dict import edit_dict_alias as edit_dict_alias_core
+from bot.core.alias_dict import edit_dict_explanation as edit_dict_explanation_core
 from bot.core.commands import delete_command as delete_command_core
 from bot.core.commands import get_command_with_counter as get_command_core
 from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_core
@@ -179,6 +183,41 @@ def handle_command(message: ChatMessage) -> Optional[ChatMessageResponse]:
                     "Invalid command format. Use '!counter"
                     + " add|reset|remove|show|increment|decrement|set_name|set_count <counter_name> <new_value>'"
                 )
+
+            # dict
+            case ["!dict", "add", alias, *msg]:
+                command_message = " ".join(msg)
+                result = add_alias_core(message.bot_id, alias, command_message)
+                if result.state.success and result.value is not None:
+                    return message.to_response_message(
+                        f"Alias '{result.value.alias}' added with explanation '{result.value.explanation}'."
+                    )
+                return message.to_response_message(f"Failed to add alias: {_result_lookup(result.state)}")
+
+            case ["!dict", "edit_alias", old_alias, new_alias, *_]:
+                result = edit_dict_alias_core(message.bot_id, old_alias, new_alias)
+                if result.state.success and result.value is not None:
+                    return message.to_response_message(f"Alias '{old_alias}' updated to '{new_alias}'.")
+                return message.to_response_message(f"Failed to edit alias: {_result_lookup(result.state)}")
+
+            case ["!dict", "edit_message", alias, *msg]:
+                command_message = " ".join(msg)
+                result = edit_dict_explanation_core(message.bot_id, alias, command_message)
+                if result.state.success and result.value is not None:
+                    return message.to_response_message(f"Alias '{alias}' updated to explanation '{command_message}'.")
+                return message.to_response_message(f"Failed to edit alias explanation: {_result_lookup(result.state)}")
+
+            case ["!dict", "remove", alias, *_]:
+                result = delete_alias_core(message.bot_id, alias)
+                if result.state.success:
+                    return message.to_response_message(f"Alias '{alias}' deleted successfully.")
+                return message.to_response_message(f"Failed to delete alias: {_result_lookup(result.state)}")
+
+            case ["!dict", *_]:
+                return message.to_response_message(
+                    "Invalid command format. Use '!dict add|edit_alias|edit_message|remove <alias> <new_value>'"
+                )
+
             case _:
                 pass
 

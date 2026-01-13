@@ -15,6 +15,7 @@
             {% endif %}
             <button class="tab-link" onclick="openTab(event, 'commands')">Commands</button>
             <button class="tab-link" onclick="openTab(event, 'counters')">Counters</button>
+            <button class="tab-link" onclick="openTab(event, 'aliases')">Aliases</button>
         </div>
 
         <div id="bot-settings" class="tab-content active">
@@ -165,6 +166,55 @@
                         </td>
                         <td>
                             <button class="btn btn-add btn-small" onclick="addCounter()">Add</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="aliases" class="tab-content">
+            <h2>Aliases</h2>
+            <table class="bot-table">
+                <thead>
+                    <tr>
+                        <th>Alias</th>
+                        <th>Explanation</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="aliases-body">
+                    {% for entry in aliases %}
+                        <tr data-alias="{{ entry.alias }}">
+                            <td>
+                                <div class="command-input-wrapper">
+                                    <input type="text" class="edit-command-input" value="{{ entry.alias }}"
+                                           oninput="handleCommandEdit(this)">
+                                    <button class="btn btn-add btn-small save-btn" style="display: none;"
+                                            onclick="saveAliasName('{{ entry.alias }}', this)">Save</button>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="command-input-wrapper">
+                                    <input type="text" class="edit-command-input" value="{{ entry.explanation }}"
+                                           oninput="handleCommandEdit(this)">
+                                    <button class="btn btn-add btn-small save-btn" style="display: none;"
+                                            onclick="saveAliasExplanation('{{ entry.alias }}', this)">Save</button>
+                                </div>
+                            </td>
+                            <td>
+                                <button class="btn btn-delete btn-small remove-btn" onclick="deleteAlias('{{ entry.alias }}')">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="add-command-row">
+                        <td>
+                            <input type="text" id="new-alias-name" class="edit-command-input" placeholder="alias">
+                        </td>
+                        <td>
+                            <input type="text" id="new-alias-explanation" class="edit-command-input" placeholder="explanation">
+                        </td>
+                        <td>
+                            <button class="btn btn-add btn-small" onclick="addAlias()">Add</button>
                         </td>
                     </tr>
                 </tbody>
@@ -865,6 +915,148 @@
                 }
             } catch (err) {
                 alert('An error occurred while removing the counter.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function addAlias() {
+            const nameInput = document.getElementById('new-alias-name');
+            const explanationInput = document.getElementById('new-alias-explanation');
+            const alias = nameInput.value.trim();
+            const explanation = explanationInput.value.trim();
+
+            if (!alias || !explanation) {
+                alert('Both alias and explanation are required');
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/alias/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        alias: alias,
+                        explanation: explanation
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to add alias: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while adding the alias.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function saveAliasName(oldAlias, button) {
+            const input = button.previousElementSibling;
+            const newAlias = input.value.trim();
+
+            if (!newAlias) {
+                alert('Alias cannot be empty');
+                return;
+            }
+
+            if (oldAlias === newAlias) {
+                resetRowButtons(button.closest('tr'));
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/alias/update/alias', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        alias: oldAlias,
+                        new_alias: newAlias
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to rename alias: ' + (error.message || 'Unknown error'));
+                    await refreshDashboard();
+                }
+            } catch (err) {
+                alert('An error occurred while renaming the alias.');
+                await refreshDashboard();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function saveAliasExplanation(alias, button) {
+            const input = button.previousElementSibling;
+            const newExplanation = input.value.trim();
+
+            if (!newExplanation) {
+                alert('Explanation cannot be empty');
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/alias/update/explanation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        alias: alias,
+                        new_explanation: newExplanation
+                    })
+                });
+
+                if (response.ok) {
+                    resetRowButtons(button.closest('tr'));
+                } else {
+                    const error = await response.json();
+                    alert('Failed to update explanation: ' + (error.message || 'Unknown error'));
+                    await refreshDashboard();
+                }
+            } catch (err) {
+                alert('An error occurred while updating the explanation.');
+                await refreshDashboard();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function deleteAlias(alias) {
+            if (!confirm(`Are you sure you want to remove the alias ${alias}?`)) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch('/api/alias/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bot_id: "{{ bot.id }}",
+                        alias: alias
+                    })
+                });
+
+                if (response.ok) {
+                    await refreshDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to remove alias: ' + (error.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('An error occurred while removing the alias.');
             } finally {
                 hideLoading();
             }

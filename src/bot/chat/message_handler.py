@@ -1,5 +1,6 @@
 import asyncio
 
+from bot.chat.alias_dict import lookup_aliases
 from bot.chat.handle_commands import handle_command
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
@@ -14,9 +15,13 @@ def handle_single_message(message: ChatMessage) -> list[ChatMessageResponse]:
     response_messages: list[ChatMessageResponse] = []
 
     if message.text.strip().startswith("!"):
-        response = handle_command(message)
-        if response is not None:
-            response_messages.append(response)
+        command_response = handle_command(message)
+        if command_response is not None:
+            response_messages.append(command_response)
+
+    else:
+        alias_response = lookup_aliases(message)
+        response_messages.extend(alias_response)
 
     return response_messages
 
