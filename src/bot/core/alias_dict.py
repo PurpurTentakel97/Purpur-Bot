@@ -1,9 +1,14 @@
-from bot.core.helpers.string import has_whitespace, identifier_for_db, strip_for_db
-from bot.core.types.result import Result, ResultState
-from bot.database.alias_dict import FIELD_EXPLANATION, insert_dict_entry as insert_dict_entry_db, FIELD_ALIAS
+from bot.core.helpers.string import has_whitespace
+from bot.core.helpers.string import identifier_for_db
+from bot.core.helpers.string import strip_for_db
+from bot.core.types.result import Result
+from bot.core.types.result import ResultState
+from bot.database.alias_dict import FIELD_ALIAS
+from bot.database.alias_dict import FIELD_EXPLANATION
+from bot.database.alias_dict import delete_dict_entry as delete_dict_entry_db
+from bot.database.alias_dict import insert_dict_entry as insert_dict_entry_db
 from bot.database.alias_dict import select_dict_from_bot as select_dict_from_bot_db
 from bot.database.alias_dict import update_dict_entry as update_dict_entry_db
-from bot.database.alias_dict import delete_dict_entry as delete_dict_entry_db
 from bot.database.types.alias_dict_entry import AliasDictEntry
 
 
