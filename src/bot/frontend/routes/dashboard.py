@@ -9,6 +9,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
+from bot.core.alias_dict import select_dict_from_bot as get_alias_by_bot_id_core
 from bot.core.bot import get_bot as get_bot_core
 from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_core
 from bot.core.counter import get_counters_by_bot_id as get_counter_by_bot_id_core
@@ -56,6 +57,9 @@ async def bot_dashboard(
     counters = get_counter_by_bot_id_core(bot_id)
     if counters.value is None:
         raise HTTPException(status_code=404, detail="Counters not found")
+    aliases = get_alias_by_bot_id_core(bot_id)
+    if aliases.value is None:
+        raise HTTPException(status_code=404, detail="Aliases not found")
 
     discord_servers = get_discord_servers_by_bot_id_core(bot_id)
     if discord_servers.value is None:
@@ -77,6 +81,7 @@ async def bot_dashboard(
             "allowed_channels": filtered_allowed_channels,
             "commands": commands.value,
             "counters": counters.value,
+            "aliases": aliases.value,
             "twitch_user": current_twitch_user,
             "discord_user": current_discord_user,
             "discord_servers": discord_servers.value,
