@@ -68,7 +68,7 @@ async def auth_twitch() -> RedirectResponse:
         httponly=True,
         secure=APP_CONTEXT.environment_state.value().is_production(),
         samesite="lax",
-        path="/auth",
+        path="/auth/twitch",
     )
     return response
 
@@ -175,7 +175,7 @@ async def auth_discord() -> RedirectResponse:
         httponly=True,
         secure=APP_CONTEXT.environment_state.value().is_production(),
         samesite="lax",
-        path="/auth",
+        path="/auth/discord",
     )
     return response
 
