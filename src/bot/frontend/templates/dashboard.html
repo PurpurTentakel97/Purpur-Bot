@@ -1,0 +1,30 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_dashboard_styles %}
+<style>
+    .dashboard-intro {
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    .dashboard-intro h1 {
+        margin-bottom: 1.5rem;
+    }
+
+    .dashboard-intro p {
+        color: #ccc;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+    <div class="dashboard-intro">
+        <h1>Bot Dashboard</h1>
+        <p>Welcome to the dashboard.</p>
+        <p>Please use the navigation bar to customize your bot.</p>
+    </div>
+{% endblock %}

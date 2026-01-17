@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Base-Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .dashboard-container {
+        display: flex;
+        flex: 1;
+    }
+
+    .dashboard-sidebar {
+        width: 200px;
+        background-color: #222;
+        border-right: 1px solid #444;
+        padding: 1rem 0;
+    }
+
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar-menu li a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        color: #ccc;
+        text-decoration: none;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .sidebar-menu li a:hover {
+        background-color: #333;
+        color: white;
+    }
+
+    .dashboard-content {
+        flex: 1;
+        padding: 2rem;
+    }
+</style>
+{% block extra_dashboard_styles %}{% endblock %}
+{% endblock %}
+
+
+{% block content %}
+<div class="dashboard-container">
+    <aside class="dashboard-sidebar">
+        <nav>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="/">
+                        < Back
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    <section class="dashboard-content">
+        {% block dashboard_content %}{% endblock %}
+    </section>
+</div>
+{% endblock %}
