@@ -166,6 +166,25 @@
             color: #772ce8;
         }
 
+        /* alerts */
+        .alert {
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: bold;
+            width: 100%;
+            z-index: 900;
+        }
+
+        .alert-error {
+            background-color: #e24a4a;
+            color: white;
+        }
+
+        .alert-success {
+            background-color: #28a745;
+            color: white;
+        }
+
     </style>
     {% block extra_styles %}{% endblock %}
     {% block head %}{% endblock %}
@@ -195,6 +214,20 @@
         {% endif %}
     </div>
 </header>
+
+
+{% if request.query_params.get('error_message') %}
+<div class="alert alert-error">
+    {{ request.query_params.get('error_message') }}
+</div>
+{% endif %}
+
+{% if request.query_params.get('success_message') %}
+<div class="alert alert-success">
+    {{ request.query_params.get('success_message') }}
+</div>
+{% endif %}
+
 
 <main>
     {% block content %}{% endblock %}
