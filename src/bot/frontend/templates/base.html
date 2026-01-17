@@ -87,11 +87,27 @@
             gap: 1rem;
         }
 
+        .avatar-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .avatar-container .user-avatar:not(:first-child) {
+            margin-left: -8px;
+            z-index: 1;
+        }
+
+        .avatar-container .user-avatar:first-child {
+            z-index: 2;
+        }
+
         .user-avatar {
             height: 30px;
             width: 30px;
             border-radius: 50%;
             object-fit: cover;
+            border: 2px solid #000;
+            position: relative;
         }
 
         .header-left a {
@@ -159,7 +175,14 @@
     <div>
         {% if twitch_user %}
         <div class="user-info">
-            <img src="/icons/twitch/profile_picture" alt="Avatar" class="user-avatar">
+            <div class="avatar-container">
+                {% if discord_user %}
+                <img src="/icons/discord/profile_icon" alt="Discord Avatar" class="user-avatar"
+                     title="Discord: {{ discord_user.display_name }}">
+                {% endif %}
+                <img src="/icons/twitch/profile_icon" alt="Twitch Avatar" class="user-avatar"
+                     title="Twitch: {{ twitch_user.display_name }}">
+            </div>
             <span>Welcome, {{ twitch_user.display_name }}</span>
             <a href="/auth/logout" class="btn btn-secondary" style="margin-left: 10px;">Logout</a>
         </div>
