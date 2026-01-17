@@ -8,7 +8,6 @@ from typing import Optional
 import httpx
 from fastapi import APIRouter
 from fastapi import Depends
-from starlette.responses import RedirectResponse
 from starlette.responses import Response
 from twitchAPI.helper import first
 from twitchAPI.twitch import Twitch
@@ -78,7 +77,7 @@ async def get_twitch_icon(
             await twitch.close()
     except Exception as e:
         log_exception(e, LogProgram.Frontend, f"Failed to fetch Twitch icon for user {user_id}")
-        return RedirectResponse(url=twitch_user.profile_image_url)
+        return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
 
 
 @router.get("/discord/profile_icon")
