@@ -12,6 +12,7 @@ class LogProgram(Enum):
     Default = auto()
     Discord = auto()
     Twitch = auto()
+    Frontend = auto()
 
     def __str__(self) -> str:
         return self.name

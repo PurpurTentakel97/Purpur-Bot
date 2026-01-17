@@ -27,6 +27,23 @@ from bot.frontend.types.twitch_user_info import TwitchUserInfo
 router: Final = APIRouter(prefix="/dashboard", dependencies=[Depends(get_authenticated_twitch_user)])
 
 
+@router.get("/")
+async def dashboard_main(
+    request: Request,
+    template: Annotated[Jinja2Templates, Depends(get_templates)],
+    current_twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
+    current_discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+) -> Response:
+    return template.TemplateResponse(
+        request=request,
+        name="dashboard_main.html",
+        context={
+            "twitch_user": current_twitch_user,
+            "discord_user": current_discord_user,
+        },
+    )
+
+
 @router.post("/bot/edit")
 async def bot_dashboard(
     request: Request,
@@ -74,7 +91,7 @@ async def bot_dashboard(
 
     return template.TemplateResponse(
         request=request,
-        name="dashboard.html",
+        name="dashboard_main.html",
         context={
             "bot": bot.value,
             "twitch_channels": twitch_channels.value,

@@ -133,11 +133,11 @@ APP_CONTEXT = AppContext(
     discord_token=get_env_var_or_default("DISCORD_TOKEN", None),
     discord_client_id=get_env_var_or_default("DISCORD_CLIENT_ID", None),
     discord_client_secret=get_env_var_or_default("DISCORD_CLIENT_SECRET", None),
-    discord_redirect_uri=get_env_var_or_default("DISCORD_REDIRECT_URI", "http://localhost:8000/auth/discord/callback"),
+    discord_redirect_uri=get_env_var_or_default("DISCORD_REDIRECT_URI", "http://localhost:8000/auth/login/discord/callback"),
     twitch_client_id=get_env_var_or_default("TWITCH_CLIENT_ID", None),
     twitch_credentials=get_env_var_or_default("TWITCH_CREDENTIALS", None),
     twitch_tokens=TwitchTokens.try_load_from_env(),
-    twitch_redirect_uri=get_env_var_or_default("TWITCH_REDIRECT_URI", "http://localhost:8000/auth/twitch/callback"),
+    twitch_redirect_uri=get_env_var_or_default("TWITCH_REDIRECT_URI", "http://localhost:8000/auth/login/twitch/callback"),
     environment_state=Environment.from_string(get_env_var_or_default("ENVIRONMENT_STATE", "production")),
     jwt_secret=get_env_var_or_rise("JWT_SECRET"),
 )

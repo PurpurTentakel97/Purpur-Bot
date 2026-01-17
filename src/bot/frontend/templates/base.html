@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bot Dashboard{% endblock %}</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #333;
+            color: white;
+        }
+
+        main {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        header {
+            background-color: #000;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            height: 30px;
+            width: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .header-left a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .header-logo {
+            max-height: 35px;
+            width: auto;
+        }
+
+        footer {
+            background-color: #000;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            align-items: flex-start;
+        }
+
+        .footer-content-entry {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-content-entry p {
+            margin: 0;
+        }
+
+        .footer-logo {
+            max-height: 150px;
+            width: auto;
+        }
+
+        .login-btn {
+            background-color: #9146ff;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .login-btn:hover {
+            background-color: #772ce8;
+        }
+
+        .footer-content-entry a {
+            color: #9146ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .footer-content-entry a:hover {
+            text-decoration: underline;
+            color: #772ce8;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+<header>
+    <div class="header-left">
+        <img src="/static/purpur_love.png" alt="Logo" class="header-logo">
+        <a href="/">Purpur-Bot</a>
+    </div>
+    <div>
+        {% if twitch_user %}
+        <div class="user-info">
+            <img src="/icons/twitch/profile_picture" alt="Avatar" class="user-avatar">
+            <span>Welcome, {{ twitch_user.display_name }}</span>
+            <a href="/auth/logout" class="login-btn" style="background-color: #555; margin-left: 10px;">Logout</a>
+        </div>
+        {% else %}
+        <a href="/auth/login/twitch" class="login-btn">Login with Twitch</a>
+        {% endif %}
+    </div>
+</header>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-content-entry">
+            <h3>Purpur Bot</h3>
+            <p>A simple bot primarily designed for Twitch, with additional support for Discord integration. By
+                codingPurpurTentakel</p>
+        </div>
+
+        <div class="footer-content-entry">
+            <img src="/static/purpur_hi.png" alt="Logo" class="footer-logo">
+            <p>&copy; {{ now.year }} | Purpur Bot | All rights reserved.</p>
+        </div>
+
+        <div class="footer-content-entry">
+            <h3>Links</h3>
+            <a href="https://github.com/PurpurTentakel97">GitHub</a>
+            <a href="https://github.com/PurpurTentakel97/Purpur-Bot">Purpur-Bot</a>
+            <a href="https://www.twitch.tv/codingpurpurtentakel">Twitch</a>
+        </div>
+
+    </div>
+</footer>
+</body>
+</html>

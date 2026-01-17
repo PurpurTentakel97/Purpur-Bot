@@ -14,6 +14,7 @@ import jwt
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
+from fastapi import Response
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from twitchAPI.helper import first
@@ -48,7 +49,7 @@ TWITCH_OAUTH_STATE_COOKIE_KEY: Final = "TWITCH_OAUTH_STATE_COOKIE"
 DISCORD_OAUTH_STATE_COOKIE_KEY: Final = "DISCORD_OAUTH_STATE_COOKIE"
 
 
-@router.get("/twitch")
+@router.get("/login/twitch")
 async def auth_twitch() -> RedirectResponse:
     state = secrets.token_urlsafe(32)
 
@@ -68,16 +69,17 @@ async def auth_twitch() -> RedirectResponse:
         httponly=True,
         secure=APP_CONTEXT.environment_state.value().is_production(),
         samesite="lax",
-        path="/auth/twitch",
+        path="/auth",
     )
     return response
 
 
-@router.get("/twitch/callback")
+@router.get("/login/twitch/callback")
 async def auth_twitch_callback(request: Request, code: Optional[str], state: Optional[str]) -> RedirectResponse:
     expected_state: Final = request.cookies.get(TWITCH_OAUTH_STATE_COOKIE_KEY)
     if expected_state is None or state is None or code is None or expected_state != state:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="OAuth state missmatch or missing code")
+        log_default(LogLevel.ERROR, f"Twitch OAuth state mismatch. Expected: {expected_state}, Got: {state}")
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="OAuth state mismatch or missing code")
 
     try:
 
@@ -155,7 +157,7 @@ async def auth_twitch_callback(request: Request, code: Optional[str], state: Opt
         ) from e
 
 
-@router.get("/discord")
+@router.get("/login/discord")
 async def auth_discord() -> RedirectResponse:
     state = secrets.token_urlsafe(32)
 
@@ -175,18 +177,19 @@ async def auth_discord() -> RedirectResponse:
         httponly=True,
         secure=APP_CONTEXT.environment_state.value().is_production(),
         samesite="lax",
-        path="/auth/discord",
+        path="/auth",
     )
     return response
 
 
-@router.get("/discord/callback")
+@router.get("/login/discord/callback")
 async def auth_discord_callback(
     request: Request, code: Optional[str] = None, state: Optional[str] = None
 ) -> RedirectResponse:
     expected_state: Final = request.cookies.get(DISCORD_OAUTH_STATE_COOKIE_KEY)
     if expected_state is None or state is None or code is None or expected_state != state:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="OAuth state missmatch or missing code")
+        log_default(LogLevel.ERROR, f"Discord OAuth state mismatch. Expected: {expected_state}, Got: {state}")
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="OAuth state mismatch or missing code")
 
     try:
 
@@ -275,6 +278,7 @@ async def auth_discord_callback(
         raise HTTPException(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="Error during Discord OAuth Callback"
         ) from e
+
 
 
 @router.get("/logout")
