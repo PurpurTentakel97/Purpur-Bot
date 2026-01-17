@@ -18,6 +18,7 @@ from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.routes.api_auth import router as auth_router
 from bot.frontend.routes.api_icons import router as icon_router
 from bot.frontend.routes.dashboard_global import router as dashboard_main_router
+from bot.frontend.routes.dashboard_twitch import router as dashboard_twitch_router
 from bot.frontend.routes.home import router as home_router
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
@@ -47,6 +48,7 @@ app.include_router(auth_router)
 app.include_router(home_router)
 app.include_router(icon_router)
 app.include_router(dashboard_main_router)
+app.include_router(dashboard_twitch_router)
 
 
 @app.exception_handler(HTTPException)

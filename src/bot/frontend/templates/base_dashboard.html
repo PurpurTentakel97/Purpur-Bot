@@ -79,6 +79,12 @@
                         Global
                     </a>
                 </li>
+                <li>
+                    <a href="/dashboard/twitch/{{ bot.id }}"
+                       class="{{ 'active' if request.url.path == '/dashboard/twitch/' ~ bot.id else '' }}">
+                        Twitch
+                    </a>
+                </li>
             </ul>
         </nav>
     </aside>

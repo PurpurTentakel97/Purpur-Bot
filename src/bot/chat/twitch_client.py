@@ -45,9 +45,12 @@ class TwitchClient:
     def connect_chat(self, chat: TwitchChat) -> None:
         self._chats.append(chat)
 
+    def disconnect_chat(self, chat: TwitchChat) -> None:
+        self._chats.remove(chat)
+
     async def terminate(self) -> None:
         for chat in self._chats:
-            await chat.terminate()
+            await chat.terminate(self)
         await self.client.close()
         log_twitch(LogLevel.INFO, "Twitch client terminated.")
 

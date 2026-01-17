@@ -47,8 +47,9 @@ class TwitchChat(Chat):
         twitch.connect_chat(instance)
         return instance
 
-    async def terminate(self) -> None:
+    async def terminate(self, twitch: TwitchClient) -> None:
         self.chat.stop()
+        twitch.disconnect_chat(self)
         log_twitch(LogLevel.INFO, f"Twitch chat for {self.channel_name} terminated.")
 
     @override
