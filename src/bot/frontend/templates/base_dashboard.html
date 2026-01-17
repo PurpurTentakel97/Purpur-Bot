@@ -37,6 +37,18 @@
         color: white;
     }
 
+    .sidebar-menu li a.active {
+        background-color: #333;
+        color: #9146ff;
+        border-left: 3px solid #9146ff;
+        padding-left: calc(1.5rem - 3px);
+    }
+
+    .sidebar-icon {
+        width: 1.2rem;
+        height: 1.2rem;
+    }
+
     .dashboard-content {
         flex: 1;
         padding: 2rem;
@@ -52,8 +64,16 @@
         <nav>
             <ul class="sidebar-menu">
                 <li>
-                    <a href="/">< Back</a>
-                    <a href="/dashboard/global/{{bot.id}}">Global</a>
+                    <a href="/"
+                       class="{{ 'active' if request.url.path == '/' else '' }}">
+                        < Back
+                    </a>
+                </li>
+                <li>
+                    <a href="/dashboard/global/{{ bot.id }}"
+                       class="{{ 'active' if request.url.path == '/dashboard/global/' ~ bot.id else '' }}">
+                        Global
+                    </a>
                 </li>
             </ul>
         </nav>
