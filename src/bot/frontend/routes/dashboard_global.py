@@ -1,15 +1,23 @@
-from typing import Annotated, Optional
-from fastapi import APIRouter, Depends
+from http import HTTPStatus
+from typing import Annotated
+from typing import Optional
+
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import Form
+from fastapi.responses import RedirectResponse
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
-from bot.frontend.helpers.auth import get_authenticated_twitch_user, get_discord_user
+from bot.core.bot import get_bot as get_bot_core
+from bot.core.bot import update_bot as update_bot_core
+from bot.frontend.helpers.auth import get_authenticated_twitch_user
+from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
-from bot.core.bot import get_bot as get_bot_core
 
 router = APIRouter(prefix="/dashboard/global", dependencies=[Depends(get_authenticated_twitch_user)])
 
@@ -34,4 +42,26 @@ async def dashboard_main(
             "twitch_user": twitch_user,
             "discord_user": discord_user,
         },
+    )
+
+
+@router.post("/{bot_id:int}")
+async def dashboard_main_edit(
+    request: Request,
+    bot_id: int,
+    name: Annotated[str, Form()],
+) -> RedirectResponse:
+    bot = get_bot_core(bot_id)
+    if bot.value is None:
+        raise HTTPException(status_code=404, detail="Bot not found")
+
+    result = update_bot_core(bot_id=bot_id, name=name)
+    if result.state.fail:
+        return RedirectResponse(
+            f"/dashboard/global/{bot_id}?error_message=Failed to update bot | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        f"/dashboard/global/{bot_id}?success_message=Bot updated successfully", status_code=HTTPStatus.SEE_OTHER
     )
