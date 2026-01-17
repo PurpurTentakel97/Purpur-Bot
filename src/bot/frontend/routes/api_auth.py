@@ -14,7 +14,6 @@ import jwt
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
-from fastapi import Response
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from twitchAPI.helper import first
@@ -278,7 +277,6 @@ async def auth_discord_callback(
         raise HTTPException(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="Error during Discord OAuth Callback"
         ) from e
-
 
 
 @router.get("/logout")
