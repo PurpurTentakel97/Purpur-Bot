@@ -50,7 +50,7 @@ async def home(
     )
 
 
-@router.post("/bot/create")
+@router.post("/bot")
 async def bot_create(
     twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
 ) -> RedirectResponse:
@@ -64,7 +64,7 @@ async def bot_create(
     return RedirectResponse(url="/?success_message=new bot added", status_code=HTTPStatus.SEE_OTHER)
 
 
-@router.get("/bot/delete/{bot_id:int}")
+@router.post("/bot/delete/{bot_id:int}")
 async def bot_delete(
     twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],  # twitch user for authentication
     bot_id: int,

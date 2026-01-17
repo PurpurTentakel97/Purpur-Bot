@@ -101,7 +101,9 @@
                                 <td>{{ bot.name }}</td>
                                 <td>
                                     <a href="/dashboard/global/{{ bot.id }}" class="btn btn-edit">Edit</a>
-                                    <a href="/bot/delete/{{ bot.id }}" class="btn btn-remove">Remove</a>
+                                    <form action="/bot/delete/{{ bot.id }}" method="post" style="display: inline;">
+                                        <button type="submit" class="btn btn-remove">Remove</button>
+                                    </form>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -110,7 +112,7 @@
             {% else %}
                 <p>No bots found for your account.</p>
             {% endif %}
-            <form action="/bot/create" method="post" style="display: inline;">
+            <form action="/bot" method="post" style="display: inline;">
                 <button type=submit class="btn btn-primary">Add Bot</button>
             </form>
         </div>
