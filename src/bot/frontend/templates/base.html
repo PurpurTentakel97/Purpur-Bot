@@ -5,6 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bot Dashboard{% endblock %}</title>
     <style>
+        /* elements */
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s, background-color 0.2s;
+            color: white;
+            text-align: center;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-edit {
+            background-color: #4a90e2;
+            margin-right: 0.5rem;
+        }
+
+        .btn-remove {
+            background-color: #e24a4a;
+        }
+
+        .btn-primary {
+            background-color: #9146ff;
+        }
+
+        .btn-primary:hover {
+            background-color: #772ce8;
+        }
+
+        .btn-secondary {
+            background-color: #555;
+        }
+
+        .btn-secondary:hover {
+            background-color: #444;
+        }
+
+        /* main */
         body {
             display: flex;
             flex-direction: column;
@@ -20,6 +65,7 @@
             padding: 1rem;
         }
 
+        /* base specific */
         header {
             background-color: #000;
             color: white;
@@ -89,19 +135,6 @@
             width: auto;
         }
 
-        .login-btn {
-            background-color: #9146ff;
-            color: white;
-            padding: 0.5rem 1rem;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        .login-btn:hover {
-            background-color: #772ce8;
-        }
-
         .footer-content-entry a {
             color: #9146ff;
             text-decoration: none;
@@ -112,7 +145,9 @@
             text-decoration: underline;
             color: #772ce8;
         }
+
     </style>
+    {% block extra_styles %}{% endblock %}
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -126,10 +161,10 @@
         <div class="user-info">
             <img src="/icons/twitch/profile_picture" alt="Avatar" class="user-avatar">
             <span>Welcome, {{ twitch_user.display_name }}</span>
-            <a href="/auth/logout" class="login-btn" style="background-color: #555; margin-left: 10px;">Logout</a>
+            <a href="/auth/logout" class="btn btn-secondary" style="margin-left: 10px;">Logout</a>
         </div>
         {% else %}
-        <a href="/auth/login/twitch" class="login-btn">Login with Twitch</a>
+        <a href="/auth/login/twitch" class="btn btn-primary">Login with Twitch</a>
         {% endif %}
     </div>
 </header>

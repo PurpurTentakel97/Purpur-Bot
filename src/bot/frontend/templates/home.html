@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Bot Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .bot-list-container {
+        background-color: #2a2a2a;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin: 1rem auto 0;
+        max-width: 800px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .bot-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1.5rem;
+    }
+
+    .bot-table th, .bot-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #444;
+    }
+
+    .bot-table th:last-child, .bot-table td:last-child {
+        text-align: right;
+    }
+
+    .bot-table th {
+        color: #aaa;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    .login-message {
+        text-align: center;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <h1>Welcome to the Purpur-Bot Dashboard</h1>
+    {% if twitch_user %}
+        <div class="bot-list-container">
+            <h2>Your Bots</h2>
+            {% if bots %}
+                <table class="bot-table">
+                    <thead>
+                        <tr>
+                            <th>Bot Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bot in bots %}
+                            <tr>
+                                <td>{{ bot.name }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-edit">Edit</a>
+                                    <a href="#" class="btn btn-remove">Remove</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No bots found for your account.</p>
+            {% endif %}
+            <a href="#" class="btn btn-primary">Add Bot</a>
+        </div>
+    {% else %}
+        <p class="login-message">Please log in with Twitch to manage your bots.</p>
+    {% endif %}
+{% endblock %}
