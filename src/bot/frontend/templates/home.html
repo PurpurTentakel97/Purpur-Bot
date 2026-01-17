@@ -9,7 +9,8 @@
         padding: 1.5rem;
         border-radius: 8px;
         margin: 1rem auto 0;
-        max-width: 800px;
+        width: 50%;
+        box-sizing: border-box;
         box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
 
@@ -50,7 +51,8 @@
         padding: 1.5rem;
         border-radius: 8px;
         margin: 2rem auto 0;
-        max-width: 800px;
+        width: 50%;
+        box-sizing: border-box;
         box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         text-align: center;
     }
@@ -108,7 +110,9 @@
             {% else %}
                 <p>No bots found for your account.</p>
             {% endif %}
-            <a href="#" class="btn btn-primary">Add Bot</a>
+            <form action="/bot/create" method="post" style="display: inline;">
+                <button type=submit class="btn btn-primary">Add Bot</button>
+            </form>
         </div>
 
         <div class="discord-login-container">

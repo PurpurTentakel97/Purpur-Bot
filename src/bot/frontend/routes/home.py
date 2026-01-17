@@ -1,17 +1,21 @@
+from http import HTTPStatus
 from typing import Annotated
 from typing import Final
 from typing import Optional
 
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi.responses import RedirectResponse
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
+from bot.core.bot import add_bot as add_bot_core
 from bot.core.bot import get_bots_by_twitch_id as get_bots_by_twitch_id_core
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
+from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
@@ -43,3 +47,21 @@ async def home(
         name="home.html",
         context={"twitch_user": twitch_user, "discord_user": discord_user, "bots": bots.value},
     )
+
+
+@router.post("/bot/create")
+async def bot_create(
+    request: Request, twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
+) -> RedirectResponse:
+    try:
+        result = add_bot_core(twitch_user.id_)
+        if result.value is None:
+            return RedirectResponse(
+                url=f"/?error_message=Failed to create a bot | reason: {result.state.name}",
+                status_code=HTTPStatus.SEE_OTHER,
+            )
+
+        return RedirectResponse(url="/?success_message=new bot added", status_code=HTTPStatus.SEE_OTHER)
+
+    except Exception as e:
+        return RedirectResponse(url=f"/?error_message={str(e)}", status_code=HTTPStatus.SEE_OTHER)
