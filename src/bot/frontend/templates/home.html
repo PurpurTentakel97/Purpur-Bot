@@ -114,6 +114,8 @@
         <div class="discord-login-container">
             <h3>Discord Login</h3>
             {% if discord_user %}
+                <img src="/icons/discord/profile_icon" alt="Discord Avatar" class="user-avatar"
+                    title="Discord: {{ discord_user.display_name }}">
                 <p class="discord-status">You are currently logged in with Discord as <strong>{{ discord_user.display_name }}</strong>.</p>
             {% else %}
                 <p class="discord-status">Connect your Discord account to enable more features.</p>
