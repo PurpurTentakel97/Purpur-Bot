@@ -16,15 +16,16 @@ from bot.frontend.types.twitch_user_info import TwitchUserInfo
 router = APIRouter(prefix="/dashboard", dependencies=[Depends(get_authenticated_twitch_user)])
 
 
-@router.get("")
+@router.get("/{bot_id:int}")
 async def dashboard(
     request: Request,
     template: Annotated[Jinja2Templates, Depends(get_templates)],
     twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
     discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    bot_id: int
 ) -> Response:
     return template.TemplateResponse(
         request=request,
         name="dashboard.html",
-        context={"twitch_user": twitch_user, "discord_user": discord_user},
+        context={"twitch_user": twitch_user, "discord_user": discord_user, "bot_id": bot_id},
     )
