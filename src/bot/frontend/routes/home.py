@@ -54,18 +54,14 @@ async def home(
 async def bot_create(
     twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
 ) -> RedirectResponse:
-    try:
-        result = add_bot_core(twitch_user.id_)
-        if result.value is None:
-            return RedirectResponse(
-                url=f"/?error_message=Failed to create a bot | reason: {result.state.name}",
-                status_code=HTTPStatus.SEE_OTHER,
-            )
+    result = add_bot_core(twitch_user.id_)
+    if result.value is None:
+        return RedirectResponse(
+            url=f"/?error_message=Failed to create a bot | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
 
-        return RedirectResponse(url="/?success_message=new bot added", status_code=HTTPStatus.SEE_OTHER)
-
-    except Exception as e:
-        return RedirectResponse(url=f"/?error_message={str(e)}", status_code=HTTPStatus.SEE_OTHER)
+    return RedirectResponse(url="/?success_message=new bot added", status_code=HTTPStatus.SEE_OTHER)
 
 
 @router.get("/bot/delete/{bot_id:int}")
@@ -73,16 +69,12 @@ async def bot_delete(
     twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],  # twitch user for authentication
     bot_id: int,
 ) -> RedirectResponse:
-    try:
-        result = await delete_bot_core(bot_id)
+    result = await delete_bot_core(bot_id)
 
-        if result.state.fail:
-            return RedirectResponse(
-                url=f"/?error_message=Failed to delete a bot | reason: {result.state.name}",
-                status_code=HTTPStatus.SEE_OTHER,
-            )
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/?error_message=Failed to delete a bot | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
 
-        return RedirectResponse(url="/?success_message=Bot deleted successfully", status_code=HTTPStatus.SEE_OTHER)
-
-    except Exception as e:
-        return RedirectResponse(url=f"/?error_message={str(e)}", status_code=HTTPStatus.SEE_OTHER)
+    return RedirectResponse(url="/?success_message=Bot deleted successfully", status_code=HTTPStatus.SEE_OTHER)

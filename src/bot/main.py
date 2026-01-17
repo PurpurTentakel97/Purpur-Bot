@@ -5,14 +5,22 @@ from typing import Final
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
+from starlette.responses import Response
 
 from bot.chat.message_handler import handle_messages
 from bot.core.startup import startup_programm
 from bot.core.terminate import terminate_programm
+from bot.frontend.helpers.auth import get_discord_user
+from bot.frontend.helpers.auth import get_twitch_user
+from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.routes.api_auth import router as auth_router
 from bot.frontend.routes.api_icons import router as icon_router
 from bot.frontend.routes.dashboard import router as dashboard_router
 from bot.frontend.routes.home import router as home_router
+from bot.helpers.log import LogProgram
+from bot.helpers.log import log_exception
 
 
 @asynccontextmanager
@@ -39,3 +47,55 @@ app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(home_router)
 app.include_router(icon_router)
+
+
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException) -> Response:
+    # This catches 404, 403, 500, etc.
+    template = get_templates()
+
+    # robustly try to get the users for the header
+    try:
+        twitch_user = get_twitch_user(request)
+        discord_user = get_discord_user(request)
+    except Exception:
+        twitch_user = None
+        discord_user = None
+
+    return template.TemplateResponse(
+        request=request,
+        name="error.html",
+        context={
+            "status_code": exc.status_code,
+            "detail": exc.detail,
+            "twitch_user": twitch_user,
+            "discord_user": discord_user,
+        },
+        status_code=exc.status_code,
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception) -> Response:
+    log_exception(exc, LogProgram.Frontend, "")
+    template = get_templates()
+
+    # robustly try to get the users for the header
+    try:
+        twitch_user = get_twitch_user(request)
+        discord_user = get_discord_user(request)
+    except Exception:
+        twitch_user = None
+        discord_user = None
+
+    return template.TemplateResponse(
+        request=request,
+        name="error.html",
+        context={
+            "status_code": 500,
+            "detail": "An unexpected server error occurred.",
+            "twitch_user": twitch_user,
+            "discord_user": discord_user,
+        },
+        status_code=500,
+    )
