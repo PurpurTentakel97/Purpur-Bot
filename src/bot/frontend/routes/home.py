@@ -12,6 +12,7 @@ from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 from bot.core.bot import add_bot as add_bot_core
+from bot.core.bot import delete_bot as delete_bot_core
 from bot.core.bot import get_bots_by_twitch_id as get_bots_by_twitch_id_core
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
@@ -51,7 +52,7 @@ async def home(
 
 @router.post("/bot/create")
 async def bot_create(
-    request: Request, twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)]
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
 ) -> RedirectResponse:
     try:
         result = add_bot_core(twitch_user.id_)
@@ -62,6 +63,26 @@ async def bot_create(
             )
 
         return RedirectResponse(url="/?success_message=new bot added", status_code=HTTPStatus.SEE_OTHER)
+
+    except Exception as e:
+        return RedirectResponse(url=f"/?error_message={str(e)}", status_code=HTTPStatus.SEE_OTHER)
+
+
+@router.get("/bot/delete/{bot_id:int}")
+async def bot_delete(
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],  # twitch user for authentication
+    bot_id: int,
+) -> RedirectResponse:
+    try:
+        result = await delete_bot_core(bot_id)
+
+        if result.state.fail:
+            return RedirectResponse(
+                url=f"/?error_message=Failed to delete a bot | reason: {result.state.name}",
+                status_code=HTTPStatus.SEE_OTHER,
+            )
+
+        return RedirectResponse(url="/?success_message=Bot deleted successfully", status_code=HTTPStatus.SEE_OTHER)
 
     except Exception as e:
         return RedirectResponse(url=f"/?error_message={str(e)}", status_code=HTTPStatus.SEE_OTHER)
