@@ -1,117 +1,50 @@
-{% extends "base_dashboard.html" %}
+{% extends "base_dashboard_twitch.html" %}
 
 {% block title %}Twitch-Dashboard{% endblock %}
 
-{% block extra_dashboard_styles %}
-<style>
-    .twitch-container {
-        max-width: 1000px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-    }
+{% block twitch_content %}
+<section class="twitch-section">
+    <h2>Joined Channels</h2>
+    <table class="twitch-table">
+        <thead>
+        <tr>
+            <th>Channel Name</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if twitch_channels %}
+        {% for channel in twitch_channels %}
+        <tr>
+            <td>{{ channel.channel_name }}</td>
+            <td>
+                <form action="/dashboard/twitch/delete/{{ bot.id }}/{{ channel.channel_name }}" method="post"
+                      style="display: inline;">
+                    <button type="submit" class="btn btn-remove">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="2">No channels joined yet.</td>
+        </tr>
+        {% endif %}
+        </tbody>
+    </table>
+</section>
 
-    .twitch-section {
-        background-color: #2a2a2a;
-        padding: 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    .twitch-section h2 {
-        margin-top: 0;
-        margin-bottom: 1.5rem;
-        color: #aaa;
-        font-size: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05rem;
-    }
-
-    .twitch-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .twitch-table th, .twitch-table td {
-        padding: 1rem;
-        text-align: left;
-        border-bottom: 1px solid #444;
-    }
-
-    .twitch-table th {
-        color: #777;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-    }
-
-    .twitch-table td:last-child {
-        text-align: right;
-    }
-
-    .add-channel-form {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-    }
-
-    .add-channel-form select {
-        flex: 1;
-        padding: 0.5rem;
-        background-color: #333;
-        color: white;
-        border: 1px solid #444;
-        border-radius: 4px;
-    }
-</style>
-{% endblock %}
-
-
-{% block dashboard_content %}
-<div class="twitch-container">
-    <section class="twitch-section">
-        <h2>Joined Channels</h2>
-        <table class="twitch-table">
-            <thead>
-            <tr>
-                <th>Channel Name</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% if twitch_channels %}
-            {% for channel in twitch_channels %}
-            <tr>
-                <td>{{ channel.channel_name }}</td>
-                <td>
-                    <form action="/dashboard/twitch/delete/{{ bot.id }}/{{ channel.channel_name }}" method="post"
-                          style="display: inline;">
-                        <button type="submit" class="btn btn-remove">Delete</button>
-                    </form>
-                </td>
-            </tr>
+<section class="twitch-section">
+    <h2>Add New Channel</h2>
+    <label for="name">Channel Name:</label>
+    <form action="/dashboard/twitch/{{ bot.id }}" method="post" class="add-channel-form">
+        <select id="name" name="name" required>
+            <option value="" disabled selected>Select a channel</option>
+            {% for channel in allowed_channels %}
+            <option value="{{ channel }}">{{ channel }}</option>
             {% endfor %}
-            {% else %}
-            <tr>
-                <td colspan="2">No channels joined yet.</td>
-            </tr>
-            {% endif %}
-            </tbody>
-        </table>
-    </section>
-
-    <section class="twitch-section">
-        <h2>Add New Channel</h2>
-        <label for="name">Channel Name:</label>
-        <form action="/dashboard/twitch/{{ bot.id }}" method="post" class="add-channel-form">
-            <select id="name" name="name" required>
-                <option value="" disabled selected>Select a channel</option>
-                {% for channel in allowed_channels %}
-                <option value="{{ channel }}">{{ channel }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-primary">Add Channel</button>
-        </form>
-    </section>
-</div>
+        </select>
+        <button type="submit" class="btn btn-primary">Add Channel</button>
+    </form>
+</section>
 {% endblock %}

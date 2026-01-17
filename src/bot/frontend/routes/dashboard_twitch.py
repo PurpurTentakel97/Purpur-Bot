@@ -51,6 +51,7 @@ async def dashboard_twitch(
             "allowed_channels": filtered_allowed_channels,
             "twitch_user": twitch_user,
             "discord_user": discord_user,
+            "active_tab": "channels",
         },
     )
 
@@ -90,4 +91,30 @@ async def dashboard_twitch_delete(
     return RedirectResponse(
         url=f"/dashboard/twitch/{bot_id}?success_message=Twitch channel deleted successfully",
         status_code=HTTPStatus.SEE_OTHER,
+    )
+
+@router.get("/{bot_id:int}/channel/{name:str}")
+async def dashboard_twitch_channel(
+        request: Request,
+        name: str,
+        bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+        twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
+        discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+        template: Annotated[Jinja2Templates, Depends(get_templates)],
+) -> Response:
+    twitch_channels = get_twitch_channels_core(bot.id)
+    if twitch_channels.value is None:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Twitch Channels not found")
+
+    return template.TemplateResponse(
+        request=request,
+        name="dashboard_twitch_channel.html",
+        context={
+            "bot": bot,
+            "twitch_user": twitch_user,
+            "discord_user": discord_user,
+            "name": name,
+            "twitch_channels": twitch_channels.value,
+            "active_channel": name,
+        },
     )
