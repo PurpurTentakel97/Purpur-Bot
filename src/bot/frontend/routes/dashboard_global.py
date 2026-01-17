@@ -28,7 +28,7 @@ async def dashboard_main(
 
     return template.TemplateResponse(
         request=request,
-        name="dashboard_main.html",
+        name="dashboard_global.html",
         context={
             "bot": bot.value,
             "twitch_user": twitch_user,

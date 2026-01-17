@@ -53,6 +53,10 @@
         flex: 1;
         padding: 2rem;
     }
+
+    .dashboard-content h1 {
+        text-align: center;
+    }
 </style>
 {% block extra_dashboard_styles %}{% endblock %}
 {% endblock %}
@@ -79,6 +83,7 @@
         </nav>
     </aside>
     <section class="dashboard-content">
+        <h1>{{ bot.name }} - Dashboard</h1>
         {% block dashboard_content %}{% endblock %}
     </section>
 </div>
