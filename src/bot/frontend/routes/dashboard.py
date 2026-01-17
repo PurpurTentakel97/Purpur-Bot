@@ -34,5 +34,5 @@ async def dashboard(
     return template.TemplateResponse(
         request=request,
         name="dashboard.html",
-        context={"twitch_user": twitch_user, "discord_user": discord_user, "bot": bot},
+        context={"twitch_user": twitch_user, "discord_user": discord_user, "bot": bot.value},
     )
