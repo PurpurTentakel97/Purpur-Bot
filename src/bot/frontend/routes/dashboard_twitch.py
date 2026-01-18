@@ -52,6 +52,7 @@ async def dashboard_twitch(
             "twitch_user": twitch_user,
             "discord_user": discord_user,
             "active_tab": "channels",
+            "plattform": "twitch",
         },
     )
 

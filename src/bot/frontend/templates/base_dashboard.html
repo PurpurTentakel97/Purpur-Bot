@@ -85,6 +85,14 @@
                         Twitch
                     </a>
                 </li>
+                {% if discord_user %}
+                <li>
+                    <a href="/dashboard/discord/{{ bot.id }}"
+                       class="{{ 'active' if request.url.path == '/dashboard/discord/' ~ bot.id else '' }}">
+                        Discord
+                    </a>
+                </li>
+                {% endif %}
             </ul>
         </nav>
     </aside>

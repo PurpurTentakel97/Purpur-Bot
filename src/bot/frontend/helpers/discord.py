@@ -1,3 +1,7 @@
+from datetime import datetime
+from datetime import timedelta
+from typing import Final
+
 import httpx
 
 from bot.database.discord_auth import select_discord_tokens
@@ -5,8 +9,15 @@ from bot.frontend.types.discord_guild import DiscordGuild
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 
+DISCORD_SERVER_CACHE: Final[dict[int, tuple[list[DiscordGuild], datetime]]] = {}
+
 
 async def get_allowed_discord_servers(user_id: int) -> list[DiscordGuild]:
+    if user_id in DISCORD_SERVER_CACHE:
+        guilds, timestamp = DISCORD_SERVER_CACHE[user_id]
+        if datetime.now() - timestamp < timedelta(minutes=5):
+            return guilds
+
     tokens = select_discord_tokens(user_id)
     if tokens.value is None:
         return []
@@ -30,6 +41,7 @@ async def get_allowed_discord_servers(user_id: int) -> list[DiscordGuild]:
                 if is_admin or guild["owner"]:
                     allowed_guilds.append(guild)
 
+            DISCORD_SERVER_CACHE[user_id] = (allowed_guilds, datetime.now())
             return allowed_guilds
         except Exception as e:
             log_exception(e, LogProgram.Default, f"Failed to get allowed discord servers for user {user_id}")
