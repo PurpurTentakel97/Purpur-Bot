@@ -75,20 +75,20 @@
                 </li>
                 <li>
                     <a href="/dashboard/global/{{ bot.id }}"
-                       class="{{ 'active' if request.url.path == '/dashboard/global/' ~ bot.id else '' }}">
+                       class="{{ 'active' if request.url.path.startswith('/dashboard/global/' ~ bot.id) else '' }}">
                         Global
                     </a>
                 </li>
                 <li>
                     <a href="/dashboard/twitch/{{ bot.id }}"
-                       class="{{ 'active' if request.url.path == '/dashboard/twitch/' ~ bot.id else '' }}">
+                       class="{{ 'active' if request.url.path.startswith('/dashboard/twitch/' ~ bot.id) else '' }}">
                         Twitch
                     </a>
                 </li>
                 {% if discord_user %}
                 <li>
                     <a href="/dashboard/discord/{{ bot.id }}"
-                       class="{{ 'active' if request.url.path == '/dashboard/discord/' ~ bot.id else '' }}">
+                       class="{{ 'active' if request.url.path.startswith('/dashboard/discord/' ~ bot.id) else '' }}">
                         Discord
                     </a>
                 </li>
