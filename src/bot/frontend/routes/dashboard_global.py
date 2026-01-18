@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from typing import Annotated
+from typing import Final
 from typing import Optional
 
 from fastapi import APIRouter
@@ -19,7 +20,7 @@ from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
-router = APIRouter(prefix="/dashboard/global", dependencies=[Depends(get_authenticated_twitch_user)])
+router: Final = APIRouter(prefix="/dashboard/global", dependencies=[Depends(get_authenticated_twitch_user)])
 
 
 @router.get("/{bot_id:int}")

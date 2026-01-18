@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from typing import Annotated
+from typing import Final
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -23,7 +24,7 @@ from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
-router = APIRouter(
+router: Final = APIRouter(
     prefix="/dashboard/discord",
     dependencies=[Depends(get_authenticated_twitch_user), Depends(get_authenticated_discord_user)],
 )

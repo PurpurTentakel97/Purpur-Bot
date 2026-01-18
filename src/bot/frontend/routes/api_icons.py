@@ -20,7 +20,7 @@ from bot.frontend.types.twitch_user_info import TwitchUserInfo
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 
-router: APIRouter = APIRouter(prefix="/icons")
+router: Final = APIRouter(prefix="/icons")
 
 # Cache for twitch icons: user_id -> (image_bytes, content_type, timestamp)
 TWITCH_ICON_CACHE: Final[dict[str, tuple[bytes, str, datetime]]] = {}
