@@ -14,6 +14,7 @@ from starlette.templating import Jinja2Templates
 from bot.core.app_context import APP_CONTEXT
 from bot.core.discord import add_discord_bot as add_discord_bot_core
 from bot.core.discord import delete_discord_bot as delete_discord_bot_core
+from bot.core.discord import get_discord_by_server_id as get_discord_by_server_id_core
 from bot.core.discord import get_discord_servers_by_bot_id as get_discord_servers_by_bot_id_core
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_discord_user
@@ -114,4 +115,34 @@ async def dashboard_discord_delete(
     return RedirectResponse(
         url=f"/dashboard/discord/{bot_id}?success_message=Discord server deleted successfully",
         status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.get("/{bot_id:int}/server/{server_id:int}")
+async def dashboard_discord_server(
+    request: Request,
+    server_id: int,
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    discord_user: Annotated[DiscordUserInfo, Depends(get_authenticated_discord_user)],
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
+    template: Annotated[Jinja2Templates, Depends(get_templates)],
+) -> Response:
+    server = get_discord_by_server_id_core(server_id)
+    if server.value is None:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Discord Server not found")
+    discord_servers = get_discord_servers_by_bot_id_core(bot.id)
+    if discord_servers.value is None:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Discord Servers not found")
+
+    return template.TemplateResponse(
+        request=request,
+        name="dashboard_discord_server.html",
+        context={
+            "bot": bot,
+            "twitch_user": twitch_user,
+            "discord_user": discord_user,
+            "server": server.value,
+            "discord_server": discord_servers.value,
+            "active_tab": server_id,
+        },
     )

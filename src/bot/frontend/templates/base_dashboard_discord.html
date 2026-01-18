@@ -125,7 +125,7 @@
             </li>
             {% for server in discord_server %}
             <li>
-                <a href="/dashboard/discord/{{ bot.id }}/channel/{{ server.server_id }}"
+                <a href="/dashboard/discord/{{ bot.id }}/server/{{ server.server_id }}"
                    class="{{ 'active' if active_tab == server.server_id else '' }}">
                     {{ server.server_name }}
                 </a>
