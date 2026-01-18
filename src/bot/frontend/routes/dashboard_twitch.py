@@ -93,14 +93,15 @@ async def dashboard_twitch_delete(
         status_code=HTTPStatus.SEE_OTHER,
     )
 
+
 @router.get("/{bot_id:int}/channel/{name:str}")
 async def dashboard_twitch_channel(
-        request: Request,
-        name: str,
-        bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-        twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
-        discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
-        template: Annotated[Jinja2Templates, Depends(get_templates)],
+    request: Request,
+    name: str,
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    template: Annotated[Jinja2Templates, Depends(get_templates)],
 ) -> Response:
     twitch_channels = get_twitch_channels_core(bot.id)
     if twitch_channels.value is None:
