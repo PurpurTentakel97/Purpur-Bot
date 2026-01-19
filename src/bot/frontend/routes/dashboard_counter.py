@@ -118,7 +118,7 @@ async def dashboard_counter_update_count(
 
 @router.post("/{counter_id:int}/reset")
 async def dashboard_counter_reset(
-    counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)]
+    counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)],
 ) -> RedirectResponse:
     if counter.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Counter not found")
@@ -140,7 +140,7 @@ async def dashboard_counter_reset(
 
 @router.post("/{counter_id:int}/delete")
 async def dashboard_counter_delete(
-    counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)]
+    counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)],
 ) -> RedirectResponse:
     if counter.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Counter not found")
