@@ -15,6 +15,10 @@ from starlette.templating import Jinja2Templates
 from bot.core.twitch import add_twitch_channel as add_twitch_channel_core
 from bot.core.twitch import delete_twitch_channel as delete_twitch_channel_core
 from bot.core.twitch import get_twitch_channels_from_bot as get_twitch_channels_core
+from bot.core.twitch_feature_flags import (
+    select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_core,
+)
+from bot.core.twitch_feature_flags import update_twitch_feature_flags_by_id as update_twitch_feature_flags_by_id_core
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.auth import get_discord_user
@@ -109,6 +113,10 @@ async def dashboard_twitch_channel(
     if twitch_channels.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Twitch Channels not found")
 
+    twitch_feature_flags = select_twitch_feature_flags_by_channel_name_core(bot.id, name)
+    if twitch_feature_flags.value is None:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Twitch Feature Flags not found")
+
     return template.TemplateResponse(
         request=request,
         name="dashboard_twitch_channel.html",
@@ -119,5 +127,29 @@ async def dashboard_twitch_channel(
             "name": name,
             "twitch_channels": twitch_channels.value,
             "active_channel": name,
+            "feature_flags": twitch_feature_flags.value,
         },
+    )
+
+
+@router.post("/{bot_id:int}/{name:str}/feature_flags/{feature_flag_id:int}")
+async def dashboard_twitch_feature_flag_update(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    name: str,
+    feature_flag_id: int,
+    can_commands: Annotated[bool, Form()] = False,
+    can_alias: Annotated[bool, Form()] = False,
+) -> RedirectResponse:
+    result = update_twitch_feature_flags_by_id_core(feature_flag_id, can_commands,  can_alias)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to update twitch feature flags "
+            + f"| reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Twitch feature flags updated successfully",
+        status_code=HTTPStatus.SEE_OTHER,
     )

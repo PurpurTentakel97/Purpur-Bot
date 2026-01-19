@@ -2,6 +2,113 @@
 
 {% block title %}{{ name }}-Dashboard{% endblock %}
 
+{% block extra_twitch_styles %}
+<style>
+    .feature-flags-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .feature-card {
+        background-color: #333;
+        padding: 1.25rem;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #444;
+    }
+
+    .feature-info h3 {
+        margin: 0;
+        font-size: 1rem;
+        color: #efeff1;
+    }
+
+    .feature-info p {
+        margin: 0.25rem 0 0;
+        font-size: 0.85rem;
+        color: #adadb8;
+    }
+
+    /* Toggle Switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #444;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #9146ff;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(24px);
+    }
+</style>
+{% endblock %}
+
 {% block twitch_content %}
-    <h1>{{ name }} Dashboard</h1>
+    <div class="twitch-section">
+        <h2>{{ name }} - Feature Flags</h2>
+
+        <form action="/dashboard/twitch/{{ bot.id }}/{{ name }}/feature_flags/{{ feature_flags.id }}" method="POST">
+            <div class="feature-flags-grid">
+                <div class="feature-card">
+                    <div class="feature-info">
+                        <h3>Commands</h3>
+                        <p>Enable/Disable bot commands</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="can_commands" value="True" {% if feature_flags.can_commands %}checked{% endif %} onchange="this.form.submit()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-info">
+                        <h3>Aliases</h3>
+                        <p>Enable/Disable command aliases</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="can_alias" value="True" {% if feature_flags.can_alias %}checked{% endif %} onchange="this.form.submit()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <!-- Ensure other fields are sent if not checked, although FastAPI might handle missing as False with my default values -->
+        </form>
+    </div>
 {% endblock %}
