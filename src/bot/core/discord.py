@@ -8,9 +8,7 @@ from bot.database.discord import delete_discord_server as delete_discord_server_
 from bot.database.discord import insert_discord_server as insert_discord_server_db
 from bot.database.discord import select_discord_by as select_discord_by_db
 from bot.database.discord import select_discord_servers_by_bot_id as select_discord_servers_by_bot_id_db
-from bot.database.discord_feature_flags import (
-    insert_discord_feature_flags as insert_discord_feature_flags_db,
-)
+from bot.database.discord_feature_flags import insert_discord_feature_flags as insert_discord_feature_flags_db
 from bot.database.types.discord_server import DiscordServerDB
 
 

@@ -19,9 +19,7 @@ from bot.core.discord import get_discord_servers_by_bot_id as get_discord_server
 from bot.core.discord_feature_flags import (
     select_discord_feature_flags_by_server_id as select_discord_feature_flags_by_server_id_core,
 )
-from bot.core.discord_feature_flags import (
-    update_discord_feature_flags_by_id as update_discord_feature_flags_by_id_core,
-)
+from bot.core.discord_feature_flags import update_discord_feature_flags_by_id as update_discord_feature_flags_by_id_core
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_discord_user
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
@@ -140,7 +138,7 @@ async def dashboard_discord_server(
     if discord_servers.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Discord Servers not found")
 
-    discord_feature_flags = select_discord_feature_flags_by_server_id_core(bot.id, str(server_id))
+    discord_feature_flags = select_discord_feature_flags_by_server_id_core(bot.id, server_id)
     if discord_feature_flags.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Discord Feature Flags not found")
 
@@ -177,6 +175,7 @@ async def dashboard_discord_feature_flag_update(
         )
 
     return RedirectResponse(
-        url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Discord feature flags updated successfully",
+        url=f"/dashboard/discord/{bot.id}/server/{server_id}"
+        + "?success_message=Discord feature flags updated successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )

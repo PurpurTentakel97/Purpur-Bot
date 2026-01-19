@@ -17,7 +17,7 @@ def select_discord_feature_flags_by_id(feature_flag_id: int) -> Result[DiscordFe
     return select_discord_feature_flags_by_id_db(feature_flag_id)
 
 
-def select_discord_feature_flags_by_server_id(bot_id: int, server_id: str) -> Result[DiscordFeatureFlagsDB]:
+def select_discord_feature_flags_by_server_id(bot_id: int, server_id: int) -> Result[DiscordFeatureFlagsDB]:
     return select_discord_feature_flags_by_server_id_db(bot_id, server_id)
 
 

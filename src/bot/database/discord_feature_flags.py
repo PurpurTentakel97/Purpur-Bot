@@ -19,7 +19,7 @@ def select_discord_feature_flags_by_id(feature_flag_id: int) -> Result[DiscordFe
     )
 
 
-def select_discord_feature_flags_by_server_id(bot_id: int, server_id: str) -> Result[DiscordFeatureFlagsDB]:
+def select_discord_feature_flags_by_server_id(bot_id: int, server_id: int) -> Result[DiscordFeatureFlagsDB]:
     return PROGRAMM_PARTS.database.select_one(
         table_name=TABLE_NAME, where={"bot_id": bot_id, "server_id": server_id}, type_=DiscordFeatureFlagsDB
     )
