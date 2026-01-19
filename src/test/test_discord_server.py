@@ -9,22 +9,34 @@ import discord
 import pytest
 
 from bot.chat.discord_server import DiscordServer
+from bot.database.types.feature_flags import DiscordFeatureFlagsDB
 
 
-def test_discord_server_init() -> None:
+@pytest.fixture
+def feature_flags() -> DiscordFeatureFlagsDB:
+    return DiscordFeatureFlagsDB(
+        id=1,
+        bot_id=1,
+        server_id="123456789",
+        can_commands=True,
+        can_alias=True,
+    )
+
+
+def test_discord_server_init(feature_flags: DiscordFeatureFlagsDB) -> None:
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id)
+    server = DiscordServer(id_, server_id, feature_flags)
 
     assert server.bot_id == id_
     assert server.server_id == server_id
 
 
 @pytest.mark.asyncio
-async def test_discord_server_on_message() -> None:
+async def test_discord_server_on_message(feature_flags: DiscordFeatureFlagsDB) -> None:
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id)
+    server = DiscordServer(id_, server_id, feature_flags)
     mock_message = MagicMock(spec=discord.Message)
     mock_author = MagicMock(spec=discord.Member)
     mock_author.name = "test_user"
@@ -42,12 +54,12 @@ async def test_discord_server_on_message() -> None:
 
 
 @pytest.mark.asyncio
-async def test_discord_server_permissions() -> None:
+async def test_discord_server_permissions(feature_flags: DiscordFeatureFlagsDB) -> None:
     from bot.core.types.permission_level import PermissionLevel
 
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id)
+    server = DiscordServer(id_, server_id, feature_flags)
 
     # Admin
     mock_admin = MagicMock(spec=discord.Message)
@@ -94,12 +106,12 @@ async def test_discord_server_permissions() -> None:
 
 
 @pytest.mark.asyncio
-async def test_discord_server_send_response_type_mismatch() -> None:
+async def test_discord_server_send_response_type_mismatch(feature_flags: DiscordFeatureFlagsDB) -> None:
     from bot.chat.types.message_response import ChatMessageResponse
 
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id)
+    server = DiscordServer(id_, server_id, feature_flags)
 
     # Use a non-DiscordMessage as original_message
     mock_bad_msg = MagicMock()
@@ -112,12 +124,12 @@ async def test_discord_server_send_response_type_mismatch() -> None:
 
 
 @pytest.mark.asyncio
-async def test_discord_server_send_response_success() -> None:
+async def test_discord_server_send_response_success(feature_flags: DiscordFeatureFlagsDB) -> None:
     from bot.chat.types.message_response import ChatMessageResponse
 
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id)
+    server = DiscordServer(id_, server_id, feature_flags)
 
     mock_channel = AsyncMock()
     mock_discord_msg = MagicMock(spec=discord.Message)
@@ -130,10 +142,10 @@ async def test_discord_server_send_response_success() -> None:
 
 
 @pytest.mark.asyncio
-async def test_discord_server_on_message_assertion_error() -> None:
+async def test_discord_server_on_message_assertion_error(feature_flags: DiscordFeatureFlagsDB) -> None:
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id)
+    server = DiscordServer(id_, server_id, feature_flags)
 
     mock_message = MagicMock(spec=discord.Message)
     # author not a DiscordMember

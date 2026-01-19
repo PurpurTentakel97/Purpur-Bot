@@ -7,10 +7,22 @@ import pytest
 from twitchAPI.chat import ChatEvent
 
 from bot.chat.twitch_chat import TwitchChat
+from bot.database.types.feature_flags import TwitchFeatureFlagsDB
+
+
+@pytest.fixture
+def feature_flags() -> TwitchFeatureFlagsDB:
+    return TwitchFeatureFlagsDB(
+        id=1,
+        bot_id=1,
+        channel_name="channel",
+        can_commands=True,
+        can_alias=True,
+    )
 
 
 @pytest.mark.asyncio
-async def test_twitch_chat_create() -> None:
+async def test_twitch_chat_create(feature_flags: TwitchFeatureFlagsDB) -> None:
     mock_twitch_client = MagicMock()
     mock_twitch_client.client = MagicMock()
 
@@ -18,7 +30,7 @@ async def test_twitch_chat_create() -> None:
     # Mock TwitchChatClient as an AsyncMock that returns another mock when called
     with patch("bot.chat.twitch_chat.TwitchChatClient", new_callable=AsyncMock) as mock_chat_cls:
         mock_chat_cls.return_value = mock_chat_instance
-        chat = await TwitchChat.create(mock_twitch_client, 1, "channel")
+        chat = await TwitchChat.create(mock_twitch_client, 1, "channel", feature_flags)
 
         assert isinstance(chat, TwitchChat)
         assert chat.bot_id == 1
@@ -27,14 +39,14 @@ async def test_twitch_chat_create() -> None:
 
 
 @pytest.mark.asyncio
-async def test_twitch_chat_init_registers_events() -> None:
+async def test_twitch_chat_init_registers_events(feature_flags: TwitchFeatureFlagsDB) -> None:
     mock_chat = MagicMock()
 
     with (
         patch("bot.chat.twitch_chat.TwitchChat._on_ready", new_callable=AsyncMock),
         patch("bot.chat.twitch_chat.TwitchChat._on_message", new_callable=AsyncMock),
     ):
-        _ = TwitchChat(mock_chat, 1, "channel")
+        _ = TwitchChat(mock_chat, 1, "channel", feature_flags)
 
         assert mock_chat.register_event.call_count == 2
         mock_chat.register_event.assert_any_call(ChatEvent.READY, ANY)
@@ -43,9 +55,9 @@ async def test_twitch_chat_init_registers_events() -> None:
 
 
 @pytest.mark.asyncio
-async def test_twitch_chat_on_ready() -> None:
+async def test_twitch_chat_on_ready(feature_flags: TwitchFeatureFlagsDB) -> None:
     mock_chat = MagicMock()
-    chat = TwitchChat(mock_chat, 1, "channel")
+    chat = TwitchChat(mock_chat, 1, "channel", feature_flags)
 
     mock_event = MagicMock()
     mock_event.chat = AsyncMock()
@@ -56,9 +68,9 @@ async def test_twitch_chat_on_ready() -> None:
 
 
 @pytest.mark.asyncio
-async def test_twitch_chat_on_message_no_command() -> None:
+async def test_twitch_chat_on_message_no_command(feature_flags: TwitchFeatureFlagsDB) -> None:
     mock_chat = MagicMock()
-    chat = TwitchChat(mock_chat, 1, "channel")
+    chat = TwitchChat(mock_chat, 1, "channel", feature_flags)
 
     mock_message = MagicMock()
     mock_message.text = "Hello world"
@@ -73,9 +85,9 @@ async def test_twitch_chat_on_message_no_command() -> None:
 
 
 @pytest.mark.asyncio
-async def test_twitch_chat_on_message_command() -> None:
+async def test_twitch_chat_on_message_command(feature_flags: TwitchFeatureFlagsDB) -> None:
     mock_chat = MagicMock()
-    chat = TwitchChat(mock_chat, 1, "channel")
+    chat = TwitchChat(mock_chat, 1, "channel", feature_flags)
 
     mock_message = MagicMock()
     mock_message.text = "!ping"
@@ -90,11 +102,11 @@ async def test_twitch_chat_on_message_command() -> None:
 
 
 @pytest.mark.asyncio
-async def test_twitch_chat_permissions() -> None:
+async def test_twitch_chat_permissions(feature_flags: TwitchFeatureFlagsDB) -> None:
     from bot.core.types.permission_level import PermissionLevel
 
     mock_chat = MagicMock()
-    chat = TwitchChat(mock_chat, 1, "channel")
+    chat = TwitchChat(mock_chat, 1, "channel", feature_flags)
 
     # Admin (Broadcaster)
     mock_admin = MagicMock()
@@ -138,20 +150,20 @@ async def test_twitch_chat_permissions() -> None:
 
 
 @pytest.mark.asyncio
-async def test_twitch_chat_terminate() -> None:
+async def test_twitch_chat_terminate(feature_flags: TwitchFeatureFlagsDB) -> None:
     mock_chat = MagicMock()
-    chat = TwitchChat(mock_chat, 1, "channel")
+    chat = TwitchChat(mock_chat, 1, "channel", feature_flags)
     await chat.terminate(mock_chat)
     mock_chat.stop.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_twitch_chat_send_response() -> None:
+async def test_twitch_chat_send_response(feature_flags: TwitchFeatureFlagsDB) -> None:
     from bot.chat.types.message_response import ChatMessageResponse
 
     mock_chat = MagicMock()
     mock_chat.send_message = AsyncMock()
-    chat = TwitchChat(mock_chat, 1, "channel")
+    chat = TwitchChat(mock_chat, 1, "channel", feature_flags)
 
     mock_original_message = MagicMock()
     responses = [
