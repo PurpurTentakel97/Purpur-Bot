@@ -141,7 +141,7 @@ async def test_twitch_chat_permissions() -> None:
 async def test_twitch_chat_terminate() -> None:
     mock_chat = MagicMock()
     chat = TwitchChat(mock_chat, 1, "channel")
-    await chat.terminate()
+    await chat.terminate(mock_chat)
     mock_chat.stop.assert_called_once()
 
 

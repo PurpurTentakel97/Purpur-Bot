@@ -1,0 +1,123 @@
+from http import HTTPStatus
+from typing import Annotated
+from typing import Final
+from typing import Optional
+
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import Form
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
+from starlette.responses import RedirectResponse
+from starlette.responses import Response
+from starlette.templating import Jinja2Templates
+
+from bot.core.twitch import add_twitch_channel as add_twitch_channel_core
+from bot.core.twitch import delete_twitch_channel as delete_twitch_channel_core
+from bot.core.twitch import get_twitch_channels_from_bot as get_twitch_channels_core
+from bot.database.types.bot_config import BotConfigDB
+from bot.frontend.helpers.auth import get_authenticated_twitch_user
+from bot.frontend.helpers.auth import get_discord_user
+from bot.frontend.helpers.route_utils import get_templates
+from bot.frontend.helpers.route_utils import get_valid_bot
+from bot.frontend.helpers.twitch import get_allowed_twitch_channels
+from bot.frontend.types.discord_user_info import DiscordUserInfo
+from bot.frontend.types.twitch_user_info import TwitchUserInfo
+
+router: Final = APIRouter(prefix="/dashboard/twitch", dependencies=[Depends(get_authenticated_twitch_user)])
+
+
+@router.get("/{bot_id:int}")
+async def dashboard_twitch(
+    request: Request,
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    template: Annotated[Jinja2Templates, Depends(get_templates)],
+) -> Response:
+    twitch_channels = get_twitch_channels_core(bot.id)
+    if twitch_channels.value is None:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Twitch Channels not found")
+
+    allowed_channels = await get_allowed_twitch_channels(twitch_user.id_, twitch_user.login)
+    joined_channel_names = {c.channel_name for c in twitch_channels.value or []}
+    filtered_allowed_channels = [c for c in allowed_channels if c.lower() not in joined_channel_names]
+
+    return template.TemplateResponse(
+        request=request,
+        name="dashboard_twitch.html",
+        context={
+            "bot": bot,
+            "twitch_channels": twitch_channels.value,
+            "allowed_channels": filtered_allowed_channels,
+            "twitch_user": twitch_user,
+            "discord_user": discord_user,
+            "active_tab": "channels",
+            "plattform": "twitch",
+        },
+    )
+
+
+@router.post("/{bot_id:int}")
+async def dashboard_twitch_join(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: Annotated[str, Form()]
+) -> RedirectResponse:
+    result = await add_twitch_channel_core(bot.id, name)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/twitch/{bot.id}?error_message=Failed to add twitch channel | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/twitch/{bot.id}?success_message=Twitch channel added successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.post("/delete/{bot_id:int}/{name:str}")
+async def dashboard_twitch_delete(
+    bot_id: int,
+    name: str,
+) -> RedirectResponse:
+    result = await delete_twitch_channel_core(bot_id, name)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/twitch/{bot_id}?error_message=Failed to delete twitch channel "
+            + f"| reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/twitch/{bot_id}?success_message=Twitch channel deleted successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.get("/{bot_id:int}/channel/{name:str}")
+async def dashboard_twitch_channel(
+    request: Request,
+    name: str,
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    template: Annotated[Jinja2Templates, Depends(get_templates)],
+) -> Response:
+    twitch_channels = get_twitch_channels_core(bot.id)
+    if twitch_channels.value is None:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Twitch Channels not found")
+
+    return template.TemplateResponse(
+        request=request,
+        name="dashboard_twitch_channel.html",
+        context={
+            "bot": bot,
+            "twitch_user": twitch_user,
+            "discord_user": discord_user,
+            "name": name,
+            "twitch_channels": twitch_channels.value,
+            "active_channel": name,
+        },
+    )

@@ -6,14 +6,21 @@ from bot.core.types.result import ResultState
 from bot.database.alias_dict import FIELD_ALIAS
 from bot.database.alias_dict import FIELD_EXPLANATION
 from bot.database.alias_dict import delete_dict_entry as delete_dict_entry_db
+from bot.database.alias_dict import delete_dict_entry_by_id as delete_dict_entry_by_id_db
 from bot.database.alias_dict import insert_dict_entry as insert_dict_entry_db
+from bot.database.alias_dict import select_dict_entry_by_id as select_dict_entry_by_id_db
 from bot.database.alias_dict import select_dict_from_bot as select_dict_from_bot_db
 from bot.database.alias_dict import update_dict_entry as update_dict_entry_db
+from bot.database.alias_dict import update_dict_entry_by_id as update_dict_entry_by_id_db
 from bot.database.types.alias_dict_entry import AliasDictEntry
 
 
 def select_dict_from_bot(bot_id: int) -> Result[list[AliasDictEntry]]:
     return select_dict_from_bot_db(bot_id)
+
+
+def get_alias_by_id(entry_id: int) -> Result[AliasDictEntry]:
+    return select_dict_entry_by_id_db(entry_id)
 
 
 def alias_lookup(bot_id: int, message: str) -> Result[list[str]]:
@@ -56,6 +63,17 @@ def edit_dict_alias(bot_id: int, old_alias: str, new_alias: str) -> Result[Alias
     return update_dict_entry_db(bot_id, old_alias_db, {FIELD_ALIAS: new_alias_db})
 
 
+def edit_dict_alias_by_id(entry_id: int, new_alias: str) -> Result[AliasDictEntry]:
+    new_alias_db = identifier_for_db(new_alias)
+
+    if not new_alias_db:
+        return Result(ResultState.EMPTY_NAME, None)
+    if has_whitespace(new_alias_db):
+        return Result(ResultState.WHITESPACE_ERROR, None)
+
+    return update_dict_entry_by_id_db(entry_id, {FIELD_ALIAS: new_alias_db})
+
+
 def edit_dict_explanation(bot_id: int, alias: str, explanation: str) -> Result[AliasDictEntry]:
     alias_db = identifier_for_db(alias)
     explanation_db = strip_for_db(explanation)
@@ -66,5 +84,18 @@ def edit_dict_explanation(bot_id: int, alias: str, explanation: str) -> Result[A
     return update_dict_entry_db(bot_id, alias_db, {FIELD_EXPLANATION: explanation_db})
 
 
+def edit_dict_explanation_by_id(entry_id: int, explanation: str) -> Result[AliasDictEntry]:
+    explanation_db = strip_for_db(explanation)
+
+    if not explanation_db:
+        return Result(ResultState.EMPTY_MESSAGE, None)
+
+    return update_dict_entry_by_id_db(entry_id, {FIELD_EXPLANATION: explanation_db})
+
+
 def delete_alias(bot_id: int, alias: str) -> Result[None]:
     return delete_dict_entry_db(bot_id, identifier_for_db(alias))
+
+
+def delete_alias_by_id(entry_id: int) -> Result[None]:
+    return delete_dict_entry_by_id_db(entry_id)

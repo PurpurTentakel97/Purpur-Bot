@@ -1,3 +1,7 @@
+from datetime import datetime
+from datetime import timedelta
+from typing import Final
+
 from twitchAPI.twitch import Twitch
 
 from bot.core.app_context import APP_CONTEXT
@@ -6,8 +10,15 @@ from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 
+TWITCH_CHANNELS_CACHE: Final[dict[str, tuple[list[str], datetime]]] = {}
+
 
 async def get_allowed_twitch_channels(user_id: str, user_login: str) -> list[str]:
+    if user_id in TWITCH_CHANNELS_CACHE:
+        channels, timestamp = TWITCH_CHANNELS_CACHE[user_id]
+        if datetime.now() - timestamp < timedelta(minutes=5):
+            return channels
+
     tokens = get_twitch_tokens_core(user_id)
     if tokens.value is None:
         return [user_login]
@@ -28,7 +39,10 @@ async def get_allowed_twitch_channels(user_id: str, user_login: str) -> list[str
         async for channel in twitch.get_moderated_channels(user_id):
             channels.append(channel.broadcaster_login)
 
-        return sorted(set(channels))
+        allowed_channels: Final = sorted(set(channels))
+        TWITCH_CHANNELS_CACHE[user_id] = (allowed_channels, datetime.now())
+        return allowed_channels
+
     except Exception as e:
         log_exception(e, LogProgram.Default, f"Failed to get allowed twitch channels for user {user_id}")
         return [user_login]

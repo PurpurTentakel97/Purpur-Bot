@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Error - {{ status_code }}{% endblock %}
+
+{% block content %}
+<div style="text-align: center; margin-top: 3rem;">
+    <h1>Oops! Something went wrong.</h1>
+    <p style="font-size: 1.5rem; color: #e24a4a;">Error {{ status_code }}</p>
+    <p>{{ detail }}</p>
+    <a href="/" class="btn btn-primary" style="margin-top: 1rem;">Go back Home</a>
+</div>
+{% endblock %}

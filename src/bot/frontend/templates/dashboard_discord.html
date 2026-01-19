@@ -1,0 +1,52 @@
+{% extends "base_dashboard_discord.html" %}
+
+{% block title %}Discord-Dashboard{% endblock %}
+
+{% block discord_content %}
+<section class="discord-section">
+    <h2>Joined Server</h2>
+    <table class="discord-table">
+        <thead>
+        <tr>
+            <th>Server Name</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if discord_server %}
+        {% for server in discord_server %}
+        <tr>
+            <td>{{ server.server_name }}</td>
+            <td>
+                <form action="/dashboard/discord/delete/{{ bot.id }}/{{ server.server_id }}" method="post"
+                      style="display: inline;">
+                    <a href="{{ invite_links[server.server_id] }}" class="btn btn-edit" target="_blank"
+                       rel="noopener noreferrer">invite</a>
+                    <button type="submit" class="btn btn-remove">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="2">No server joined yet.</td>
+        </tr>
+        {% endif %}
+        </tbody>
+    </table>
+</section>
+
+<section class="discord-section">
+    <h2>Add New Server</h2>
+    <label for="server_id">Server:</label>
+    <form action="/dashboard/discord/{{ bot.id }}" method="post" class="add-channel-form">
+        <select id="server_id" name="server_id" required>
+            <option value="" disabled selected>Select a server</option>
+            {% for server in allowed_server %}
+            <option value="{{ server.id }}">{{ server.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Add Server</button>
+    </form>
+</section>
+{% endblock %}

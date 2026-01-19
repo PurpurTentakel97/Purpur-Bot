@@ -16,7 +16,7 @@ class ResultState(Enum):
     EMPTY_NAME = auto()
     EMPTY_MESSAGE = auto()
     COUNTER_ERROR = auto()
-    SILL_IN_USE = auto()
+    STILL_IN_USE = auto()
 
     @property
     def success(self) -> bool:
