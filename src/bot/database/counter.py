@@ -13,6 +13,10 @@ def select_counter(bot_id: int, name: str) -> Result[CounterDB]:
     return PROGRAMM_PARTS.database.select_one(TABLE_NAME, where={"bot_id": bot_id, "name": name}, type_=CounterDB)
 
 
+def select_counter_by_id(counter_id: int) -> Result[CounterDB]:
+    return PROGRAMM_PARTS.database.select_one(TABLE_NAME, where={"id": counter_id}, type_=CounterDB)
+
+
 def select_counter_by_bot_id(bot_id: int) -> Result[list[CounterDB]]:
     return PROGRAMM_PARTS.database.select_all(TABLE_NAME, where={"bot_id": bot_id}, type_=CounterDB)
 
@@ -26,6 +30,15 @@ def insert_counter(bot_id: int, name: str) -> Result[CounterDB]:
     return select_counter(bot_id, name)
 
 
+def update_counter_by_id(counter_id: int, data: dict[str, Any]) -> Result[CounterDB]:
+    result = PROGRAMM_PARTS.database.update(TABLE_NAME, where={"id": counter_id}, data=data)
+
+    if result.state.fail:
+        return result.cast_to(CounterDB)
+
+    return select_counter_by_id(counter_id)
+
+
 def update_counter(bot_id: int, name: str, data: dict[str, Any]) -> Result[CounterDB]:
     result = PROGRAMM_PARTS.database.update(TABLE_NAME, where={"bot_id": bot_id, "name": name}, data=data)
 
@@ -36,6 +49,10 @@ def update_counter(bot_id: int, name: str, data: dict[str, Any]) -> Result[Count
     if FIELD_NAME in data:
         new_name = data[FIELD_NAME]
     return select_counter(bot_id, new_name)
+
+
+def delete_counter_by_id(counter_id: int) -> Result[None]:
+    return PROGRAMM_PARTS.database.delete(TABLE_NAME, where={"id": counter_id})
 
 
 def delete_counter(bot_id: int, name: str) -> Result[None]:

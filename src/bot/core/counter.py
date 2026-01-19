@@ -13,18 +13,17 @@ from bot.database.commands import update_command as update_command_db
 from bot.database.counter import FIELD_COUNTER
 from bot.database.counter import FIELD_NAME
 from bot.database.counter import delete_counter as delete_counter_db
+from bot.database.counter import delete_counter_by_id as delete_counter_by_id_db
 from bot.database.counter import insert_counter as insert_counter_db
 from bot.database.counter import select_counter as select_counter_db
 from bot.database.counter import select_counter_by_bot_id as select_counter_by_bot_id_db
+from bot.database.counter import select_counter_by_id as select_counter_by_id_db
 from bot.database.counter import update_counter as update_counter_db
+from bot.database.counter import update_counter_by_id as update_counter_by_id_db
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.counter import CounterDB
 
 _COUNTER_PATTERN = re.compile(r"\{(?P<name>[a-zA-ZäöüÄÖÜ]\w*)(?:(?P<op>[+-])(?P<value>\d+))?\}")
-
-
-def _exists(bot_id: int, name: str) -> bool:
-    return get_counter(bot_id, name).value is not None
 
 
 def _update_counter_names_in_commands(
@@ -115,6 +114,10 @@ def get_counters_by_bot_id(bot_id: int) -> Result[list[CounterDB]]:
     return select_counter_by_bot_id_db(bot_id)
 
 
+def get_counter_by_id(counter_id: int) -> Result[CounterDB]:
+    return select_counter_by_id_db(counter_id)
+
+
 def get_counter(bot_id: int, name: str) -> Result[CounterDB]:
     return select_counter_db(bot_id, identifier_for_db(name))
 
@@ -128,10 +131,38 @@ def save_counter(bot_id: int, name: str) -> Result[CounterDB]:
     if has_whitespace(name_db):
         return Result(ResultState.WHITESPACE_ERROR, None)
 
-    if _exists(bot_id, name_db):
-        return Result(ResultState.ALREADY_EXISTS, None)
-
     return insert_counter_db(bot_id, name_db)
+
+
+def edit_counter_name_by_id(counter_id: int, new_name: str) -> Result[CounterDB]:
+    new_name_db = identifier_for_db(new_name)
+
+    if not new_name_db:
+        return Result(ResultState.EMPTY_NAME, None)
+
+    if has_whitespace(new_name_db):
+        return Result(ResultState.WHITESPACE_ERROR, None)
+
+    counter_result = get_counter_by_id(counter_id)
+    if counter_result.state.fail or counter_result.value is None:
+        return counter_result
+
+    old_name_db = counter_result.value.name
+    bot_id = counter_result.value.bot_id
+
+    def handle_rollback(bot_id: int, counter_id: int, old_name_db: str) -> None:
+        update_counter_by_id_db(counter_id, {FIELD_NAME: old_name_db})
+
+    update_result = update_counter_by_id_db(counter_id, {FIELD_NAME: new_name_db})
+
+    if update_result.state.fail:
+        return update_result
+
+    if not _update_counter_names_in_commands(bot_id, old_name_db, new_name_db):
+        handle_rollback(bot_id, counter_id, old_name_db)
+        return Result(ResultState.COUNTER_ERROR, None)
+
+    return update_result
 
 
 def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[CounterDB]:
@@ -147,9 +178,6 @@ def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[Count
     if has_whitespace(new_name_db):
         return Result(ResultState.WHITESPACE_ERROR, None)
 
-    if _exists(bot_id, new_name_db):
-        return Result(ResultState.ALREADY_EXISTS, None)
-
     counter_result = update_counter_db(bot_id, old_name_db, {FIELD_NAME: new_name_db})
 
     if counter_result.state.fail:
@@ -162,8 +190,16 @@ def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[Count
     return counter_result
 
 
+def edit_counter_value_by_id(counter_id: int, value: int) -> Result[CounterDB]:
+    return update_counter_by_id_db(counter_id, {FIELD_COUNTER: value})
+
+
 def edit_counter_value(bot_id: int, name: str, value: int) -> Result[CounterDB]:
     return update_counter_db(bot_id, identifier_for_db(name), {FIELD_COUNTER: value})
+
+
+def reset_counter_by_id(counter_id: int) -> Result[CounterDB]:
+    return edit_counter_value_by_id(counter_id, 0)
 
 
 def reset_counter(bot_id: int, name: str) -> Result[CounterDB]:
@@ -200,10 +236,21 @@ def decrement_counter(bot_id: int, name: str) -> Result[CounterDB]:
     return increment_counter_by(bot_id, name, -1)  # name will be handled in increment_counter_by
 
 
+def delete_counter_by_id(counter_id: int) -> Result[None]:
+    counter_result = get_counter_by_id(counter_id)
+    if counter_result.state.fail or counter_result.value is None:
+        return Result(counter_result.state, None)
+
+    if not _can_counter_be_deleted(counter_result.value.bot_id, counter_result.value.name):
+        return Result(ResultState.STILL_IN_USE, None)
+
+    return delete_counter_by_id_db(counter_id)
+
+
 def delete_counter(bot_id: int, name: str) -> Result[None]:
     name_db = identifier_for_db(name)
 
     if not _can_counter_be_deleted(bot_id, name_db):
-        return Result(ResultState.SILL_IN_USE, None)
+        return Result(ResultState.STILL_IN_USE, None)
 
     return delete_counter_db(bot_id, name_db)
