@@ -104,6 +104,12 @@
                         Counters
                     </a>
                 </li>
+                <li>
+                    <a href="/dashboard/alias/{{ bot.id }}"
+                       class="{{ 'active' if request.url.path.startswith('/dashboard/alias/' ~ bot.id) else '' }}">
+                        Aliases
+                    </a>
+                </li>
                 {% endif %}
             </ul>
         </nav>
