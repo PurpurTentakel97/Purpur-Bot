@@ -14,16 +14,15 @@ from bot.core.types.result import ResultState
 from bot.database.commands import FIELD_COMMAND
 from bot.database.commands import FIELD_MESSAGE
 from bot.database.commands import delete_command as delete_command_db
+from bot.database.commands import delete_command_by_id as delete_command_by_id_db
 from bot.database.commands import insert_command as insert_command_db
 from bot.database.commands import select_command as select_command_db
+from bot.database.commands import select_command_by_id as select_command_by_id_core
 from bot.database.commands import select_commands_by_bot_id as select_commands_by_bot_id_db
 from bot.database.commands import update_command as update_command_db
+from bot.database.commands import update_command_by_id as update_command_by_id_core
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.counter import CounterDB
-
-
-def _exists(bot_id: int, name: str) -> bool:
-    return get_command(bot_id, name).value is not None
 
 
 def _replace_counter_and_execute(bot_id: int, message: str) -> str:
@@ -79,6 +78,10 @@ def get_commands_by_bot_id(bot_id: int) -> Result[list[BasicCommandDB]]:
     return select_commands_by_bot_id_db(bot_id)
 
 
+def get_command_by_id(command_id: int) -> Result[BasicCommandDB]:
+    return select_command_by_id_core(command_id)
+
+
 def get_command(bot_id: int, name: str) -> Result[BasicCommandDB]:
     return select_command_db(bot_id, identifier_for_db(name))
 
@@ -108,13 +111,19 @@ def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]
     if has_whitespace(name_db):
         return Result(ResultState.WHITESPACE_ERROR, None)
 
-    if _exists(bot_id, name_db):
-        return Result(ResultState.ALREADY_EXISTS, None)
-
     if not _handle_new_counter(bot_id, message_db):
         return Result(ResultState.COUNTER_ERROR, None)
 
     return insert_command_db(bot_id, identifier_for_db(name), message_db)
+
+
+def update_command_message_by_id(command_id: int, message: str) -> Result[BasicCommandDB]:
+    message_db = strip_for_db(message)
+
+    if not message_db:
+        return Result(ResultState.EMPTY_MESSAGE, None)
+
+    return update_command_by_id_core(command_id, {FIELD_MESSAGE: message_db})
 
 
 def update_command_message(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]:
@@ -129,6 +138,15 @@ def update_command_message(bot_id: int, name: str, message: str) -> Result[Basic
     return update_command_db(bot_id, identifier_for_db(name), {FIELD_MESSAGE: message_db})
 
 
+def update_command_name_by_id(command_id: int, new_name: str) -> Result[BasicCommandDB]:
+    new_name_db = identifier_for_db(new_name)
+
+    if not new_name_db:
+        return Result(ResultState.EMPTY_NAME, None)
+
+    return update_command_by_id_core(command_id, {FIELD_COMMAND: new_name_db})
+
+
 def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[BasicCommandDB]:
     new_name_db = identifier_for_db(new_name)
     old_name_db = identifier_for_db(old_name)
@@ -139,10 +157,11 @@ def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[Bas
     if has_whitespace(new_name_db):
         return Result(ResultState.WHITESPACE_ERROR, None)
 
-    if _exists(bot_id, new_name_db):
-        return Result(ResultState.ALREADY_EXISTS, None)
-
     return update_command_db(bot_id, old_name_db, {FIELD_COMMAND: new_name_db})
+
+
+def delete_command_by_id(command_id: int) -> Result[None]:
+    return delete_command_by_id_db(command_id)
 
 
 def delete_command(bot_id: int, name: str) -> Result[None]:

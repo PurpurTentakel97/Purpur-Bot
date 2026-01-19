@@ -98,6 +98,47 @@
     .btn-primary:hover {
         background-color: #772ce8;
     }
+
+    .btn-danger {
+        background-color: #e91916;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #b11311;
+    }
+
+    .btn-small {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .action-cell {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .inline-form {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .inline-form input {
+        flex: 1;
+        padding: 0.4rem;
+        background-color: #333;
+        border: 1px solid #444;
+        border-radius: 4px;
+        color: white;
+        font-size: 0.9rem;
+    }
+
+    .inline-form input:focus {
+        outline: none;
+        border-color: #9146ff;
+    }
 </style>
 {% endblock %}
 
@@ -108,17 +149,33 @@
             <tr>
                 <th>Command</th>
                 <th>Message</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for command in commands %}
             <tr>
-                <td class="command-name">!{{ command.command }}</td>
-                <td>{{ command.message }}</td>
+                <td class="command-name">
+                    <form action="/dashboard/commands/{{ command.id }}/name" method="post" class="inline-form">
+                        <input type="text" name="name" value="{{ command.command }}" required>
+                        <button type="submit" class="btn btn-primary btn-small">Update</button>
+                    </form>
+                </td>
+                <td>
+                    <form action="/dashboard/commands/{{ command.id }}/message" method="post" class="inline-form">
+                        <input type="text" name="message" value="{{ command.message }}" required>
+                        <button type="submit" class="btn btn-primary btn-small">Update</button>
+                    </form>
+                </td>
+                <td class="action-cell">
+                    <form action="/dashboard/commands/{{ command.id }}/delete" method="post" onsubmit="return confirm('Are you sure you want to delete this command?');">
+                        <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                    </form>
+                </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="2" style="text-align: center;">No commands found.</td>
+                <td colspan="3" style="text-align: center;">No commands found.</td>
             </tr>
             {% endfor %}
         </tbody>
