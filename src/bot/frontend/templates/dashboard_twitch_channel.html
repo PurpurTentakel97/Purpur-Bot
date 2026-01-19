@@ -89,7 +89,6 @@
                 <div class="feature-card">
                     <div class="feature-info">
                         <h3>Commands</h3>
-                        <p>Enable/Disable bot commands</p>
                     </div>
                     <label class="switch">
                         <input type="checkbox" name="can_commands" value="True" {% if feature_flags.can_commands %}checked{% endif %} onchange="this.form.submit()">
@@ -100,7 +99,6 @@
                 <div class="feature-card">
                     <div class="feature-info">
                         <h3>Aliases</h3>
-                        <p>Enable/Disable command aliases</p>
                     </div>
                     <label class="switch">
                         <input type="checkbox" name="can_alias" value="True" {% if feature_flags.can_alias %}checked{% endif %} onchange="this.form.submit()">
