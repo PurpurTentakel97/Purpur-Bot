@@ -33,7 +33,7 @@ def add_discord_bot(bot_id: int, discord_id: int, server_name: str) -> Result[in
     if insert_result.state.fail:
         return insert_result
 
-    feature_flag_result = insert_discord_feature_flags_db(bot_id, str(discord_id))
+    feature_flag_result = insert_discord_feature_flags_db(bot_id, discord_id)
 
     if feature_flag_result.state.fail:
         delete_discord_server_db(bot_id, discord_id)

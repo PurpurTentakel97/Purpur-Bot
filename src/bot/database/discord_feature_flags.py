@@ -9,7 +9,7 @@ FIELD_CAN_COMMANDS = "can_commands"
 FIELD_CAN_ALIAS = "can_alias"
 
 
-def insert_discord_feature_flags(bot_id: int, server_id: str) -> Result[int]:
+def insert_discord_feature_flags(bot_id: int, server_id: int) -> Result[int]:
     return PROGRAMM_PARTS.database.insert(table_name=TABLE_NAME, data={"bot_id": bot_id, "server_id": server_id})
 
 

@@ -3,7 +3,7 @@ from bot.chat.discord_server import DiscordServer
 from bot.chat.twitch_chat import TwitchChat
 from bot.chat.twitch_client import TwitchClient
 from bot.core.discord_feature_flags import (
-    select_discord_feature_flags_by_server_id_db as select_discord_feature_flags_by_server_id_core,
+    select_discord_feature_flags_by_server_id as select_discord_feature_flags_by_server_id_core,
 )
 from bot.core.twitch_feature_flags import (
     select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_core,
