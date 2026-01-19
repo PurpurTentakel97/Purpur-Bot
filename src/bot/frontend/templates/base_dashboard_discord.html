@@ -1,0 +1,141 @@
+{% extends "base_dashboard.html" %}
+
+{% block extra_dashboard_styles %}
+<style>
+    .discord-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: row;
+        gap: 2rem;
+        align-items: flex-start;
+    }
+
+    .discord-sidebar {
+        width: 200px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .discord-sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        background-color: #2a2a2a;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .discord-sidebar-menu li a {
+        display: block;
+        padding: 1rem 1.5rem;
+        color: #ccc;
+        text-decoration: none;
+        transition: background-color 0.2s, color 0.2s;
+        border-bottom: 1px solid #444;
+    }
+
+    .discord-sidebar-menu li:last-child a {
+        border-bottom: none;
+    }
+
+    .discord-sidebar-menu li a:hover {
+        background-color: #333;
+        color: white;
+    }
+
+    .discord-sidebar-menu li a.active {
+        background-color: #333;
+        color: #9146ff;
+        border-left: 3px solid #9146ff;
+        padding-left: calc(1.5rem - 3px);
+    }
+
+    .discord-main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .discord-section {
+        background-color: #2a2a2a;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .discord-section h2 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        color: #aaa;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+    }
+
+    .discord-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .discord-table th, .discord-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #444;
+    }
+
+    .discord-table th {
+        color: #777;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+
+    .discord-table td:last-child {
+        text-align: right;
+    }
+
+    .add-channel-form {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .add-channel-form select {
+        flex: 1;
+        padding: 0.5rem;
+        background-color: #333;
+        color: white;
+        border: 1px solid #444;
+        border-radius: 4px;
+    }
+</style>
+{% block extra_discord_styles %}{% endblock %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="discord-container">
+    <aside class="discord-sidebar">
+        <ul class="discord-sidebar-menu">
+            <li>
+                <a href="/dashboard/discord/{{ bot.id }}" class="{{ 'active' if active_tab == 'server' else '' }}">Server</a>
+            </li>
+            {% for server in discord_server %}
+            <li>
+                <a href="/dashboard/discord/{{ bot.id }}/server/{{ server.server_id }}"
+                   class="{{ 'active' if active_tab == server.server_id else '' }}">
+                    {{ server.server_name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </aside>
+
+    <div class="discord-main-content">
+        {% block discord_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

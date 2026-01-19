@@ -51,7 +51,7 @@ async def stop_single_twitch_bot(id_: int, channel_name: str) -> bool:
 
     for channel in PROGRAMM_PARTS.twitch.chats:
         if channel.bot_id == id_ and channel.channel_name == channel_name:
-            await channel.terminate()
+            await channel.terminate(PROGRAMM_PARTS.twitch)
             return True
 
     return False
@@ -63,4 +63,4 @@ async def stop_all_twitch_bots_from_bot(bot_id: int) -> None:
 
     for channel in PROGRAMM_PARTS.twitch.chats:
         if channel.bot_id == bot_id:
-            await channel.terminate()
+            await channel.terminate(PROGRAMM_PARTS.twitch)

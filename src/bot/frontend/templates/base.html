@@ -3,79 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tentakel Bot</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    {% block styles %}{% endblock %}
-    <script>
-        function showLoading() {
-            document.getElementById('loading-overlay').style.display = 'flex';
+    <title>{% block title %}Base{% endblock %} - Tentakel-Bot</title>
+    <style>
+        /* elements */
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s, background-color 0.2s;
+            color: white;
+            text-align: center;
         }
 
-        function hideLoading() {
-            document.getElementById('loading-overlay').style.display = 'none';
+        .btn:hover {
+            opacity: 0.9;
         }
 
-        function openAuthPopup(url) {
-            const width = 600;
-            const height = 800;
-            const left = (window.screen.width / 2) - (width / 2);
-            const top = (window.screen.height / 2) - (height / 2);
-
-            // Add popup=true to the URL
-            const popupUrl = new URL(url, window.location.origin);
-            popupUrl.searchParams.set('popup', 'true');
-
-            window.open(
-                popupUrl.toString(),
-                'authPopup',
-                `width=${width},height=${height},left=${left},top=${top},status=no,menubar=no,toolbar=no`
-            );
-            return false;
+        .btn-edit {
+            background-color: #4a90e2;
+            margin-right: 0.5rem;
         }
-    </script>
+
+        .btn-remove {
+            background-color: #e24a4a;
+        }
+
+        .btn-primary {
+            background-color: #9146ff;
+        }
+
+        .btn-primary:hover {
+            background-color: #772ce8;
+        }
+
+        .btn-secondary {
+            background-color: #555;
+        }
+
+        .btn-secondary:hover {
+            background-color: #444;
+        }
+
+        /* main */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #333;
+            color: white;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* base specific */
+        header {
+            background-color: #000;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .avatar-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .avatar-container .user-avatar:not(:first-child) {
+            margin-left: -8px;
+            z-index: 1;
+        }
+
+        .avatar-container .user-avatar:first-child {
+            z-index: 2;
+        }
+
+        .user-avatar {
+            height: 30px;
+            width: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #000;
+            position: relative;
+        }
+
+        .header-left a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .header-logo {
+            max-height: 35px;
+            width: auto;
+        }
+
+        footer {
+            background-color: #000;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            align-items: flex-start;
+        }
+
+        .footer-content-entry {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-content-entry p {
+            margin: 0;
+        }
+
+        .footer-logo {
+            max-height: 150px;
+            width: auto;
+        }
+
+        .footer-content-entry a {
+            color: #9146ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .footer-content-entry a:hover {
+            text-decoration: underline;
+            color: #772ce8;
+        }
+
+        /* alerts */
+        .alert {
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: bold;
+            width: 100%;
+            box-sizing: border-box;
+            z-index: 900;
+        }
+
+        .alert-error {
+            background-color: #e24a4a;
+            color: white;
+        }
+
+        .alert-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+    </style>
+    {% block extra_styles %}{% endblock %}
+    {% block head %}{% endblock %}
 </head>
 <body>
-    <div id="loading-overlay">
-        <div class="spinner"></div>
+<header>
+    <div class="header-left">
+        <img src="/static/purpur_love.png" alt="Logo" class="header-logo">
+        <a href="/">Purpur-Bot</a>
     </div>
-    <header>
-        <nav>
-            <div class="nav-brand">
-                <div class="nav-links">
-                    <a href="/">Home</a>
-                </div>
-            </div>
-            <div class="user-controls">
-                {% if twitch_user or discord_user %}
-                    {% if twitch_user.display_name %}
-                        <span class="user-info">Welcome, {{ twitch_user.display_name }}!</span>
-                    {% elif discord_user.display_name %}
-                        <span class="user-info">Welcome, {{ discord_user.display_name }}!</span>
-                    {% endif %}
-                    {% if twitch_user.profile_image_url %}
-                        <img src="{{ twitch_user.profile_image_url }}" alt="{{ twitch_user.display_name }}" class="profile-pic">
-                    {% endif %}
-                    {% if discord_user.avatar_url %}
-                        <img src="{{ discord_user.avatar_url }}" alt="{{ discord_user.display_name }}" class="profile-pic">
-                    {% endif %}
-                    <a href="/auth/logout">Logout</a>
+    <div>
+        {% if twitch_user %}
+        <div class="user-info">
+            <div class="avatar-container">
+                {% if discord_user %}
+                <img src="/icons/discord/profile_icon" alt="Discord Avatar" class="user-avatar"
+                     title="Discord: {{ discord_user.display_name }}">
                 {% endif %}
-                {% if not twitch_user %}
-                    <a href="/auth/twitch" onclick="return openAuthPopup(this.href)">Login with Twitch</a>
-                {% endif %}
+                <img src="/icons/twitch/profile_icon" alt="Twitch Avatar" class="user-avatar"
+                     title="Twitch: {{ twitch_user.display_name }}">
             </div>
-        </nav>
-    </header>
-
-    <main>
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer>
-        <div class="footer-content">
-            <img src="/static/logo.png" alt="Logo" class="footer-logo">
-            <p>&copy; {{ now.year if now else '2026' }} Tentakel Bot</p>
+            <span>Welcome, {{ twitch_user.display_name }}</span>
+            <a href="/auth/logout" class="btn btn-secondary" style="margin-left: 10px;">Logout</a>
         </div>
-    </footer>
+        {% else %}
+        <a href="/auth/login/twitch" class="btn btn-primary">Login with Twitch</a>
+        {% endif %}
+    </div>
+</header>
+
+
+{% if request.query_params.get('error_message') %}
+<div class="alert alert-error">
+    {{ request.query_params.get('error_message') }}
+</div>
+{% endif %}
+
+{% if request.query_params.get('success_message') %}
+<div class="alert alert-success">
+    {{ request.query_params.get('success_message') }}
+</div>
+{% endif %}
+
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-content-entry">
+            <h3>Purpur Bot</h3>
+            <p>A simple bot primarily designed for Twitch, with additional support for Discord integration. By
+                codingPurpurTentakel</p>
+        </div>
+
+        <div class="footer-content-entry">
+            <img src="/static/purpur_hi.png" alt="Logo" class="footer-logo">
+            <p>&copy; {{ now.year }} | Purpur Bot | All rights reserved.</p>
+        </div>
+
+        <div class="footer-content-entry">
+            <h3>Links</h3>
+            <a href="https://github.com/PurpurTentakel97">GitHub</a>
+            <a href="https://github.com/PurpurTentakel97/Purpur-Bot">Purpur-Bot</a>
+            <a href="https://www.twitch.tv/codingpurpurtentakel">Twitch</a>
+        </div>
+
+    </div>
+</footer>
 </body>
 </html>

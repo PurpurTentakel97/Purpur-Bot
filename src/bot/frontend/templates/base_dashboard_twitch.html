@@ -1,0 +1,141 @@
+{% extends "base_dashboard.html" %}
+
+{% block extra_dashboard_styles %}
+<style>
+    .twitch-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: row;
+        gap: 2rem;
+        align-items: flex-start;
+    }
+
+    .twitch-sidebar {
+        width: 200px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .twitch-sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        background-color: #2a2a2a;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .twitch-sidebar-menu li a {
+        display: block;
+        padding: 1rem 1.5rem;
+        color: #ccc;
+        text-decoration: none;
+        transition: background-color 0.2s, color 0.2s;
+        border-bottom: 1px solid #444;
+    }
+
+    .twitch-sidebar-menu li:last-child a {
+        border-bottom: none;
+    }
+
+    .twitch-sidebar-menu li a:hover {
+        background-color: #333;
+        color: white;
+    }
+
+    .twitch-sidebar-menu li a.active {
+        background-color: #333;
+        color: #9146ff;
+        border-left: 3px solid #9146ff;
+        padding-left: calc(1.5rem - 3px);
+    }
+
+    .twitch-main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .twitch-section {
+        background-color: #2a2a2a;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .twitch-section h2 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        color: #aaa;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+    }
+
+    .twitch-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .twitch-table th, .twitch-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #444;
+    }
+
+    .twitch-table th {
+        color: #777;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+
+    .twitch-table td:last-child {
+        text-align: right;
+    }
+
+    .add-channel-form {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .add-channel-form select {
+        flex: 1;
+        padding: 0.5rem;
+        background-color: #333;
+        color: white;
+        border: 1px solid #444;
+        border-radius: 4px;
+    }
+</style>
+{% block extra_twitch_styles %}{% endblock %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="twitch-container">
+    <aside class="twitch-sidebar">
+        <ul class="twitch-sidebar-menu">
+            <li>
+                <a href="/dashboard/twitch/{{ bot.id }}" class="{{ 'active' if active_tab == 'channels' else '' }}">Channels</a>
+            </li>
+            {% for channel in twitch_channels %}
+                <li>
+                    <a href="/dashboard/twitch/{{ bot.id }}/channel/{{ channel.channel_name }}"
+                       class="{{ 'active' if active_channel == channel.channel_name else '' }}">
+                        {{ channel.channel_name }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </aside>
+
+    <div class="twitch-main-content">
+        {% block twitch_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

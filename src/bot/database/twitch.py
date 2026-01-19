@@ -9,7 +9,7 @@ FIELD_CHANNEL_NAME = "channel_name"
 
 
 def select_twitch_channels_by_bot_id(bot_id: int) -> Result[list[TwitchChannelDB]]:
-    return PROGRAMM_PARTS.database.select_all(table_name=TABLENAME, where={"id": bot_id}, type_=TwitchChannelDB)
+    return PROGRAMM_PARTS.database.select_all(table_name=TABLENAME, where={"bot_id": bot_id}, type_=TwitchChannelDB)
 
 
 def select_twitch_channel_by(where: dict[str, Any]) -> Result[TwitchChannelDB]:

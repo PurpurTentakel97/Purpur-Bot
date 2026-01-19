@@ -43,7 +43,7 @@ def _result_lookup(state: ResultState) -> str:
             return "the identifier is empty."
         case ResultState.EMPTY_MESSAGE:
             return "the message is empty."
-        case ResultState.SILL_IN_USE:
+        case ResultState.STILL_IN_USE:
             return "the identifier is still in use."
         case ResultState.NO_DATA:
             return "unknown identifier."
