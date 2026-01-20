@@ -22,6 +22,11 @@ class DiscordServer(Chat):
     def server_id(self) -> int:
         return self._server_id
 
+    @property
+    @override
+    def is_discord(self) -> bool:
+        return True
+
     @override
     async def send_response(self, messages: list[ChatMessageResponse]) -> None:
         for message in messages:
@@ -42,8 +47,9 @@ class DiscordServer(Chat):
             if user.guild_permissions.manage_messages:
                 return PermissionLevel.MODERATOR
 
-            if "vip" in user.roles or "VIP" in user.roles:
-                return PermissionLevel.SPECIAL_USER
+            for role in user.roles:
+                if role.name == "VIP" or role.name == "vip":
+                    return PermissionLevel.SPECIAL_USER
 
             return PermissionLevel.USER
 

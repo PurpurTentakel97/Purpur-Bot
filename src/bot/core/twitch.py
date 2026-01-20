@@ -8,6 +8,7 @@ from bot.database.twitch import delete_twitch_channel as delete_twitch_channel_d
 from bot.database.twitch import insert_twitch_channel as insert_twitch_channel_db
 from bot.database.twitch import select_twitch_channel_by as select_twitch_channel_by_db
 from bot.database.twitch import select_twitch_channels_by_bot_id as select_twitch_channels_db
+from bot.database.twitch_feature_flags import insert_twitch_feature_flags as insert_twitch_feature_flags_db
 from bot.database.types.twitch_channel import TwitchChannelDB
 
 
@@ -33,6 +34,12 @@ async def add_twitch_channel(bot_id: int, channel: str) -> Result[int]:
 
     if insert_result.state.fail:
         return insert_result
+
+    feature_flag_result = insert_twitch_feature_flags_db(bot_id, channel_db)
+
+    if feature_flag_result.state.fail:
+        delete_twitch_channel_db(bot_id, channel_db)
+        return Result(ResultState.ERROR, None)
 
     start_result = await start_single_twitch_bot(bot_id, channel_db)
 

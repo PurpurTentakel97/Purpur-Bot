@@ -8,6 +8,7 @@ from bot.database.discord import delete_discord_server as delete_discord_server_
 from bot.database.discord import insert_discord_server as insert_discord_server_db
 from bot.database.discord import select_discord_by as select_discord_by_db
 from bot.database.discord import select_discord_servers_by_bot_id as select_discord_servers_by_bot_id_db
+from bot.database.discord_feature_flags import insert_discord_feature_flags as insert_discord_feature_flags_db
 from bot.database.types.discord_server import DiscordServerDB
 
 
@@ -31,6 +32,12 @@ def add_discord_bot(bot_id: int, discord_id: int, server_name: str) -> Result[in
 
     if insert_result.state.fail:
         return insert_result
+
+    feature_flag_result = insert_discord_feature_flags_db(bot_id, discord_id)
+
+    if feature_flag_result.state.fail:
+        delete_discord_server_db(bot_id, discord_id)
+        return Result(ResultState.ERROR, None)
 
     add_result = start_single_discord_bot(bot_id, discord_id)
 

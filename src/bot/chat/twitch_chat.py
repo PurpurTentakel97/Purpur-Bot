@@ -40,8 +40,18 @@ class TwitchChat(Chat):
     def channel_name(self) -> str:
         return self._channel_name
 
+    @property
+    @override
+    def is_twitch(self) -> bool:
+        return True
+
     @classmethod
-    async def create(cls, twitch: TwitchClient, id_: int, channel_name: str) -> Self:
+    async def create(
+        cls,
+        twitch: TwitchClient,
+        id_: int,
+        channel_name: str,
+    ) -> Self:
         chat = await TwitchChatClient(twitch.client)
         instance = cls(chat, id_, channel_name)
         twitch.connect_chat(instance)

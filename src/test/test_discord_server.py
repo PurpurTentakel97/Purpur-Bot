@@ -69,13 +69,13 @@ async def test_discord_server_permissions() -> None:
     assert msg.sender_permission_level == PermissionLevel.MODERATOR
 
     # Special User (VIP role)
-    # Note: Current code checks strings in Role objects list, which is likely a bug.
-    # Testing current implementation behavior.
     mock_vip = MagicMock(spec=discord.Message)
     mock_vip.author = MagicMock(spec=discord.Member)
     mock_vip.author.guild_permissions.administrator = False
     mock_vip.author.guild_permissions.manage_messages = False
-    mock_vip.author.roles = ["vip"]  # Matching the code's expected (buggy) behavior
+    mock_role = MagicMock(spec=discord.Role)
+    mock_role.name = "vip"
+    mock_vip.author.roles = [mock_role]
     mock_vip.content = "vip"
     await server.on_message(mock_vip)
     msg = await server.message_queue.get()
