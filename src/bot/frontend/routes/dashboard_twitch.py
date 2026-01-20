@@ -12,6 +12,17 @@ from starlette.responses import RedirectResponse
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
+from bot.core.broadcast_messages import delete_broadcast_message_by_id as delete_broadcast_message_by_id_core
+from bot.core.broadcast_messages import (
+    get_broadcast_message_by_channel_name as get_broadcast_message_by_channel_name_core,
+)
+from bot.core.broadcast_messages import save_broadcast_message as save_broadcast_message_core
+from bot.core.broadcast_messages import (
+    update_broadcast_message_interval_by_id as update_broadcast_message_interval_by_id_core,
+)
+from bot.core.broadcast_messages import (
+    update_broadcast_message_message_by_id as update_broadcast_message_message_by_id_core,
+)
 from bot.core.twitch import add_twitch_channel as add_twitch_channel_core
 from bot.core.twitch import delete_twitch_channel as delete_twitch_channel_core
 from bot.core.twitch import get_twitch_channels_from_bot as get_twitch_channels_core
@@ -31,6 +42,7 @@ from bot.frontend.types.twitch_user_info import TwitchUserInfo
 router: Final = APIRouter(prefix="/dashboard/twitch", dependencies=[Depends(get_authenticated_twitch_user)])
 
 
+# twitch global
 @router.get("/{bot_id:int}")
 async def dashboard_twitch(
     request: Request,
@@ -100,6 +112,7 @@ async def dashboard_twitch_delete(
     )
 
 
+# channel
 @router.get("/{bot_id:int}/channel/{name:str}")
 async def dashboard_twitch_channel(
     request: Request,
@@ -117,6 +130,10 @@ async def dashboard_twitch_channel(
     if twitch_feature_flags.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Twitch Feature Flags not found")
 
+    broadcast_message = get_broadcast_message_by_channel_name_core(bot.id, name)
+    if broadcast_message.value is None:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Broadcast Message not found")
+
     return template.TemplateResponse(
         request=request,
         name="dashboard_twitch_channel.html",
@@ -128,6 +145,7 @@ async def dashboard_twitch_channel(
             "twitch_channels": twitch_channels.value,
             "active_channel": name,
             "feature_flags": twitch_feature_flags.value,
+            "broadcast_message": broadcast_message.value,
         },
     )
 
@@ -151,5 +169,86 @@ async def dashboard_twitch_feature_flag_update(
 
     return RedirectResponse(
         url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Twitch feature flags updated successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+# broadcast messages
+@router.post("/{bot_id:int}/{name:str}/broadcast_message/save")
+async def dashboard_twitch_broadcast_message_save(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    name: str,
+    message: Annotated[str, Form()],
+    interval: Annotated[int, Form()],
+) -> RedirectResponse:
+    result = save_broadcast_message_core(bot.id, name, message, interval)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to save broadcast message "
+            + f"| reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Broadcast message saved successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.post("/{bot_id:int}/{name:str}/broadcast_message/update_message/{message_id:int}")
+def update_broadcast_message(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: str, message_id: int, message: Annotated[str, Form()]
+) -> RedirectResponse:
+    result = update_broadcast_message_message_by_id_core(message_id, message)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to update broadcast message "
+            + f"| reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Broadcast message updated successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.post("/{bot_id:int}/{name:str}/broadcast_message/update_interval/{message_id:int}")
+def update_broadcast_message_interval(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: str, message_id: int, interval: Annotated[int, Form()]
+) -> RedirectResponse:
+    result = update_broadcast_message_interval_by_id_core(message_id, interval)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to update broadcast message interval "
+            + f"| reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/twitch/{bot.id}/channel/{name}"
+        + "?success_message=Broadcast message interval updated successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.post("/{bot_id:int}/{name:str}/broadcast_message/delete/{message_id:int}")
+def delete_broadcast_message(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: str, message_id: int
+) -> RedirectResponse:
+    result = delete_broadcast_message_by_id_core(message_id)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to delete broadcast message "
+            + f"| reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Broadcast message deleted successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
