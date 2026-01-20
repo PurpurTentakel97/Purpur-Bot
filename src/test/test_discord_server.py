@@ -9,34 +9,22 @@ import discord
 import pytest
 
 from bot.chat.discord_server import DiscordServer
-from bot.database.types.feature_flags import DiscordFeatureFlagsDB
 
 
-@pytest.fixture
-def feature_flags() -> DiscordFeatureFlagsDB:
-    return DiscordFeatureFlagsDB(
-        id=1,
-        bot_id=1,
-        server_id="123456789",
-        can_commands=True,
-        can_alias=True,
-    )
-
-
-def test_discord_server_init(feature_flags: DiscordFeatureFlagsDB) -> None:
+def test_discord_server_init() -> None:
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id, feature_flags)
+    server = DiscordServer(id_, server_id)
 
     assert server.bot_id == id_
     assert server.server_id == server_id
 
 
 @pytest.mark.asyncio
-async def test_discord_server_on_message(feature_flags: DiscordFeatureFlagsDB) -> None:
+async def test_discord_server_on_message() -> None:
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id, feature_flags)
+    server = DiscordServer(id_, server_id)
     mock_message = MagicMock(spec=discord.Message)
     mock_author = MagicMock(spec=discord.Member)
     mock_author.name = "test_user"
@@ -54,12 +42,12 @@ async def test_discord_server_on_message(feature_flags: DiscordFeatureFlagsDB) -
 
 
 @pytest.mark.asyncio
-async def test_discord_server_permissions(feature_flags: DiscordFeatureFlagsDB) -> None:
+async def test_discord_server_permissions() -> None:
     from bot.core.types.permission_level import PermissionLevel
 
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id, feature_flags)
+    server = DiscordServer(id_, server_id)
 
     # Admin
     mock_admin = MagicMock(spec=discord.Message)
@@ -81,13 +69,13 @@ async def test_discord_server_permissions(feature_flags: DiscordFeatureFlagsDB) 
     assert msg.sender_permission_level == PermissionLevel.MODERATOR
 
     # Special User (VIP role)
-    # Note: Current code checks strings in Role objects list, which is likely a bug.
-    # Testing current implementation behavior.
     mock_vip = MagicMock(spec=discord.Message)
     mock_vip.author = MagicMock(spec=discord.Member)
     mock_vip.author.guild_permissions.administrator = False
     mock_vip.author.guild_permissions.manage_messages = False
-    mock_vip.author.roles = ["vip"]  # Matching the code's expected (buggy) behavior
+    mock_role = MagicMock(spec=discord.Role)
+    mock_role.name = "vip"
+    mock_vip.author.roles = [mock_role]
     mock_vip.content = "vip"
     await server.on_message(mock_vip)
     msg = await server.message_queue.get()
@@ -106,12 +94,12 @@ async def test_discord_server_permissions(feature_flags: DiscordFeatureFlagsDB) 
 
 
 @pytest.mark.asyncio
-async def test_discord_server_send_response_type_mismatch(feature_flags: DiscordFeatureFlagsDB) -> None:
+async def test_discord_server_send_response_type_mismatch() -> None:
     from bot.chat.types.message_response import ChatMessageResponse
 
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id, feature_flags)
+    server = DiscordServer(id_, server_id)
 
     # Use a non-DiscordMessage as original_message
     mock_bad_msg = MagicMock()
@@ -124,12 +112,12 @@ async def test_discord_server_send_response_type_mismatch(feature_flags: Discord
 
 
 @pytest.mark.asyncio
-async def test_discord_server_send_response_success(feature_flags: DiscordFeatureFlagsDB) -> None:
+async def test_discord_server_send_response_success() -> None:
     from bot.chat.types.message_response import ChatMessageResponse
 
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id, feature_flags)
+    server = DiscordServer(id_, server_id)
 
     mock_channel = AsyncMock()
     mock_discord_msg = MagicMock(spec=discord.Message)
@@ -142,10 +130,10 @@ async def test_discord_server_send_response_success(feature_flags: DiscordFeatur
 
 
 @pytest.mark.asyncio
-async def test_discord_server_on_message_assertion_error(feature_flags: DiscordFeatureFlagsDB) -> None:
+async def test_discord_server_on_message_assertion_error() -> None:
     id_ = 1
     server_id = 123456789
-    server = DiscordServer(id_, server_id, feature_flags)
+    server = DiscordServer(id_, server_id)
 
     mock_message = MagicMock(spec=discord.Message)
     # author not a DiscordMember
