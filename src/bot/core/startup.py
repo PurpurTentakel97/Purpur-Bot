@@ -41,7 +41,7 @@ async def _start_discord_bot() -> None:
         if feature_flags.value is None:
             log_default(LogLevel.ERROR, f"Discord Feature Flags for server {server.server_id} not found. Skipping...")
             continue  # should never happen.
-        discord_server = DiscordServer(server.bot_id, server.server_id, feature_flags.value)
+        discord_server = DiscordServer(server.bot_id, server.server_id)
         PROGRAMM_PARTS.discord.connect_server(discord_server)
 
 
@@ -66,7 +66,7 @@ async def _start_twitch_bot() -> None:
                 LogLevel.ERROR, f"Twitch Feature Flags for channel {channel.channel_name} not found. Skipping..."
             )
             continue
-        await TwitchChat.create(PROGRAMM_PARTS.twitch, channel.bot_id, channel.channel_name, feature_flags.value)
+        await TwitchChat.create(PROGRAMM_PARTS.twitch, channel.bot_id, channel.channel_name)
 
 
 async def startup_programm() -> None:
