@@ -22,4 +22,12 @@ class Chat(ABC):
 
     @abstractmethod
     async def send_response(self, messages: list[ChatMessageResponse]) -> None:
-        pass
+        raise NotImplementedError()
+
+    @property
+    def is_twitch(self) -> bool:
+        return False
+
+    @property
+    def is_discord(self) -> bool:
+        return False

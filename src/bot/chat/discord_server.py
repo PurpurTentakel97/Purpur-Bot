@@ -22,6 +22,11 @@ class DiscordServer(Chat):
     def server_id(self) -> int:
         return self._server_id
 
+    @property
+    @override
+    def is_discord(self) -> bool:
+        return True
+
     @override
     async def send_response(self, messages: list[ChatMessageResponse]) -> None:
         for message in messages:

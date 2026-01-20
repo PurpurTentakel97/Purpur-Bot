@@ -24,6 +24,7 @@ from bot.core.counter import reset_counter as reset_counter_core
 from bot.core.counter import save_counter as save_counter_core
 from bot.core.types.permission_level import PermissionLevel
 from bot.core.types.result import ResultState
+from bot.database.types.feature_flags import FeatureFlagsDB
 
 
 def _to_int(value: str) -> Optional[int]:
@@ -51,7 +52,7 @@ def _result_lookup(state: ResultState) -> str:
             return "internal error"
 
 
-def handle_command(message: ChatMessage) -> Optional[ChatMessageResponse]:
+def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
     parts = message.text.strip().split(" ")
 
     if message.sender_permission_level.is_permitted(PermissionLevel.SPECIAL_USER):
@@ -241,8 +242,9 @@ def handle_command(message: ChatMessage) -> Optional[ChatMessageResponse]:
     if len(parts) < 1:
         return None
 
-    result = get_command_core(message.bot_id, parts[0].lstrip("!"))
-    if result.state.success and result.value is not None:
-        return message.to_response_message(result.value.message)
+    if feature_flags.can_commands:
+        result = get_command_core(message.bot_id, parts[0].lstrip("!"))
+        if result.state.success and result.value is not None:
+            return message.to_response_message(result.value.message)
 
     return None

@@ -40,6 +40,11 @@ class TwitchChat(Chat):
     def channel_name(self) -> str:
         return self._channel_name
 
+    @property
+    @override
+    def is_twitch(self) -> bool:
+        return True
+
     @classmethod
     async def create(
         cls,
