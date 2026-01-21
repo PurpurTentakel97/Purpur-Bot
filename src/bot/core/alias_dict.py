@@ -1,7 +1,6 @@
 from bot.core.helpers.string import check_identifier
 from bot.core.helpers.string import check_text
 from bot.core.helpers.string import identifier_for_db
-from bot.core.helpers.string import strip_for_db
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.alias_dict import FIELD_ALIAS
@@ -80,7 +79,9 @@ def update_alias_by_id(entry_id: int, alias: str, explanation: str) -> Result[Al
     if explanation_res.state.fail or explanation_res.value is None:
         return explanation_res.cast_to(AliasDictEntry)
 
-    return update_dict_entry_by_id_db(entry_id, {FIELD_ALIAS: alias_res.value, FIELD_EXPLANATION: explanation_res.value})
+    return update_dict_entry_by_id_db(
+        entry_id, {FIELD_ALIAS: alias_res.value, FIELD_EXPLANATION: explanation_res.value}
+    )
 
 
 def delete_alias(bot_id: int, alias: str) -> Result[None]:

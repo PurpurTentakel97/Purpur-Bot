@@ -8,7 +8,6 @@ from bot.core.counter import save_counter
 from bot.core.helpers.string import check_identifier
 from bot.core.helpers.string import check_text
 from bot.core.helpers.string import identifier_for_db
-from bot.core.helpers.string import strip_for_db
 from bot.core.types.counter_instructions import CounterOperation
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
