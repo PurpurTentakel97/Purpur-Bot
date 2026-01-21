@@ -4,6 +4,7 @@ from attr import dataclass
 
 from bot.chat.discord_client import DiscordClient
 from bot.chat.twitch_client import TwitchClient
+from bot.core.types.broadcast_message_storrage import BroadcastMessageStorage
 from bot.database.database import Database
 
 
@@ -12,6 +13,7 @@ class ProgramParts:
     discord: Optional[DiscordClient] = None
     twitch: Optional[TwitchClient] = None
     _database: Optional[Database] = None
+    broadcast: Optional[BroadcastMessageStorage] = None
 
     @property
     def database(self) -> Database:

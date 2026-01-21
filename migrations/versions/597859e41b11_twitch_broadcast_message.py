@@ -27,7 +27,6 @@ def upgrade() -> None:
         sa.Column("message", sa.String, nullable=False),
         sa.Column("interval_in_minutes", sa.Integer, nullable=False),
         sa.ForeignKeyConstraint(["bot_id"], ["bot_config.id"], ondelete="CASCADE"),
-        sa.UniqueConstraint("bot_id", "channel_name", name="unique_twitch_broadcast_message"),
     )
 
 

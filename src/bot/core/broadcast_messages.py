@@ -1,5 +1,6 @@
 from bot.core.helpers.string import identifier_for_db
 from bot.core.helpers.string import strip_for_db
+from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.broadcast_messages import FIELD_INTERVAL_IN_MINUTES
@@ -24,12 +25,12 @@ def save_broadcast_message(bot_id: int, channel_name: str, message: str, interva
     if result.state.fail or result.value is None:
         return result
 
-    data = get_broadcast_message_by_id(result.value)
-    if result.state.fail or data.value is None:
-        delete_broadcast_message_by_id(result.value)
-        return data.cast_to(int)
-
-    # TODO: add new broadcast message to broadcast handler
+    if PROGRAMM_PARTS.broadcast is not None:
+        data = get_broadcast_message_by_id(result.value)
+        if result.state.fail or data.value is None:
+            delete_broadcast_message_by_id(result.value)
+            return data.cast_to(int)
+        PROGRAMM_PARTS.broadcast.add_or_update_message(data.value)
 
     return result
 
@@ -51,7 +52,10 @@ def _update(message_id: int) -> bool:
     if data.state.fail or data.value is None:
         return False
 
-    # TODO: update broadcast message in broadcast handler
+    if PROGRAMM_PARTS.broadcast is None:
+        return False
+
+    PROGRAMM_PARTS.broadcast.add_or_update_message(data.value)
 
     return True
 
@@ -85,7 +89,8 @@ def delete_broadcast_message_by_id(message_id: int) -> Result[None]:
     if data.state.fail or data.value is None:
         return data.cast_to(type(None))
 
-    # TODO: remove broadcast message from broadcast handler
+    if PROGRAMM_PARTS.broadcast is not None:
+        PROGRAMM_PARTS.broadcast.remove_message(data.value.id)
 
     result = delete_broadcast_message_by_id_db(message_id)
     return result

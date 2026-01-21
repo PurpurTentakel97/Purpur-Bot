@@ -10,6 +10,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from bot.chat.message_handler import handle_messages
+from bot.core.handle_broadcast_message import handle_broadcast_messages
 from bot.core.startup import startup_programm
 from bot.core.terminate import terminate_programm
 from bot.frontend.helpers.auth import get_discord_user
@@ -31,15 +32,20 @@ from bot.helpers.log import log_exception
 @asynccontextmanager
 async def main(_: FastAPI) -> AsyncGenerator[None]:
     await startup_programm()
-    message_task = asyncio.create_task(handle_messages())
+
+    tasks = [
+        asyncio.create_task(handle_messages()),
+        asyncio.create_task(handle_broadcast_messages()),
+    ]
 
     try:
         yield
 
     finally:
-        message_task.cancel()
+        for task in tasks:
+            task.cancel()
         try:
-            await message_task
+            await asyncio.gather(*tasks, return_exceptions=True)
         except asyncio.CancelledError:
             pass
 

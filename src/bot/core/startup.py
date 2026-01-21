@@ -2,12 +2,14 @@ from bot.chat.discord_client import DiscordClient
 from bot.chat.discord_server import DiscordServer
 from bot.chat.twitch_chat import TwitchChat
 from bot.chat.twitch_client import TwitchClient
+from bot.core.broadcast_messages import get_all_broadcast_messages as get_all_broadcast_messages_core
 from bot.core.discord_feature_flags import (
     select_discord_feature_flags_by_server_id as select_discord_feature_flags_by_server_id_core,
 )
 from bot.core.twitch_feature_flags import (
     select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_core,
 )
+from bot.core.types.broadcast_message_storrage import BroadcastMessageStorage
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.database import Database
 from bot.database.types.discord_server import DiscordServerDB
@@ -69,6 +71,14 @@ async def _start_twitch_bot() -> None:
         await TwitchChat.create(PROGRAMM_PARTS.twitch, channel.bot_id, channel.channel_name)
 
 
+def _start_broadcast() -> None:
+    broadcast_messages = get_all_broadcast_messages_core()
+    if broadcast_messages.state.fail or broadcast_messages.value is None:
+        log_default(LogLevel.ERROR, "Could not load broadcast messages. Aborting start Bots...")
+        return
+    PROGRAMM_PARTS.broadcast = BroadcastMessageStorage(broadcast_messages.value)
+
+
 async def startup_programm() -> None:
     _start_database()
 
@@ -78,3 +88,4 @@ async def startup_programm() -> None:
 
     await _start_discord_bot()
     await _start_twitch_bot()
+    _start_broadcast()
