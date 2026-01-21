@@ -1,5 +1,6 @@
 from bot.core.types.result import Result
 from bot.database.twitch_feature_flags import FIELD_CAN_ALIAS
+from bot.database.twitch_feature_flags import FIELD_CAN_BROADCAST
 from bot.database.twitch_feature_flags import FIELD_CAN_COMMANDS
 from bot.database.twitch_feature_flags import (
     select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_db,
@@ -17,11 +18,14 @@ def select_twitch_feature_flags_by_channel_name(bot_id: int, channel_name: str) 
     return select_twitch_feature_flags_by_channel_name_db(bot_id, channel_name)
 
 
-def update_twitch_feature_flags_by_id(feature_flag_id: int, can_commands: bool, can_alias: bool) -> Result[None]:
+def update_twitch_feature_flags_by_id(
+    feature_flag_id: int, can_commands: bool, can_alias: bool, can_broadcast: bool
+) -> Result[None]:
     return update_twitch_feature_flags_by_id_db(
         feature_flag_id,
         {
             FIELD_CAN_COMMANDS: can_commands,
             FIELD_CAN_ALIAS: can_alias,
+            FIELD_CAN_BROADCAST: can_broadcast,
         },
     )

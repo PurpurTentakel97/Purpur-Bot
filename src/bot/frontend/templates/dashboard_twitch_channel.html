@@ -236,6 +236,16 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+
+                <div class="feature-card">
+                    <div class="feature-info">
+                        <h3>Broadcast Messages</h3>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="can_broadcast" value="True" {% if feature_flags.can_broadcast %}checked{% endif %} onchange="this.form.submit()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
             <!-- Ensure other fields are sent if not checked, although FastAPI might handle missing as False with my default values -->
         </form>
