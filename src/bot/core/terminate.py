@@ -19,7 +19,15 @@ def _stop_database() -> None:
     PROGRAMM_PARTS.database.close()
 
 
+def _stop_broadcast() -> None:
+    if PROGRAMM_PARTS.broadcast is None:
+        return
+
+    PROGRAMM_PARTS.broadcast.cleanup()
+
+
 async def terminate_programm() -> None:
     await _stop_discord_bot()
     await _stop_twitch_bot()
     _stop_database()
+    _stop_broadcast()

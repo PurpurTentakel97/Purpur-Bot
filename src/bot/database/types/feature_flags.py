@@ -6,6 +6,7 @@ class FeatureFlagsDB(BaseModel):
     bot_id: int
     can_commands: bool
     can_alias: bool
+    can_broadcast: bool
 
 
 class TwitchFeatureFlagsDB(FeatureFlagsDB):

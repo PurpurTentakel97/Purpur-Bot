@@ -67,6 +67,9 @@ class TwitchChat(Chat):
         for message in messages:
             await self.chat.send_message(self.channel_name, message.text)
 
+    async def send_broadcast_message(self, message: str) -> None:
+        await self.chat.send_message(self.channel_name, message)
+
     async def _on_ready(self, ready_event: EventData) -> None:
         await ready_event.chat.join_room(self.channel_name)
         log_twitch(LogLevel.INFO, f"Twitch chat connected to {self.channel_name}")

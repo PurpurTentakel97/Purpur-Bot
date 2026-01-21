@@ -7,6 +7,7 @@ from bot.database.types.feature_flags import TwitchFeatureFlagsDB
 TABLE_NAME = "twitch_feature_flags"
 FIELD_CAN_COMMANDS = "can_commands"
 FIELD_CAN_ALIAS = "can_alias"
+FIELD_CAN_BROADCAST = "can_broadcast"
 
 
 def insert_twitch_feature_flags(bot_id: int, channel_name: str) -> Result[int]:
