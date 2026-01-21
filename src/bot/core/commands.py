@@ -20,9 +20,28 @@ from bot.database.commands import select_command as select_command_db
 from bot.database.commands import select_command_by_id as select_command_by_id_core
 from bot.database.commands import select_commands_by_bot_id as select_commands_by_bot_id_db
 from bot.database.commands import update_command as update_command_db
-from bot.database.commands import update_command_by_id as update_command_by_id_core
+from bot.database.commands import update_command_by_id as update_command_by_id_db
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.counter import CounterDB
+
+
+def _check_name(name: str) -> Result[str]:
+    name_id = identifier_for_db(name)
+    if not name_id:
+        return Result(ResultState.EMPTY_NAME, None)
+
+    if has_whitespace(name_id):
+        return Result(ResultState.WHITESPACE_ERROR, None)
+
+    return Result(ResultState.SUCCESS, name_id)
+
+
+def _check_message(message: str) -> Result[str]:
+    message_db = strip_for_db(message)
+    if not message_db:
+        return Result(ResultState.EMPTY_MESSAGE, None)
+
+    return Result(ResultState.SUCCESS, message_db)
 
 
 def _replace_counter_and_execute(bot_id: int, message: str) -> str:
@@ -99,63 +118,55 @@ def get_command_with_counter(bot_id: int, command_name: str) -> Result[BasicComm
 
 
 def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]:
-    name_db = identifier_for_db(name)
-    message_db = strip_for_db(message)
+    name_db = _check_name(name)
+    message_db = _check_message(message)
 
-    if not name_db:
-        return Result(ResultState.EMPTY_NAME, None)
+    if name_db.state.fail or name_db.value is None:
+        return name_db.cast_to(BasicCommandDB)
 
-    if not message_db:
-        return Result(ResultState.EMPTY_MESSAGE, None)
+    if message_db.state.fail or message_db.value is None:
+        return message_db.cast_to(BasicCommandDB)
 
-    if has_whitespace(name_db):
-        return Result(ResultState.WHITESPACE_ERROR, None)
-
-    if not _handle_new_counter(bot_id, message_db):
+    if not _handle_new_counter(bot_id, message_db.value):
         return Result(ResultState.COUNTER_ERROR, None)
 
-    return insert_command_db(bot_id, identifier_for_db(name), message_db)
+    return insert_command_db(bot_id, name_db.value, message_db.value)
 
 
-def update_command_message_by_id(command_id: int, message: str) -> Result[BasicCommandDB]:
-    message_db = strip_for_db(message)
+def update_command_by_id(bot_id: int, command_id: int, name: str, message: str) -> Result[BasicCommandDB]:
+    name_db = _check_name(name)
+    message_db = _check_message(message)
 
-    if not message_db:
-        return Result(ResultState.EMPTY_MESSAGE, None)
+    if name_db.state.fail or name_db.value is None:
+        return name_db.cast_to(BasicCommandDB)
 
-    return update_command_by_id_core(command_id, {FIELD_MESSAGE: message_db})
+    if message_db.state.fail or message_db.value is None:
+        return message_db.cast_to(BasicCommandDB)
+
+    if not _handle_new_counter(bot_id, message_db.value):
+        return Result(ResultState.COUNTER_ERROR, None)
+
+    return update_command_by_id_db(command_id, {FIELD_COMMAND: name_db.value, FIELD_MESSAGE: message_db.value})
 
 
 def update_command_message(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]:
-    message_db = strip_for_db(message)
+    message_db = _check_message(message)
 
-    if not message_db:
-        return Result(ResultState.EMPTY_MESSAGE, None)
+    if message_db.state.fail or message_db.value is None:
+        return message_db.cast_to(BasicCommandDB)
 
-    if not _handle_new_counter(bot_id, message_db):
+    if not _handle_new_counter(bot_id, message_db.value):
         return Result(ResultState.COUNTER_ERROR, None)
 
     return update_command_db(bot_id, identifier_for_db(name), {FIELD_MESSAGE: message_db})
 
 
-def update_command_name_by_id(command_id: int, new_name: str) -> Result[BasicCommandDB]:
-    new_name_db = identifier_for_db(new_name)
-
-    if not new_name_db:
-        return Result(ResultState.EMPTY_NAME, None)
-
-    return update_command_by_id_core(command_id, {FIELD_COMMAND: new_name_db})
-
-
 def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[BasicCommandDB]:
-    new_name_db = identifier_for_db(new_name)
+    new_name_db = _check_name(new_name)
     old_name_db = identifier_for_db(old_name)
 
-    if not new_name_db:
-        return Result(ResultState.EMPTY_NAME, None)
-
-    if has_whitespace(new_name_db):
-        return Result(ResultState.WHITESPACE_ERROR, None)
+    if new_name_db.state.fail or new_name_db.value is None:
+        return new_name_db.cast_to(BasicCommandDB)
 
     return update_command_db(bot_id, old_name_db, {FIELD_COMMAND: new_name_db})
 
