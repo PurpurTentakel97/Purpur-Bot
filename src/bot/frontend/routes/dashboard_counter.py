@@ -12,12 +12,11 @@ from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 from bot.core.counter import delete_counter_by_id as delete_counter_by_id_core
-from bot.core.counter import edit_counter_name_by_id as edit_counter_name_by_id_core
-from bot.core.counter import edit_counter_value_by_id as edit_counter_value_by_id_core
 from bot.core.counter import get_counter_by_id as get_counter_by_id_core
 from bot.core.counter import get_counters_by_bot_id as get_counters_by_bot_id_core
 from bot.core.counter import reset_counter_by_id as reset_counter_by_id_core
 from bot.core.counter import save_counter as save_counter_core
+from bot.core.counter import update_counter_by_id as update_counter_by_id_core
 from bot.core.types.result import Result
 from bot.database.types.bot_config import BotConfigDB
 from bot.database.types.counter import CounterDB
@@ -72,46 +71,26 @@ async def dashboard_counter_add(
     )
 
 
-@router.post("/{counter_id:int}/name")
-async def dashboard_counter_update_name(
-    counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)], name: Annotated[str, Form()]
+@router.post("/update/{counter_id:int}")
+async def dashboard_counter_update(
+    counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)],
+    name: Annotated[str, Form()],
+    count: Annotated[int, Form()],
 ) -> RedirectResponse:
     if counter.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Counter not found")
 
-    result = edit_counter_name_by_id_core(counter.value.id, name)
+    result = update_counter_by_id_core(counter.value.id, name, count)
 
     if result.state.fail:
         return RedirectResponse(
-            url=f"/dashboard/counter/{counter.value.bot_id}?error_message=Failed to update counter name "
+            url=f"/dashboard/counter/{counter.value.bot_id}?error_message=Failed to update counter "
             + f"| reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
     return RedirectResponse(
-        url=f"/dashboard/counter/{counter.value.bot_id}?success_message=Counter name updated successfully",
-        status_code=HTTPStatus.SEE_OTHER,
-    )
-
-
-@router.post("/{counter_id:int}/count")
-async def dashboard_counter_update_count(
-    counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)], count: Annotated[int, Form()]
-) -> RedirectResponse:
-    if counter.value is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Counter not found")
-
-    result = edit_counter_value_by_id_core(counter.value.id, count)
-
-    if result.state.fail:
-        return RedirectResponse(
-            url=f"/dashboard/counter/{counter.value.bot_id}?error_message=Failed to update counter value "
-            + f"| reason: {result.state.name}",
-            status_code=HTTPStatus.SEE_OTHER,
-        )
-
-    return RedirectResponse(
-        url=f"/dashboard/counter/{counter.value.bot_id}?success_message=Counter value updated successfully",
+        url=f"/dashboard/counter/{counter.value.bot_id}?success_message=Counter updated successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
