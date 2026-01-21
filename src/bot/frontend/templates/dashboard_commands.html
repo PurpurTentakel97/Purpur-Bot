@@ -119,14 +119,8 @@
         align-items: center;
     }
 
-    .inline-form {
-        display: flex;
-        gap: 0.5rem;
+    .commands-table input {
         width: 100%;
-    }
-
-    .inline-form input {
-        flex: 1;
         padding: 0.4rem;
         background-color: #333;
         border: 1px solid #444;
@@ -135,7 +129,7 @@
         font-size: 0.9rem;
     }
 
-    .inline-form input:focus {
+    .commands-table input:focus {
         outline: none;
         border-color: #9146ff;
     }
@@ -156,19 +150,15 @@
             {% for command in commands %}
             <tr>
                 <td class="command-name">
-                    <form action="/dashboard/commands/{{ command.id }}/name" method="post" class="inline-form">
-                        <input type="text" name="name" value="{{ command.command }}" required>
-                        <button type="submit" class="btn btn-primary btn-small">Update</button>
-                    </form>
+                    <form id="update-form-{{ command.id }}" action="/dashboard/commands/update/{{ command.id }}" method="post"></form>
+                    <input form="update-form-{{ command.id }}" type="text" name="name" value="{{ command.command }}" required>
                 </td>
                 <td>
-                    <form action="/dashboard/commands/{{ command.id }}/message" method="post" class="inline-form">
-                        <input type="text" name="message" value="{{ command.message }}" required>
-                        <button type="submit" class="btn btn-primary btn-small">Update</button>
-                    </form>
+                    <input form="update-form-{{ command.id }}" type="text" name="message" value="{{ command.message }}" required>
                 </td>
                 <td class="action-cell">
-                    <form action="/dashboard/commands/{{ command.id }}/delete" method="post" onsubmit="return confirm('Are you sure you want to delete this command?');">
+                    <button form="update-form-{{ command.id }}" type="submit" class="btn btn-primary btn-small">Update</button>
+                    <form action="/dashboard/commands/delete/{{ command.id }}" method="post" onsubmit="return confirm('Are you sure you want to delete this command?');">
                         <button type="submit" class="btn btn-danger btn-small">Delete</button>
                     </form>
                 </td>

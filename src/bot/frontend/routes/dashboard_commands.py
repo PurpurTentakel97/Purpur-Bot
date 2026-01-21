@@ -15,8 +15,7 @@ from bot.core.commands import delete_command_by_id as delete_command_by_id_core
 from bot.core.commands import get_command_by_id as get_command_by_id_core
 from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_core
 from bot.core.commands import save_command as save_command_core
-from bot.core.commands import update_command_message_by_id as update_command_message_by_id_core
-from bot.core.commands import update_command_name_by_id as update_command_name_by_id_core
+from bot.core.commands import update_command_by_id as update_command_by_id_core
 from bot.core.types.result import Result
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.bot_config import BotConfigDB
@@ -71,14 +70,16 @@ async def dashboard_command_add(
     )
 
 
-@router.post("/{command_id:int}/name")
-async def dashboard_command_update_name(
-    command: Annotated[Result[BasicCommandDB], Depends(get_command_by_id_core)], name: Annotated[str, Form()]
+@router.post("/update/{command_id:int}")
+async def dashboard_command_update(
+    command: Annotated[Result[BasicCommandDB], Depends(get_command_by_id_core)],
+    name: Annotated[str, Form()],
+    message: Annotated[str, Form()],
 ) -> RedirectResponse:
     if command.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Command not found")
 
-    result = update_command_name_by_id_core(command.value.id, name)
+    result = update_command_by_id_core(command.value.bot_id, command.value.id, name, message)
 
     if result.state.fail:
         return RedirectResponse(
@@ -93,29 +94,7 @@ async def dashboard_command_update_name(
     )
 
 
-@router.post("/{command_id:int}/message")
-async def dashboard_command_update_message(
-    command: Annotated[Result[BasicCommandDB], Depends(get_command_by_id_core)], message: Annotated[str, Form()]
-) -> RedirectResponse:
-    if command.value is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Command not found")
-
-    result = update_command_message_by_id_core(command.value.id, message)
-
-    if result.state.fail:
-        return RedirectResponse(
-            url=f"/dashboard/commands/{command.value.bot_id}?error_message=Failed to update command message "
-            + f"| reason: {result.state.name}",
-            status_code=HTTPStatus.SEE_OTHER,
-        )
-
-    return RedirectResponse(
-        url=f"/dashboard/commands/{command.value.bot_id}?success_message=Command message updated successfully",
-        status_code=HTTPStatus.SEE_OTHER,
-    )
-
-
-@router.post("/{command_id:int}/delete")
+@router.post("/delete/{command_id:int}")
 async def dashboard_command_delete(
     command: Annotated[Result[BasicCommandDB], Depends(get_command_by_id_core)],
 ) -> RedirectResponse:

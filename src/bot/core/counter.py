@@ -1,7 +1,7 @@
 import re
 from typing import Optional
 
-from bot.core.helpers.string import has_whitespace
+from bot.core.helpers.string import check_identifier
 from bot.core.helpers.string import identifier_for_db
 from bot.core.types.counter_instructions import CounterInstructions
 from bot.core.types.counter_instructions import CounterOperation
@@ -123,61 +123,25 @@ def get_counter(bot_id: int, name: str) -> Result[CounterDB]:
 
 
 def save_counter(bot_id: int, name: str) -> Result[CounterDB]:
-    name_db = identifier_for_db(name)
+    name_db = check_identifier(name)
 
-    if not name_db:
-        return Result(ResultState.EMPTY_NAME, None)
+    if name_db.state.fail or name_db.value is None:
+        return name_db.cast_to(CounterDB)
 
-    if has_whitespace(name_db):
-        return Result(ResultState.WHITESPACE_ERROR, None)
-
-    return insert_counter_db(bot_id, name_db)
-
-
-def edit_counter_name_by_id(counter_id: int, new_name: str) -> Result[CounterDB]:
-    new_name_db = identifier_for_db(new_name)
-
-    if not new_name_db:
-        return Result(ResultState.EMPTY_NAME, None)
-
-    if has_whitespace(new_name_db):
-        return Result(ResultState.WHITESPACE_ERROR, None)
-
-    counter_result = get_counter_by_id(counter_id)
-    if counter_result.state.fail or counter_result.value is None:
-        return counter_result
-
-    old_name_db = counter_result.value.name
-    bot_id = counter_result.value.bot_id
-
-    def handle_rollback(bot_id: int, counter_id: int, old_name_db: str) -> None:
-        update_counter_by_id_db(counter_id, {FIELD_NAME: old_name_db})
-
-    update_result = update_counter_by_id_db(counter_id, {FIELD_NAME: new_name_db})
-
-    if update_result.state.fail:
-        return update_result
-
-    if not _update_counter_names_in_commands(bot_id, old_name_db, new_name_db):
-        handle_rollback(bot_id, counter_id, old_name_db)
-        return Result(ResultState.COUNTER_ERROR, None)
-
-    return update_result
+    return insert_counter_db(bot_id, name_db.value)
 
 
 def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[CounterDB]:
-    new_name_db = identifier_for_db(new_name)
+    new_name_res = check_identifier(new_name)
     old_name_db = identifier_for_db(old_name)
 
     def handle_rollback(bot_id: int, old_name_db: str, new_name_db: str) -> None:
         update_counter_db(bot_id, new_name_db, {FIELD_NAME: old_name_db})
 
-    if not new_name_db:
-        return Result(ResultState.EMPTY_NAME, None)
+    if new_name_res.state.fail or new_name_res.value is None:
+        return new_name_res.cast_to(CounterDB)
 
-    if has_whitespace(new_name_db):
-        return Result(ResultState.WHITESPACE_ERROR, None)
-
+    new_name_db = new_name_res.value
     counter_result = update_counter_db(bot_id, old_name_db, {FIELD_NAME: new_name_db})
 
     if counter_result.state.fail:
@@ -192,6 +156,37 @@ def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[Count
 
 def edit_counter_value_by_id(counter_id: int, value: int) -> Result[CounterDB]:
     return update_counter_by_id_db(counter_id, {FIELD_COUNTER: value})
+
+
+def update_counter_by_id(counter_id: int, name: str, count: int) -> Result[CounterDB]:
+    name_res = check_identifier(name)
+
+    if name_res.state.fail or name_res.value is None:
+        return name_res.cast_to(CounterDB)
+
+    new_name_db = name_res.value
+
+    counter_result = get_counter_by_id(counter_id)
+    if counter_result.state.fail or counter_result.value is None:
+        return counter_result
+
+    old_name_db = counter_result.value.name
+    bot_id = counter_result.value.bot_id
+
+    def handle_rollback(bot_id: int, counter_id: int, old_name_db: str, old_count: int) -> None:
+        update_counter_by_id_db(counter_id, {FIELD_NAME: old_name_db, FIELD_COUNTER: old_count})
+
+    update_result = update_counter_by_id_db(counter_id, {FIELD_NAME: new_name_db, FIELD_COUNTER: count})
+
+    if update_result.state.fail:
+        return update_result
+
+    if old_name_db != new_name_db:
+        if not _update_counter_names_in_commands(bot_id, old_name_db, new_name_db):
+            handle_rollback(bot_id, counter_id, old_name_db, counter_result.value.count)
+            return Result(ResultState.COUNTER_ERROR, None)
+
+    return update_result
 
 
 def edit_counter_value(bot_id: int, name: str, value: int) -> Result[CounterDB]:

@@ -128,14 +128,8 @@
         align-items: center;
     }
 
-    .inline-form {
-        display: flex;
-        gap: 0.5rem;
+    .counters-table input {
         width: 100%;
-    }
-
-    .inline-form input {
-        flex: 1;
         padding: 0.4rem;
         background-color: #333;
         border: 1px solid #444;
@@ -144,7 +138,7 @@
         font-size: 0.9rem;
     }
 
-    .inline-form input:focus {
+    .counters-table input:focus {
         outline: none;
         border-color: #9146ff;
     }
@@ -165,18 +159,14 @@
             {% for counter in counters %}
             <tr>
                 <td class="counter-name">
-                    <form action="/dashboard/counter/{{ counter.id }}/name" method="post" class="inline-form">
-                        <input type="text" name="name" value="{{ counter.name }}" required>
-                        <button type="submit" class="btn btn-primary btn-small">Update</button>
-                    </form>
+                    <form id="update-form-{{ counter.id }}" action="/dashboard/counter/update/{{ counter.id }}" method="post"></form>
+                    <input form="update-form-{{ counter.id }}" type="text" name="name" value="{{ counter.name }}" required>
                 </td>
                 <td>
-                    <form action="/dashboard/counter/{{ counter.id }}/count" method="post" class="inline-form">
-                        <input type="number" name="count" value="{{ counter.count }}" required>
-                        <button type="submit" class="btn btn-primary btn-small">Update</button>
-                    </form>
+                    <input form="update-form-{{ counter.id }}" type="number" name="count" value="{{ counter.count }}" required>
                 </td>
                 <td class="action-cell">
+                    <button form="update-form-{{ counter.id }}" type="submit" class="btn btn-primary btn-small">Update</button>
                     <form action="/dashboard/counter/{{ counter.id }}/reset" method="post" onsubmit="return confirm('Are you sure you want to reset this counter to 0?');">
                         <button type="submit" class="btn btn-warning btn-small">Reset</button>
                     </form>
