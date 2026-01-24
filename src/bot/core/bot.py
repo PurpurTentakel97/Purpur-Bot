@@ -1,3 +1,5 @@
+from bot.chat.on_demand import start_all_discord_bots_from_bot
+from bot.chat.on_demand import start_all_twitch_bots_from_bot
 from bot.chat.on_demand import stop_all_discord_bots_from_bot
 from bot.chat.on_demand import stop_all_twitch_bots_from_bot
 from bot.core.helpers.string import name_for_db
@@ -29,8 +31,20 @@ def update_bot(bot_id: int, name: str) -> Result[None]:
     return update_bot_db(bot_id, {FIELD_NAME: name_for_db(name)})
 
 
-def update_bot_enabled_by_id(bot_id: int, enabled: bool) -> Result[None]:
-    return update_bot_db(bot_id, {FIELD_ENABLED: enabled})
+async def update_bot_enabled_by_id(bot_id: int, enabled: bool) -> Result[None]:
+    result = update_bot_db(bot_id, {FIELD_ENABLED: enabled})
+    if result.state.fail:
+        return result
+
+    if enabled:
+        await start_all_twitch_bots_from_bot(bot_id)
+        start_all_discord_bots_from_bot(bot_id)
+
+    else:
+        await stop_all_twitch_bots_from_bot(bot_id)
+        await stop_all_discord_bots_from_bot(bot_id)
+
+    return result
 
 
 async def delete_bot(bot_id: int) -> Result[None]:

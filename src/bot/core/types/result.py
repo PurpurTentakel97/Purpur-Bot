@@ -17,6 +17,8 @@ class ResultState(Enum):
     EMPTY_MESSAGE = auto()
     COUNTER_ERROR = auto()
     STILL_IN_USE = auto()
+    BOT_DISABLED = auto()
+    CHANNEL_DISABLED = auto()
 
     @property
     def success(self) -> bool:
