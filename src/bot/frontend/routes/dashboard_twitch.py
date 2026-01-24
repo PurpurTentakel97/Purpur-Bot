@@ -21,6 +21,7 @@ from bot.core.broadcast_messages import update_broadcast_message_by_id as update
 from bot.core.twitch import add_twitch_channel as add_twitch_channel_core
 from bot.core.twitch import delete_twitch_channel as delete_twitch_channel_core
 from bot.core.twitch import get_twitch_channels_from_bot as get_twitch_channels_core
+from bot.core.twitch import update_twitch_channel_enabled_by_id as update_twitch_channel_enabled_by_id_core
 from bot.core.twitch_feature_flags import (
     select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_core,
 )
@@ -169,6 +170,28 @@ async def dashboard_twitch_feature_flag_update(
     )
 
 
+@router.post("/{bot_id:int}/{name:str}/channel/update/{channel_id:int}")
+async def dashboard_twitch_channel_update(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    name: str,
+    channel_id: int,
+    enabled: Annotated[bool, Form()] = False,
+) -> RedirectResponse:
+    result = update_twitch_channel_enabled_by_id_core(channel_id, enabled)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to update twitch channel "
+            + f"| reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Twitch channel updated successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
 # broadcast messages
 @router.post("/{bot_id:int}/{name:str}/broadcast_message/save")
 async def dashboard_twitch_broadcast_message_save(
@@ -199,7 +222,7 @@ def update_broadcast_message(
     message_id: int,
     message: Annotated[str, Form()],
     interval: Annotated[int, Form()],
-    enabled: Annotated[bool, Form()],
+    enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
     result = update_broadcast_message_by_id_core(message_id, message, interval, enabled)
 

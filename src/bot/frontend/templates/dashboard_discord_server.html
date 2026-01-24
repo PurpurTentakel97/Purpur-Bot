@@ -82,7 +82,16 @@
 
 {% block discord_content %}
     <div class="discord-section">
-        <h2>{{ server.server_name }} - Feature Flags</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2>{{ server.server_name }} - Server Settings</h2>
+            <form action="/dashboard/discord/{{ bot.id }}/{{ server.server_id }}/server/update/{{ server.id }}" method="POST" style="display: flex; align-items: center; gap: 1rem;">
+                <label class="switch">
+                    <input type="checkbox" name="enabled" value="True" {% if server.enabled %}checked{% endif %} onchange="this.form.submit()">
+                    <span class="slider"></span>
+                </label>
+                <span style="color: #adadb8;">Server Enabled</span>
+            </form>
+        </div>
 
         <form action="/dashboard/discord/{{ bot.id }}/{{ server.server_id }}/feature_flags/{{ feature_flags.id }}" method="POST">
             <div class="feature-flags-grid">

@@ -53,6 +53,11 @@
             <input type="text" id="name" name="name" value="{{ bot.name }}" required>
         </div>
 
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 1rem;">
+            <input type="checkbox" id="enabled" name="enabled" {% if bot.enabled %}checked{% endif %} style="width: auto;">
+            <label for="enabled" style="text-transform: none; letter-spacing: normal;">Enabled</label>
+        </div>
+
         <button type="submit" class="btn btn-primary">Save Changes</button>
     </form>
 {% endblock %}

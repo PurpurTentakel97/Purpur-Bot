@@ -16,6 +16,7 @@ from bot.core.discord import add_discord_bot as add_discord_bot_core
 from bot.core.discord import delete_discord_bot as delete_discord_bot_core
 from bot.core.discord import get_discord_by_server_id as get_discord_by_server_id_core
 from bot.core.discord import get_discord_servers_by_bot_id as get_discord_servers_by_bot_id_core
+from bot.core.discord import update_discord_enabled_by_id as update_discord_enabled_by_id_core
 from bot.core.discord_feature_flags import (
     select_discord_feature_flags_by_server_id as select_discord_feature_flags_by_server_id_core,
 )
@@ -177,5 +178,27 @@ async def dashboard_discord_feature_flag_update(
     return RedirectResponse(
         url=f"/dashboard/discord/{bot.id}/server/{server_id}"
         + "?success_message=Discord feature flags updated successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.post("/{bot_id:int}/{server_id:int}/server/update/{id:int}")
+async def dashboard_discord_server_update(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    server_id: int,
+    id: int,
+    enabled: Annotated[bool, Form()] = False,
+) -> RedirectResponse:
+    result = update_discord_enabled_by_id_core(id, enabled)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/discord/{bot.id}/server/{server_id}?error_message=Failed to update discord server "
+            + f"| reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Discord server updated successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )

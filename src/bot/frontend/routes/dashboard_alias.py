@@ -77,7 +77,7 @@ async def dashboard_alias_update(
     entry: Annotated[Result[AliasDictEntry], Depends(get_alias_by_id_core)],
     alias: Annotated[str, Form()],
     explanation: Annotated[str, Form()],
-    enabled: Annotated[bool, Form()],
+    enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
     if entry.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Alias not found")
