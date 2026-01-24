@@ -12,6 +12,7 @@ from bot.core.types.counter_instructions import CounterOperation
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.commands import FIELD_COMMAND
+from bot.database.commands import FIELD_ENABLED
 from bot.database.commands import FIELD_MESSAGE
 from bot.database.commands import delete_command as delete_command_db
 from bot.database.commands import delete_command_by_id as delete_command_by_id_db
@@ -114,7 +115,9 @@ def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]
     return insert_command_db(bot_id, name_db.value, message_db.value)
 
 
-def update_command_by_id(bot_id: int, command_id: int, name: str, message: str) -> Result[BasicCommandDB]:
+def update_command_by_id(
+    bot_id: int, command_id: int, name: str, message: str, enabled: bool
+) -> Result[BasicCommandDB]:
     name_db = check_identifier(name)
     message_db = check_text(message)
 
@@ -127,7 +130,9 @@ def update_command_by_id(bot_id: int, command_id: int, name: str, message: str) 
     if not _handle_new_counter(bot_id, message_db.value):
         return Result(ResultState.COUNTER_ERROR, None)
 
-    return update_command_by_id_db(command_id, {FIELD_COMMAND: name_db.value, FIELD_MESSAGE: message_db.value})
+    return update_command_by_id_db(
+        command_id, {FIELD_COMMAND: name_db.value, FIELD_MESSAGE: message_db.value, FIELD_ENABLED: enabled}
+    )
 
 
 def update_command_message(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]:

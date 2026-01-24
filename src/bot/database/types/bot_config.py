@@ -5,3 +5,4 @@ class BotConfigDB(BaseModel):
     id: int
     twitch_user_id: str
     name: str
+    enabled: bool

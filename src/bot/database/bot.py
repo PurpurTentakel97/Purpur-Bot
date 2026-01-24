@@ -6,6 +6,7 @@ from bot.database.types.bot_config import BotConfigDB
 
 TABLE_NAME = "bot_config"
 FIELD_NAME = "name"
+FIELD_ENABLED = "enabled"
 
 
 def select_bot(bot_id: int) -> Result[BotConfigDB]:

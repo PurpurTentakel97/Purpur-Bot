@@ -7,6 +7,7 @@ from bot.database.types.twitch_broadcast_message import TwitchBroadcastMessageDB
 TABLE_NAME = "twitch_broadcast_message"
 FIELD_MESSAGE = "message"
 FIELD_INTERVAL_IN_MINUTES = "interval_in_minutes"
+FIELD_ENABLED = "enabled"
 
 
 def insert_broadcast_message(bot_int: int, channel_name: str, message: str, interval_in_minutes: int) -> Result[int]:

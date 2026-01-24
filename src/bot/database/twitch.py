@@ -6,6 +6,7 @@ from bot.database.types.twitch_channel import TwitchChannelDB
 
 TABLENAME = "bot_twitch_lookup"
 FIELD_CHANNEL_NAME = "channel_name"
+FIELD_ENABLED = "enabled"
 
 
 def select_twitch_channels_by_bot_id(bot_id: int) -> Result[list[TwitchChannelDB]]:
@@ -18,6 +19,10 @@ def select_twitch_channel_by(where: dict[str, Any]) -> Result[TwitchChannelDB]:
 
 def insert_twitch_channel(bot_id: int, twitch_channel: str) -> Result[int]:
     return PROGRAMM_PARTS.database.insert(table_name=TABLENAME, data={"bot_id": bot_id, "channel_name": twitch_channel})
+
+
+def update_twitch_channel_by_id(id_: int, data: dict[str, Any]) -> Result[None]:
+    return PROGRAMM_PARTS.database.update(table_name=TABLENAME, where={"id": id_}, data=data)
 
 
 def delete_twitch_channel(bot_id: int, twitch_channel: str) -> Result[None]:

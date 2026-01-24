@@ -7,6 +7,7 @@ from bot.database.types.alias_dict_entry import AliasDictEntry
 TABLE_NAME = "alias_dict"
 FIELD_ALIAS = "alias"
 FIELD_EXPLANATION = "explanation"
+FIELD_ENABLED = "enabled"
 
 
 def select_dict_from_bot(bot_id: int) -> Result[list[AliasDictEntry]]:

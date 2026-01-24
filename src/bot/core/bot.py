@@ -3,6 +3,7 @@ from bot.chat.on_demand import stop_all_twitch_bots_from_bot
 from bot.core.helpers.string import name_for_db
 from bot.core.helpers.string import strip_for_db
 from bot.core.types.result import Result
+from bot.database.bot import FIELD_ENABLED
 from bot.database.bot import FIELD_NAME
 from bot.database.bot import delete_bot as delete_bot_db
 from bot.database.bot import insert_bot as insert_bot_db
@@ -26,6 +27,10 @@ def add_bot(twitch_id: str) -> Result[int]:
 
 def update_bot(bot_id: int, name: str) -> Result[None]:
     return update_bot_db(bot_id, {FIELD_NAME: name_for_db(name)})
+
+
+def update_bot_enabled_by_id(bot_id: int, enabled: bool) -> Result[None]:
+    return update_bot_db(bot_id, {FIELD_ENABLED: enabled})
 
 
 async def delete_bot(bot_id: int) -> Result[None]:

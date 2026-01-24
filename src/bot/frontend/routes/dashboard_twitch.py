@@ -17,12 +17,7 @@ from bot.core.broadcast_messages import (
     get_broadcast_message_by_channel_name as get_broadcast_message_by_channel_name_core,
 )
 from bot.core.broadcast_messages import save_broadcast_message as save_broadcast_message_core
-from bot.core.broadcast_messages import (
-    update_broadcast_message_interval_by_id as update_broadcast_message_interval_by_id_core,
-)
-from bot.core.broadcast_messages import (
-    update_broadcast_message_message_by_id as update_broadcast_message_message_by_id_core,
-)
+from bot.core.broadcast_messages import update_broadcast_message_by_id as update_broadcast_message_by_id_core
 from bot.core.twitch import add_twitch_channel as add_twitch_channel_core
 from bot.core.twitch import delete_twitch_channel as delete_twitch_channel_core
 from bot.core.twitch import get_twitch_channels_from_bot as get_twitch_channels_core
@@ -197,11 +192,16 @@ async def dashboard_twitch_broadcast_message_save(
     )
 
 
-@router.post("/{bot_id:int}/{name:str}/broadcast_message/update_message/{message_id:int}")
+@router.post("/{bot_id:int}/{name:str}/broadcast_message/update/{message_id:int}")
 def update_broadcast_message(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: str, message_id: int, message: Annotated[str, Form()]
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    name: str,
+    message_id: int,
+    message: Annotated[str, Form()],
+    interval: Annotated[int, Form()],
+    enabled: Annotated[bool, Form()],
 ) -> RedirectResponse:
-    result = update_broadcast_message_message_by_id_core(message_id, message)
+    result = update_broadcast_message_by_id_core(message_id, message, interval, enabled)
 
     if result.state.fail:
         return RedirectResponse(
@@ -212,26 +212,6 @@ def update_broadcast_message(
 
     return RedirectResponse(
         url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Broadcast message updated successfully",
-        status_code=HTTPStatus.SEE_OTHER,
-    )
-
-
-@router.post("/{bot_id:int}/{name:str}/broadcast_message/update_interval/{message_id:int}")
-def update_broadcast_message_interval(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: str, message_id: int, interval: Annotated[int, Form()]
-) -> RedirectResponse:
-    result = update_broadcast_message_interval_by_id_core(message_id, interval)
-
-    if result.state.fail:
-        return RedirectResponse(
-            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to update broadcast message interval "
-            + f"| reason: {result.state.name}",
-            status_code=HTTPStatus.SEE_OTHER,
-        )
-
-    return RedirectResponse(
-        url=f"/dashboard/twitch/{bot.id}/channel/{name}"
-        + "?success_message=Broadcast message interval updated successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 

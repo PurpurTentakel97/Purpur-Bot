@@ -9,3 +9,4 @@ class AliasDictEntry(BaseModel):
     bot_id: int
     alias: str
     explanation: str
+    enabled: bool

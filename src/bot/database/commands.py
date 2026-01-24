@@ -7,6 +7,7 @@ from bot.database.types.base_command import BasicCommandDB
 TABLE_NAME = "basic_commands"
 FIELD_COMMAND = "command"
 FIELD_MESSAGE = "message"
+FIELD_ENABLED = "enabled"
 
 
 def select_commands_by_bot_id(bot_id: int) -> Result[list[BasicCommandDB]]:

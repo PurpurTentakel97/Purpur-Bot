@@ -6,3 +6,4 @@ class BasicCommandDB(BaseModel):
     bot_id: int
     command: str
     message: str
+    enabled: bool

@@ -4,6 +4,7 @@ from bot.core.helpers.string import identifier_for_db
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.alias_dict import FIELD_ALIAS
+from bot.database.alias_dict import FIELD_ENABLED
 from bot.database.alias_dict import FIELD_EXPLANATION
 from bot.database.alias_dict import delete_dict_entry as delete_dict_entry_db
 from bot.database.alias_dict import delete_dict_entry_by_id as delete_dict_entry_by_id_db
@@ -70,7 +71,7 @@ def edit_dict_explanation(bot_id: int, alias: str, explanation: str) -> Result[A
     return update_dict_entry_db(bot_id, alias_db, {FIELD_EXPLANATION: explanation_res.value})
 
 
-def update_alias_by_id(entry_id: int, alias: str, explanation: str) -> Result[AliasDictEntry]:
+def update_alias_by_id(entry_id: int, alias: str, explanation: str, enabled: bool) -> Result[AliasDictEntry]:
     alias_res = check_identifier(alias)
     explanation_res = check_text(explanation)
 
@@ -80,7 +81,7 @@ def update_alias_by_id(entry_id: int, alias: str, explanation: str) -> Result[Al
         return explanation_res.cast_to(AliasDictEntry)
 
     return update_dict_entry_by_id_db(
-        entry_id, {FIELD_ALIAS: alias_res.value, FIELD_EXPLANATION: explanation_res.value}
+        entry_id, {FIELD_ALIAS: alias_res.value, FIELD_EXPLANATION: explanation_res.value, FIELD_ENABLED: enabled}
     )
 
 

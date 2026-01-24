@@ -6,6 +6,7 @@ from bot.database.types.discord_server import DiscordServerDB
 
 TABLE_NAME = "bot_discord_lookup"
 FIELD_SERVER_ID = "server_id"
+FIELD_ENABLED = "enabled"
 
 
 def select_discord_servers_by_bot_id(bot_id: int) -> Result[list[DiscordServerDB]]:
@@ -20,6 +21,10 @@ def insert_discord_server(bot_id: int, server_id: int, server_name: str) -> Resu
     return PROGRAMM_PARTS.database.insert(
         table_name=TABLE_NAME, data={"bot_id": bot_id, "server_id": server_id, "server_name": server_name}
     )
+
+
+def update_discord_server_by_id(id_: int, data: dict[str, Any]) -> Result[None]:
+    return PROGRAMM_PARTS.database.update(table_name=TABLE_NAME, where={"id": id_}, data=data)
 
 
 def delete_discord_server(bot_id: int, server_id: int) -> Result[None]:

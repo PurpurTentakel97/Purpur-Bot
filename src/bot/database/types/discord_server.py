@@ -6,3 +6,4 @@ class DiscordServerDB(BaseModel):
     bot_id: int
     server_id: int
     server_name: str
+    enabled: bool

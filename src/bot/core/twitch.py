@@ -4,10 +4,12 @@ from bot.core.helpers.string import identifier_for_db
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.twitch import FIELD_CHANNEL_NAME
+from bot.database.twitch import FIELD_ENABLED
 from bot.database.twitch import delete_twitch_channel as delete_twitch_channel_db
 from bot.database.twitch import insert_twitch_channel as insert_twitch_channel_db
 from bot.database.twitch import select_twitch_channel_by as select_twitch_channel_by_db
 from bot.database.twitch import select_twitch_channels_by_bot_id as select_twitch_channels_db
+from bot.database.twitch import update_twitch_channel_by_id as update_twitch_channel_by_id_db
 from bot.database.twitch_feature_flags import insert_twitch_feature_flags as insert_twitch_feature_flags_db
 from bot.database.types.twitch_channel import TwitchChannelDB
 
@@ -48,6 +50,10 @@ async def add_twitch_channel(bot_id: int, channel: str) -> Result[int]:
         return Result(ResultState.ERROR, None)
 
     return insert_result
+
+
+def update_twitch_channel_enabled_by_id(id_: int, enabled: bool) -> Result[None]:
+    return update_twitch_channel_by_id_db(id_, {FIELD_ENABLED: enabled})
 
 
 async def delete_twitch_channel(bot_id: int, channel: str) -> Result[None]:
