@@ -7,12 +7,22 @@ from bot.core.twitch_feature_flags import (
     select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_core,
 )
 from bot.core.types.programm_parts import PROGRAMM_PARTS
+from bot.database.bot import select_bot as select_bot_db
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 
 
 def start_single_discord_bot(bot_id: int, server_id: int) -> bool:
     if PROGRAMM_PARTS.discord is None:
+        return False
+
+    bot = select_bot_db(bot_id)
+    if bot.value is None:
+        log_default(LogLevel.ERROR, f"Bot {bot_id} not found. Skipping...")
+        return False
+
+    if not bot.value.enabled:
+        log_default(LogLevel.WARNING, f"Bot {bot_id} for discord server id {server_id} is disabled. Skipping...")
         return False
 
     feature_flags = select_discord_feature_flags_by_server_id_core(bot_id, server_id)
@@ -51,6 +61,15 @@ async def stop_all_discord_bots_from_bot(bot_id: int) -> None:
 
 async def start_single_twitch_bot(bot_id: int, channel_name: str) -> bool:
     if PROGRAMM_PARTS.twitch is None:
+        return False
+
+    bot = select_bot_db(bot_id)
+    if bot.value is None:
+        log_default(LogLevel.ERROR, f"Bot {bot_id} not found. Skipping...")
+        return False
+
+    if not bot.value.enabled:
+        log_default(LogLevel.WARNING, f"Bot {bot_id} for twitch channel {channel_name} is disabled. Skipping...")
         return False
 
     feature_flags = select_twitch_feature_flags_by_channel_name_core(bot_id, channel_name)

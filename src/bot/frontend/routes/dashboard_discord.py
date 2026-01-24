@@ -198,7 +198,7 @@ async def dashboard_discord_server_update(
     id: int,
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = update_discord_enabled_by_id_core(id, enabled)
+    result = await update_discord_enabled_by_id_core(id, enabled)
 
     referer = request.headers.get("referer")
     url = referer or f"/dashboard/discord/{bot.id}/server/{server_id}"

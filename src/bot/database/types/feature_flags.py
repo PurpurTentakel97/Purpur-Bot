@@ -14,4 +14,4 @@ class TwitchFeatureFlagsDB(FeatureFlagsDB):
 
 
 class DiscordFeatureFlagsDB(FeatureFlagsDB):
-    server_id: str
+    server_id: int

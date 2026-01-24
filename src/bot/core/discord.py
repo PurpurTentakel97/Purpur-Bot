@@ -14,10 +14,6 @@ from bot.database.discord_feature_flags import insert_discord_feature_flags as i
 from bot.database.types.discord_server import DiscordServerDB
 
 
-def _exists(server_id: int) -> bool:
-    return get_discord_by_server_id(server_id).state.success
-
-
 def get_discord_servers_by_bot_id(bot_id: int) -> Result[list[DiscordServerDB]]:
     return select_discord_servers_by_bot_id_db(bot_id)
 
@@ -26,10 +22,11 @@ def get_discord_by_server_id(server_id: int) -> Result[DiscordServerDB]:
     return select_discord_by_db({FIELD_SERVER_ID: server_id})
 
 
-def add_discord_bot(bot_id: int, discord_id: int, server_name: str) -> Result[int]:
-    if _exists(discord_id):
-        return Result(ResultState.ALREADY_EXISTS, None)
+def get_discord_by_id(id_: int) -> Result[DiscordServerDB]:
+    return select_discord_by_db({"id": id_})
 
+
+def add_discord_bot(bot_id: int, discord_id: int, server_name: str) -> Result[int]:
     insert_result = insert_discord_server_db(bot_id, discord_id, name_for_db(server_name))
 
     if insert_result.state.fail:
@@ -50,7 +47,19 @@ def add_discord_bot(bot_id: int, discord_id: int, server_name: str) -> Result[in
     return insert_result
 
 
-def update_discord_enabled_by_id(id_: int, enabled: bool) -> Result[None]:
+async def update_discord_enabled_by_id(id_: int, enabled: bool) -> Result[None]:
+    server = get_discord_by_id(id_)
+    if server.state.fail or server.value is None:
+        return server.cast_to(type(None))
+
+    if enabled:
+        result = start_single_discord_bot(server.value.bot_id, server.value.server_id)
+    else:
+        result = await stop_single_discord_bot(server.value.bot_id, server.value.server_id)
+
+    if not result:
+        return Result(ResultState.ERROR, None)
+
     return update_discord_server_by_id_db(id_, {FIELD_ENABLED: enabled})
 
 

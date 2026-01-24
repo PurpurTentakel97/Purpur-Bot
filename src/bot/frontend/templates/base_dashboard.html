@@ -92,6 +92,7 @@
                         Discord
                     </a>
                 </li>
+                {% endif %}
                 <li>
                     <a href="/dashboard/commands/{{ bot.id }}"
                        class="{{ 'active' if request.url.path.startswith('/dashboard/commands/' ~ bot.id) else '' }}">
@@ -110,7 +111,6 @@
                         Aliases
                     </a>
                 </li>
-                {% endif %}
             </ul>
         </nav>
     </aside>

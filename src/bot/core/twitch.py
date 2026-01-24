@@ -26,6 +26,10 @@ def get_twitch_channel_by_name(channel_name: str) -> Result[TwitchChannelDB]:
     return select_twitch_channel_by_db({FIELD_CHANNEL_NAME: channel_name})
 
 
+def get_twitch_channel_by_id(id_: int) -> Result[TwitchChannelDB]:
+    return select_twitch_channel_by_db({"id": id_})
+
+
 async def add_twitch_channel(bot_id: int, channel: str) -> Result[int]:
     channel_db = identifier_for_db(channel)
 
@@ -52,7 +56,19 @@ async def add_twitch_channel(bot_id: int, channel: str) -> Result[int]:
     return insert_result
 
 
-def update_twitch_channel_enabled_by_id(id_: int, enabled: bool) -> Result[None]:
+async def update_twitch_channel_enabled_by_id(id_: int, enabled: bool) -> Result[None]:
+    twitch_channel = get_twitch_channel_by_id(id_)
+    if twitch_channel.state.fail or twitch_channel.value is None:
+        return twitch_channel.cast_to(type(None))
+
+    if enabled:
+        result = await start_single_twitch_bot(twitch_channel.value.bot_id, twitch_channel.value.channel_name)
+    else:
+        result = await stop_single_twitch_bot(twitch_channel.value.bot_id, twitch_channel.value.channel_name)
+
+    if not result:
+        return Result(ResultState.ERROR, None)
+
     return update_twitch_channel_by_id_db(id_, {FIELD_ENABLED: enabled})
 
 

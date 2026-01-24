@@ -186,7 +186,7 @@ async def dashboard_twitch_channel_update(
     channel_id: int,
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = update_twitch_channel_enabled_by_id_core(channel_id, enabled)
+    result = await update_twitch_channel_enabled_by_id_core(channel_id, enabled)
 
     referer = request.headers.get("referer")
     url = referer or f"/dashboard/twitch/{bot.id}/channel/{name}"

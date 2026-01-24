@@ -59,7 +59,8 @@ async def dashboard_main_edit(
     result_enabled = update_bot_enabled_by_id_core(bot_id=bot.id, enabled=enabled)
     if result_enabled.state.fail:
         return RedirectResponse(
-            f"/dashboard/global/{bot.id}?error_message=Failed to update bot enabled state | reason: {result_enabled.state.name}",
+            f"/dashboard/global/{bot.id}?error_message=Failed to update bot enabled state "
+            + "| reason: {result_enabled.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
