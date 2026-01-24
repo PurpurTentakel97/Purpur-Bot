@@ -90,20 +90,28 @@ async def dashboard_twitch_join(
 
 @router.post("/delete/{bot_id:int}/{name:str}")
 async def dashboard_twitch_delete(
+    request: Request,
     bot_id: int,
     name: str,
 ) -> RedirectResponse:
     result = await delete_twitch_channel_core(bot_id, name)
 
+    referer = request.headers.get("referer")
+    if referer and f"/dashboard/twitch/{bot_id}/channel/{name}" in referer:
+        url = f"/dashboard/twitch/{bot_id}"
+    else:
+        url = referer or f"/dashboard/twitch/{bot_id}"
+
     if result.state.fail:
+        separator = "&" if "?" in url else "?"
         return RedirectResponse(
-            url=f"/dashboard/twitch/{bot_id}?error_message=Failed to delete twitch channel "
-            + f"| reason: {result.state.name}",
+            url=f"{url}{separator}error_message=Failed to delete twitch channel | reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
+    separator = "&" if "?" in url else "?"
     return RedirectResponse(
-        url=f"/dashboard/twitch/{bot_id}?success_message=Twitch channel deleted successfully",
+        url=f"{url}{separator}success_message=Twitch channel deleted successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
@@ -172,6 +180,7 @@ async def dashboard_twitch_feature_flag_update(
 
 @router.post("/{bot_id:int}/{name:str}/channel/update/{channel_id:int}")
 async def dashboard_twitch_channel_update(
+    request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     name: str,
     channel_id: int,
@@ -179,15 +188,19 @@ async def dashboard_twitch_channel_update(
 ) -> RedirectResponse:
     result = update_twitch_channel_enabled_by_id_core(channel_id, enabled)
 
+    referer = request.headers.get("referer")
+    url = referer or f"/dashboard/twitch/{bot.id}/channel/{name}"
+
     if result.state.fail:
+        separator = "&" if "?" in url else "?"
         return RedirectResponse(
-            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to update twitch channel "
-            + f"| reason: {result.state.name}",
+            url=f"{url}{separator}error_message=Failed to update twitch channel | reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
+    separator = "&" if "?" in url else "?"
     return RedirectResponse(
-        url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Twitch channel updated successfully",
+        url=f"{url}{separator}success_message=Twitch channel updated successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 

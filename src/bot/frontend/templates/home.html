@@ -30,6 +30,52 @@
         text-align: right;
     }
 
+    /* Toggle Switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #444;
+        transition: .4s;
+        border-radius: 20px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #9146ff;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
+
     .bot-table th {
         color: #aaa;
         font-size: 0.85rem;
@@ -92,6 +138,7 @@
                     <thead>
                         <tr>
                             <th>Bot Name</th>
+                            <th>Enabled</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -99,6 +146,15 @@
                         {% for bot in bots %}
                             <tr>
                                 <td>{{ bot.name }}</td>
+                                <td>
+                                    <form action="/bot/update/{{ bot.id }}" method="POST">
+                                        <label class="switch">
+                                            <input type="checkbox" name="enabled" value="True" {% if bot.enabled %}checked{% endif %} onchange="this.form.submit()">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <input type="hidden" name="name" value="{{ bot.name }}">
+                                    </form>
+                                </td>
                                 <td>
                                     <a href="/dashboard/global/{{ bot.id }}" class="btn btn-edit">Edit</a>
                                     <form action="/bot/delete/{{ bot.id }}" method="post" style="display: inline;">

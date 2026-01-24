@@ -105,20 +105,28 @@ async def dashboard_discord_join(
 
 @router.post("/delete/{bot_id:int}/{server_id:int}")
 async def dashboard_discord_delete(
+    request: Request,
     bot_id: int,
     server_id: int,
 ) -> RedirectResponse:
     result = await delete_discord_bot_core(bot_id, server_id)
 
+    referer = request.headers.get("referer")
+    if referer and f"/dashboard/discord/{bot_id}/server/{server_id}" in referer:
+        url = f"/dashboard/discord/{bot_id}"
+    else:
+        url = referer or f"/dashboard/discord/{bot_id}"
+
     if result.state.fail:
+        separator = "&" if "?" in url else "?"
         return RedirectResponse(
-            url=f"/dashboard/discord/{bot_id}?error_message=Failed to delete discord server "
-            + f"| reason: {result.state.name}",
+            url=f"{url}{separator}error_message=Failed to delete discord server | reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
+    separator = "&" if "?" in url else "?"
     return RedirectResponse(
-        url=f"/dashboard/discord/{bot_id}?success_message=Discord server deleted successfully",
+        url=f"{url}{separator}success_message=Discord server deleted successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
@@ -184,6 +192,7 @@ async def dashboard_discord_feature_flag_update(
 
 @router.post("/{bot_id:int}/{server_id:int}/server/update/{id:int}")
 async def dashboard_discord_server_update(
+    request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     server_id: int,
     id: int,
@@ -191,14 +200,18 @@ async def dashboard_discord_server_update(
 ) -> RedirectResponse:
     result = update_discord_enabled_by_id_core(id, enabled)
 
+    referer = request.headers.get("referer")
+    url = referer or f"/dashboard/discord/{bot.id}/server/{server_id}"
+
     if result.state.fail:
+        separator = "&" if "?" in url else "?"
         return RedirectResponse(
-            url=f"/dashboard/discord/{bot.id}/server/{server_id}?error_message=Failed to update discord server "
-            + f"| reason: {result.state.name}",
+            url=f"{url}{separator}error_message=Failed to update discord server | reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
+    separator = "&" if "?" in url else "?"
     return RedirectResponse(
-        url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Discord server updated successfully",
+        url=f"{url}{separator}success_message=Discord server updated successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
