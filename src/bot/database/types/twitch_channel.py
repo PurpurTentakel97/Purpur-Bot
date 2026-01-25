@@ -5,3 +5,4 @@ class TwitchChannelDB(BaseModel):
     id: int
     bot_id: int
     channel_name: str
+    enabled: bool

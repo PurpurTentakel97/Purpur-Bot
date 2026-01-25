@@ -24,9 +24,10 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
         sa.Column("bot_id", sa.Integer(), nullable=False),
         sa.Column("channel_name", sa.String(), nullable=False),
-        sa.Column("can_commands", sa.Boolean(), nullable=False, server_default="True"),
-        sa.Column("can_alias", sa.Boolean(), nullable=False, server_default="True"),
+        sa.Column("can_commands", sa.Boolean(), nullable=False, server_default="1"),
+        sa.Column("can_alias", sa.Boolean(), nullable=False, server_default="1"),
         sa.ForeignKeyConstraint(["bot_id"], ["bot_config.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["channel_name"], ["bot_twitch_lookup.channel_name"], ondelete="CASCADE"),
         sa.UniqueConstraint("bot_id", "channel_name", name="unique_twitch_bot_id"),
     )
 

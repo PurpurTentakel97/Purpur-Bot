@@ -7,3 +7,4 @@ class TwitchBroadcastMessageDB(BaseModel):
     channel_name: str
     message: str
     interval_in_minutes: int
+    enabled: bool

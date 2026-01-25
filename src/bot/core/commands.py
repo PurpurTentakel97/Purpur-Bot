@@ -11,8 +11,6 @@ from bot.core.helpers.string import identifier_for_db
 from bot.core.types.counter_instructions import CounterOperation
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
-from bot.database.commands import FIELD_COMMAND
-from bot.database.commands import FIELD_MESSAGE
 from bot.database.commands import delete_command as delete_command_db
 from bot.database.commands import delete_command_by_id as delete_command_by_id_db
 from bot.database.commands import insert_command as insert_command_db
@@ -23,6 +21,9 @@ from bot.database.commands import update_command as update_command_db
 from bot.database.commands import update_command_by_id as update_command_by_id_db
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.counter import CounterDB
+from bot.database.types.fields import FIELD_BASIC_COMMAND_COMMAND
+from bot.database.types.fields import FIELD_BASIC_COMMAND_MESSAGE
+from bot.database.types.fields import FIELD_ENABLED
 
 
 def _replace_counter_and_execute(bot_id: int, message: str) -> str:
@@ -92,6 +93,9 @@ def get_command_with_counter(bot_id: int, command_name: str) -> Result[BasicComm
     if command_result.state.fail or command_result.value is None:
         return command_result
 
+    if not command_result.value.enabled:
+        return Result(ResultState.COMMAND_DISABLED, command_result.value)
+
     if has_counter(command_result.value.message):
         command_result.value.message = _replace_counter_and_execute(bot_id, command_result.value.message)
 
@@ -114,7 +118,9 @@ def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]
     return insert_command_db(bot_id, name_db.value, message_db.value)
 
 
-def update_command_by_id(bot_id: int, command_id: int, name: str, message: str) -> Result[BasicCommandDB]:
+def update_command_by_id(
+    bot_id: int, command_id: int, name: str, message: str, enabled: bool
+) -> Result[BasicCommandDB]:
     name_db = check_identifier(name)
     message_db = check_text(message)
 
@@ -127,7 +133,14 @@ def update_command_by_id(bot_id: int, command_id: int, name: str, message: str) 
     if not _handle_new_counter(bot_id, message_db.value):
         return Result(ResultState.COUNTER_ERROR, None)
 
-    return update_command_by_id_db(command_id, {FIELD_COMMAND: name_db.value, FIELD_MESSAGE: message_db.value})
+    return update_command_by_id_db(
+        command_id,
+        {
+            FIELD_BASIC_COMMAND_COMMAND: name_db.value,
+            FIELD_BASIC_COMMAND_MESSAGE: message_db.value,
+            FIELD_ENABLED: enabled,
+        },
+    )
 
 
 def update_command_message(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]:
@@ -139,7 +152,7 @@ def update_command_message(bot_id: int, name: str, message: str) -> Result[Basic
     if not _handle_new_counter(bot_id, message_db.value):
         return Result(ResultState.COUNTER_ERROR, None)
 
-    return update_command_db(bot_id, identifier_for_db(name), {FIELD_MESSAGE: message_db.value})
+    return update_command_db(bot_id, identifier_for_db(name), {FIELD_BASIC_COMMAND_MESSAGE: message_db.value})
 
 
 def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[BasicCommandDB]:
@@ -149,7 +162,7 @@ def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[Bas
     if new_name_db.state.fail or new_name_db.value is None:
         return new_name_db.cast_to(BasicCommandDB)
 
-    return update_command_db(bot_id, old_name_db, {FIELD_COMMAND: new_name_db.value})
+    return update_command_db(bot_id, old_name_db, {FIELD_BASIC_COMMAND_COMMAND: new_name_db.value})
 
 
 def delete_command_by_id(command_id: int) -> Result[None]:

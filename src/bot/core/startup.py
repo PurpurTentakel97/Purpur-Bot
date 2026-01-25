@@ -1,18 +1,15 @@
 from bot.chat.discord_client import DiscordClient
-from bot.chat.discord_server import DiscordServer
-from bot.chat.twitch_chat import TwitchChat
+from bot.chat.on_demand import start_single_discord_bot
+from bot.chat.on_demand import start_single_twitch_bot
 from bot.chat.twitch_client import TwitchClient
 from bot.core.broadcast_messages import get_all_broadcast_messages as get_all_broadcast_messages_core
-from bot.core.discord_feature_flags import (
-    select_discord_feature_flags_by_server_id as select_discord_feature_flags_by_server_id_core,
-)
-from bot.core.twitch_feature_flags import (
-    select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_core,
-)
 from bot.core.types.broadcast_message_storrage import BroadcastMessageStorage
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.database import Database
 from bot.database.types.discord_server import DiscordServerDB
+from bot.database.types.fields import FIELD_ENABLED
+from bot.database.types.fields import TABLE_DISCORD_NAME
+from bot.database.types.fields import TABLE_TWITCH_NAME
 from bot.database.types.twitch_channel import TwitchChannelDB
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
@@ -30,7 +27,9 @@ async def _start_discord_bot() -> None:
     if PROGRAMM_PARTS.discord is None:
         return
 
-    servers = PROGRAMM_PARTS.database.select_all(table_name="bot_discord_lookup", where={}, type_=DiscordServerDB)
+    servers = PROGRAMM_PARTS.database.select_all(
+        table_name=TABLE_DISCORD_NAME, where={FIELD_ENABLED: True}, type_=DiscordServerDB
+    )
 
     if (
         servers.value is None
@@ -39,12 +38,13 @@ async def _start_discord_bot() -> None:
         return
 
     for server in servers.value:
-        feature_flags = select_discord_feature_flags_by_server_id_core(server.bot_id, server.server_id)
-        if feature_flags.value is None:
-            log_default(LogLevel.ERROR, f"Discord Feature Flags for server {server.server_id} not found. Skipping...")
-            continue  # should never happen.
-        discord_server = DiscordServer(server.bot_id, server.server_id)
-        PROGRAMM_PARTS.discord.connect_server(discord_server)
+        if not server.enabled:
+            log_default(
+                LogLevel.WARNING, f"Discord Server {server.server_id} for Bot {server.bot_id} is disabled. Skipping..."
+            )
+            continue
+
+        start_single_discord_bot(server.bot_id, server.server_id)
 
 
 async def _start_twitch_bot() -> None:
@@ -53,7 +53,9 @@ async def _start_twitch_bot() -> None:
     if PROGRAMM_PARTS.twitch is None:
         return
 
-    channels = PROGRAMM_PARTS.database.select_all(table_name="bot_twitch_lookup", where={}, type_=TwitchChannelDB)
+    channels = PROGRAMM_PARTS.database.select_all(
+        table_name=TABLE_TWITCH_NAME, where={FIELD_ENABLED: True}, type_=TwitchChannelDB
+    )
 
     if (
         channels.value is None
@@ -62,18 +64,19 @@ async def _start_twitch_bot() -> None:
         return
 
     for channel in channels.value:
-        feature_flags = select_twitch_feature_flags_by_channel_name_core(channel.bot_id, channel.channel_name)
-        if feature_flags.value is None:
+        if not channel.enabled:
             log_default(
-                LogLevel.ERROR, f"Twitch Feature Flags for channel {channel.channel_name} not found. Skipping..."
+                LogLevel.WARNING,
+                f"Twitch Channel {channel.channel_name}  for Bot {channel.bot_id} is disabled. Skipping...",
             )
             continue
-        await TwitchChat.create(PROGRAMM_PARTS.twitch, channel.bot_id, channel.channel_name)
+
+        await start_single_twitch_bot(channel.bot_id, channel.channel_name)
 
 
 def _start_broadcast() -> None:
     broadcast_messages = get_all_broadcast_messages_core()
-    if broadcast_messages.state.fail or broadcast_messages.value is None:
+    if broadcast_messages.value is None:
         log_default(LogLevel.ERROR, "Could not load broadcast messages. Aborting start Bots...")
         return
     PROGRAMM_PARTS.broadcast = BroadcastMessageStorage(broadcast_messages.value)

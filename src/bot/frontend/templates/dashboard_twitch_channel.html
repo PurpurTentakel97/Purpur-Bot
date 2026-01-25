@@ -213,7 +213,20 @@
 
 {% block twitch_content %}
     <div class="twitch-section">
-        <h2>{{ name }} - Feature Flags</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2>{{ name }} - Channel Settings</h2>
+            {% for channel in twitch_channels %}
+                {% if channel.channel_name == name %}
+                <form action="/dashboard/twitch/{{ bot.id }}/{{ name }}/channel/update/{{ channel.id }}" method="POST" style="display: flex; align-items: center; gap: 1rem;">
+                    <label class="switch">
+                        <input type="checkbox" name="enabled" value="True" {% if channel.enabled %}checked{% endif %} onchange="this.form.submit()">
+                        <span class="slider"></span>
+                    </label>
+                    <span style="color: #adadb8;">Channel Enabled</span>
+                </form>
+                {% endif %}
+            {% endfor %}
+        </div>
 
         <form action="/dashboard/twitch/{{ bot.id }}/{{ name }}/feature_flags/{{ feature_flags.id }}" method="POST">
             <div class="feature-flags-grid">
@@ -259,33 +272,39 @@
                     <tr>
                         <th>Message</th>
                         <th>Interval (min)</th>
-                        <th style="text-align: right;">Actions</th>
+                        <th>Enabled</th>
+                        <th style="text-align: right;" colspan="2">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for message in broadcast_message %}
                     <tr>
+                        <form action="/dashboard/twitch/{{ bot.id }}/{{ name }}/broadcast_message/update/{{ message.id }}" method="POST">
                         <td>
-                            <form action="/dashboard/twitch/{{ bot.id }}/{{ name }}/broadcast_message/update_message/{{ message.id }}" method="POST" class="broadcast-edit-form">
-                                <input type="text" name="message" value="{{ message.message }}" class="broadcast-input" required>
-                                <button type="submit" class="btn btn-primary btn-sm">Save</button>
-                            </form>
+                            <input type="text" name="message" value="{{ message.message }}" class="broadcast-input" required>
                         </td>
                         <td>
-                            <form action="/dashboard/twitch/{{ bot.id }}/{{ name }}/broadcast_message/update_interval/{{ message.id }}" method="POST" class="broadcast-edit-form">
-                                <input type="number" name="interval" value="{{ message.interval_in_minutes }}" class="broadcast-input broadcast-input-interval" min="1" required>
-                                <button type="submit" class="btn btn-primary btn-sm">Update</button>
-                            </form>
+                            <input type="number" name="interval" value="{{ message.interval_in_minutes }}" class="broadcast-input broadcast-input-interval" min="1" required>
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" name="enabled" value="True" {% if message.enabled %}checked{% endif %}>
+                                <span class="slider"></span>
+                            </label>
                         </td>
                         <td class="actions-cell">
-                            <form action="/dashboard/twitch/{{ bot.id }}/{{ name }}/broadcast_message/delete/{{ message.id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this broadcast message?');">
+                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                        </td>
+                        </form>
+                        <td class="actions-cell">
+                            <form action="/dashboard/twitch/{{ bot.id }}/{{ name }}/broadcast_message/delete/{{ message.id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this broadcast message?');" style="display:inline;">
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="3" style="text-align: center; color: #adadb8;">No broadcast messages were found.</td>
+                        <td colspan="4" style="text-align: center; color: #adadb8;">No broadcast messages were found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -24,9 +24,10 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
         sa.Column("bot_id", sa.Integer(), nullable=False),
         sa.Column("server_id", sa.Integer(), nullable=False),
-        sa.Column("can_commands", sa.Boolean(), nullable=False, server_default="True"),
-        sa.Column("can_alias", sa.Boolean(), nullable=False, server_default="True"),
+        sa.Column("can_commands", sa.Boolean(), nullable=False, server_default="1"),
+        sa.Column("can_alias", sa.Boolean(), nullable=False, server_default="1"),
         sa.ForeignKeyConstraint(["bot_id"], ["bot_config.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["server_id"], ["bot_discord_lookup.server_id"], ondelete="CASCADE"),
         sa.UniqueConstraint("bot_id", "server_id", name="unique_discord_bot_id"),
     )
 

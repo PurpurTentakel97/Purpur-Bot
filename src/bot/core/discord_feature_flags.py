@@ -1,6 +1,4 @@
 from bot.core.types.result import Result
-from bot.database.discord_feature_flags import FIELD_CAN_ALIAS
-from bot.database.discord_feature_flags import FIELD_CAN_COMMANDS
 from bot.database.discord_feature_flags import (
     select_discord_feature_flags_by_id as select_discord_feature_flags_by_id_db,
 )
@@ -11,6 +9,8 @@ from bot.database.discord_feature_flags import (
     update_discord_feature_flags_by_id as update_discord_feature_flags_by_id_db,
 )
 from bot.database.types.feature_flags import DiscordFeatureFlagsDB
+from bot.database.types.fields import FIELD_CAN_ALIAS
+from bot.database.types.fields import FIELD_CAN_COMMANDS
 
 
 def select_discord_feature_flags_by_id(feature_flag_id: int) -> Result[DiscordFeatureFlagsDB]:

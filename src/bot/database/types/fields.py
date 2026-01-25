@@ -1,0 +1,42 @@
+from typing import Final
+
+# Tables
+TABLE_ALIAS_NAME: Final = "alias_dict"
+TABLE_BOT_CONFIG_NAME: Final = "bot_config"
+TABLE_TWITCH_BROADCAST_NAME: Final = "twitch_broadcast_message"
+TABLE_BASIC_COMMANDS_NAME: Final = "basic_commands"
+TABLE_COUNTER_NAME: Final = "counter"
+TABLE_DISCORD_NAME: Final = "bot_discord_lookup"
+TABLE_DISCORD_AUTH_NAME: Final = "discord_auth"
+TABLE_DISCORD_FEATURE_FLAGS_NAME: Final = "discord_feature_flags"
+TABLE_TWITCH_NAME: Final = "bot_twitch_lookup"
+TABLE_TWITCH_AUTH_NAME: Final = "twitch_auth"
+TABLE_TWITCH_FEATURE_FLAGS_NAME: Final = "twitch_feature_flags"
+
+# Specific Fields
+FIELD_ALIAS_NAME: Final = "alias"
+FIELD_ALIAS_EXPLANATION: Final = "explanation"
+FIELD_BOT_NAME: Final = "name"
+FIELD_TWITCH_BROADCAST_MESSAGE: Final = "message"
+FIELD_TWITCH_BROADCAST_INTERVAL_IN_MINUTES: Final = "interval_in_minutes"
+FIELD_BASIC_COMMAND_COMMAND: Final = "command"
+FIELD_BASIC_COMMAND_MESSAGE: Final = "message"
+FIELD_COUNTER_NAME: Final = "name"
+FIELD_COUNTER_COUNT: Final = "count"
+
+# Generic Fields
+FIELD_ID: Final = "id"
+FIELD_BOT_ID: Final = "bot_id"
+FIELD_DISCORD_SERVER_ID: Final = "server_id"
+FIELD_DISCORD_SERVER_NAME: Final = "server_name"
+FIELD_TWITCH_CHANNEL_NAME: Final = "channel_name"
+FIELD_TWITCH_USER_ID: Final = "twitch_user_id"
+
+FIELD_ENABLED: Final = "enabled"
+FIELD_CAN_COMMANDS: Final = "can_commands"
+FIELD_CAN_ALIAS: Final = "can_alias"
+FIELD_CAN_BROADCAST = "can_broadcast"
+
+FIELD_ACCESS_TOKEN: Final = "access_token"
+FIELD_REFRESH_TOKEN: Final = "refresh_token"
+FIELD_EXPIRES_AT: Final = "expires_at"

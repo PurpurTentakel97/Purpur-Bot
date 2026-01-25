@@ -75,11 +75,12 @@ async def dashboard_command_update(
     command: Annotated[Result[BasicCommandDB], Depends(get_command_by_id_core)],
     name: Annotated[str, Form()],
     message: Annotated[str, Form()],
+    enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
     if command.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Command not found")
 
-    result = update_command_by_id_core(command.value.bot_id, command.value.id, name, message)
+    result = update_command_by_id_core(command.value.bot_id, command.value.id, name, message, enabled)
 
     if result.state.fail:
         return RedirectResponse(

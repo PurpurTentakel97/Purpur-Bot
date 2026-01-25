@@ -7,11 +7,8 @@ from bot.core.types.counter_instructions import CounterInstructions
 from bot.core.types.counter_instructions import CounterOperation
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
-from bot.database.commands import FIELD_MESSAGE
 from bot.database.commands import select_commands_by_bot_id as select_commands_by_bot_id_db
 from bot.database.commands import update_command as update_command_db
-from bot.database.counter import FIELD_COUNTER
-from bot.database.counter import FIELD_NAME
 from bot.database.counter import delete_counter as delete_counter_db
 from bot.database.counter import delete_counter_by_id as delete_counter_by_id_db
 from bot.database.counter import insert_counter as insert_counter_db
@@ -22,6 +19,9 @@ from bot.database.counter import update_counter as update_counter_db
 from bot.database.counter import update_counter_by_id as update_counter_by_id_db
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.counter import CounterDB
+from bot.database.types.fields import FIELD_BASIC_COMMAND_MESSAGE
+from bot.database.types.fields import FIELD_COUNTER_COUNT
+from bot.database.types.fields import FIELD_COUNTER_NAME
 
 _COUNTER_PATTERN = re.compile(r"\{(?P<name>[a-zA-ZäöüÄÖÜ]\w*)(?:(?P<op>[+-])(?P<value>\d+))?\}")
 
@@ -57,7 +57,9 @@ def _update_counter_names_in_commands(
                         pattern = f"{{{old_counter_name}}}"
                         command.message = command.message.replace(pattern, f"{{{new_counter_name}}}")
 
-                    update_result = update_command_db(bot_id, command.command, {FIELD_MESSAGE: command.message})
+                    update_result = update_command_db(
+                        bot_id, command.command, {FIELD_BASIC_COMMAND_MESSAGE: command.message}
+                    )
                     handled_commands.append(command)
                     if update_result.state.fail:
                         if handle_rollback:
@@ -136,13 +138,13 @@ def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[Count
     old_name_db = identifier_for_db(old_name)
 
     def handle_rollback(bot_id: int, old_name_db: str, new_name_db: str) -> None:
-        update_counter_db(bot_id, new_name_db, {FIELD_NAME: old_name_db})
+        update_counter_db(bot_id, new_name_db, {FIELD_COUNTER_NAME: old_name_db})
 
     if new_name_res.state.fail or new_name_res.value is None:
         return new_name_res.cast_to(CounterDB)
 
     new_name_db = new_name_res.value
-    counter_result = update_counter_db(bot_id, old_name_db, {FIELD_NAME: new_name_db})
+    counter_result = update_counter_db(bot_id, old_name_db, {FIELD_COUNTER_NAME: new_name_db})
 
     if counter_result.state.fail:
         return counter_result
@@ -155,7 +157,7 @@ def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[Count
 
 
 def edit_counter_value_by_id(counter_id: int, value: int) -> Result[CounterDB]:
-    return update_counter_by_id_db(counter_id, {FIELD_COUNTER: value})
+    return update_counter_by_id_db(counter_id, {FIELD_COUNTER_COUNT: value})
 
 
 def update_counter_by_id(counter_id: int, name: str, count: int) -> Result[CounterDB]:
@@ -174,9 +176,9 @@ def update_counter_by_id(counter_id: int, name: str, count: int) -> Result[Count
     bot_id = counter_result.value.bot_id
 
     def handle_rollback(bot_id: int, counter_id: int, old_name_db: str, old_count: int) -> None:
-        update_counter_by_id_db(counter_id, {FIELD_NAME: old_name_db, FIELD_COUNTER: old_count})
+        update_counter_by_id_db(counter_id, {FIELD_COUNTER_NAME: old_name_db, FIELD_COUNTER_COUNT: old_count})
 
-    update_result = update_counter_by_id_db(counter_id, {FIELD_NAME: new_name_db, FIELD_COUNTER: count})
+    update_result = update_counter_by_id_db(counter_id, {FIELD_COUNTER_NAME: new_name_db, FIELD_COUNTER_COUNT: count})
 
     if update_result.state.fail:
         return update_result
@@ -190,7 +192,7 @@ def update_counter_by_id(counter_id: int, name: str, count: int) -> Result[Count
 
 
 def edit_counter_value(bot_id: int, name: str, value: int) -> Result[CounterDB]:
-    return update_counter_db(bot_id, identifier_for_db(name), {FIELD_COUNTER: value})
+    return update_counter_db(bot_id, identifier_for_db(name), {FIELD_COUNTER_COUNT: value})
 
 
 def reset_counter_by_id(counter_id: int) -> Result[CounterDB]:

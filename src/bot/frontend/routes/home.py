@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import Form
 from fastapi.responses import RedirectResponse
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
@@ -14,6 +15,8 @@ from starlette.templating import Jinja2Templates
 from bot.core.bot import add_bot as add_bot_core
 from bot.core.bot import delete_bot as delete_bot_core
 from bot.core.bot import get_bots_by_twitch_id as get_bots_by_twitch_id_core
+from bot.core.bot import update_bot as update_bot_core
+from bot.core.bot import update_bot_enabled_by_id as update_bot_enabled_by_id_core
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
@@ -62,6 +65,29 @@ async def bot_create(
         )
 
     return RedirectResponse(url="/?success_message=new bot added", status_code=HTTPStatus.SEE_OTHER)
+
+
+@router.post("/bot/update/{bot_id:int}")
+async def bot_update(
+    bot_id: int,
+    name: Annotated[str, Form()],
+    enabled: Annotated[bool, Form()] = False,
+) -> RedirectResponse:
+    result = update_bot_core(bot_id=bot_id, name=name)
+    if result.state.fail:
+        return RedirectResponse(
+            f"/?error_message=Failed to update bot | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    result_enabled = await update_bot_enabled_by_id_core(bot_id=bot_id, enabled=enabled)
+    if result_enabled.state.fail:
+        return RedirectResponse(
+            f"/?error_message=Failed to update bot enabled state | reason: {result_enabled.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(f"/?success_message=Bot {name} updated successfully", status_code=HTTPStatus.SEE_OTHER)
 
 
 @router.post("/bot/delete/{bot_id:int}")

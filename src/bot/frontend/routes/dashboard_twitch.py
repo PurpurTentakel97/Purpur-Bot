@@ -17,15 +17,11 @@ from bot.core.broadcast_messages import (
     get_broadcast_message_by_channel_name as get_broadcast_message_by_channel_name_core,
 )
 from bot.core.broadcast_messages import save_broadcast_message as save_broadcast_message_core
-from bot.core.broadcast_messages import (
-    update_broadcast_message_interval_by_id as update_broadcast_message_interval_by_id_core,
-)
-from bot.core.broadcast_messages import (
-    update_broadcast_message_message_by_id as update_broadcast_message_message_by_id_core,
-)
+from bot.core.broadcast_messages import update_broadcast_message_by_id as update_broadcast_message_by_id_core
 from bot.core.twitch import add_twitch_channel as add_twitch_channel_core
 from bot.core.twitch import delete_twitch_channel as delete_twitch_channel_core
 from bot.core.twitch import get_twitch_channels_from_bot as get_twitch_channels_core
+from bot.core.twitch import update_twitch_channel_enabled_by_id as update_twitch_channel_enabled_by_id_core
 from bot.core.twitch_feature_flags import (
     select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_core,
 )
@@ -94,20 +90,28 @@ async def dashboard_twitch_join(
 
 @router.post("/delete/{bot_id:int}/{name:str}")
 async def dashboard_twitch_delete(
+    request: Request,
     bot_id: int,
     name: str,
 ) -> RedirectResponse:
     result = await delete_twitch_channel_core(bot_id, name)
 
+    referer = request.headers.get("referer")
+    if referer and f"/dashboard/twitch/{bot_id}/channel/{name}" in referer:
+        url = f"/dashboard/twitch/{bot_id}"
+    else:
+        url = referer or f"/dashboard/twitch/{bot_id}"
+
     if result.state.fail:
+        separator = "&" if "?" in url else "?"
         return RedirectResponse(
-            url=f"/dashboard/twitch/{bot_id}?error_message=Failed to delete twitch channel "
-            + f"| reason: {result.state.name}",
+            url=f"{url}{separator}error_message=Failed to delete twitch channel | reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
+    separator = "&" if "?" in url else "?"
     return RedirectResponse(
-        url=f"/dashboard/twitch/{bot_id}?success_message=Twitch channel deleted successfully",
+        url=f"{url}{separator}success_message=Twitch channel deleted successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
@@ -174,6 +178,33 @@ async def dashboard_twitch_feature_flag_update(
     )
 
 
+@router.post("/{bot_id:int}/{name:str}/channel/update/{channel_id:int}")
+async def dashboard_twitch_channel_update(
+    request: Request,
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    name: str,
+    channel_id: int,
+    enabled: Annotated[bool, Form()] = False,
+) -> RedirectResponse:
+    result = await update_twitch_channel_enabled_by_id_core(channel_id, enabled)
+
+    referer = request.headers.get("referer")
+    url = referer or f"/dashboard/twitch/{bot.id}/channel/{name}"
+
+    if result.state.fail:
+        separator = "&" if "?" in url else "?"
+        return RedirectResponse(
+            url=f"{url}{separator}error_message=Failed to update twitch channel | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    separator = "&" if "?" in url else "?"
+    return RedirectResponse(
+        url=f"{url}{separator}success_message=Twitch channel updated successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
 # broadcast messages
 @router.post("/{bot_id:int}/{name:str}/broadcast_message/save")
 async def dashboard_twitch_broadcast_message_save(
@@ -197,11 +228,16 @@ async def dashboard_twitch_broadcast_message_save(
     )
 
 
-@router.post("/{bot_id:int}/{name:str}/broadcast_message/update_message/{message_id:int}")
+@router.post("/{bot_id:int}/{name:str}/broadcast_message/update/{message_id:int}")
 def update_broadcast_message(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: str, message_id: int, message: Annotated[str, Form()]
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    name: str,
+    message_id: int,
+    message: Annotated[str, Form()],
+    interval: Annotated[int, Form()],
+    enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = update_broadcast_message_message_by_id_core(message_id, message)
+    result = update_broadcast_message_by_id_core(message_id, message, interval, enabled)
 
     if result.state.fail:
         return RedirectResponse(
@@ -212,26 +248,6 @@ def update_broadcast_message(
 
     return RedirectResponse(
         url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Broadcast message updated successfully",
-        status_code=HTTPStatus.SEE_OTHER,
-    )
-
-
-@router.post("/{bot_id:int}/{name:str}/broadcast_message/update_interval/{message_id:int}")
-def update_broadcast_message_interval(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: str, message_id: int, interval: Annotated[int, Form()]
-) -> RedirectResponse:
-    result = update_broadcast_message_interval_by_id_core(message_id, interval)
-
-    if result.state.fail:
-        return RedirectResponse(
-            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to update broadcast message interval "
-            + f"| reason: {result.state.name}",
-            status_code=HTTPStatus.SEE_OTHER,
-        )
-
-    return RedirectResponse(
-        url=f"/dashboard/twitch/{bot.id}/channel/{name}"
-        + "?success_message=Broadcast message interval updated successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
