@@ -32,8 +32,13 @@ def alias_lookup(bot_id: int, message: str) -> Result[list[str]]:
 
     lookups: list[str] = []
 
+    split_message = message.lower().split(" ")
+
     for entry in alias_dict.value:
-        if entry.alias in message.lower():
+        if not entry.enabled:
+            continue
+
+        if entry.alias in split_message:
             lookups.append(f"{entry.alias}: {entry.explanation}")
 
     return Result(ResultState.SUCCESS, lookups)

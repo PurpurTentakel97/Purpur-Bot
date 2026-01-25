@@ -93,6 +93,9 @@ def get_command_with_counter(bot_id: int, command_name: str) -> Result[BasicComm
     if command_result.state.fail or command_result.value is None:
         return command_result
 
+    if not command_result.value.enabled:
+        return Result(ResultState.COMMAND_DISABLED, command_result.value)
+
     if has_counter(command_result.value.message):
         command_result.value.message = _replace_counter_and_execute(bot_id, command_result.value.message)
 

@@ -10,9 +10,10 @@ from bot.database.discord import select_discord_servers_by as select_discord_ser
 from bot.database.discord import update_discord_server_by_id as update_discord_server_by_id_db
 from bot.database.discord_feature_flags import insert_discord_feature_flags as insert_discord_feature_flags_db
 from bot.database.types.discord_server import DiscordServerDB
-from bot.database.types.fields import FIELD_BOT_ID, FIELD_ID
+from bot.database.types.fields import FIELD_BOT_ID
 from bot.database.types.fields import FIELD_DISCORD_SERVER_ID
 from bot.database.types.fields import FIELD_ENABLED
+from bot.database.types.fields import FIELD_ID
 
 
 def get_discord_servers_by_bot_id(bot_id: int) -> Result[list[DiscordServerDB]]:

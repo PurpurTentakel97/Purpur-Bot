@@ -19,6 +19,8 @@ class ResultState(Enum):
     STILL_IN_USE = auto()
     BOT_DISABLED = auto()
     CHANNEL_DISABLED = auto()
+    COMMAND_DISABLED = auto()
+    ALIAS_DISABLED = auto()
 
     @property
     def success(self) -> bool:

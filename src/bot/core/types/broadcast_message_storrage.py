@@ -27,7 +27,9 @@ class BroadcastMessageStorage:
 
         for message_id, timestamp in self._timestamps.items():
             if current_time - timestamp >= self._messages[message_id].interval_in_minutes * 60:
-                messages.append(self._messages[message_id])
+                message = self._messages[message_id]
+                if message.enabled:
+                    messages.append(self._messages[message_id])
                 self._timestamps[message_id] += self._messages[message_id].interval_in_minutes * 60
 
         return messages
