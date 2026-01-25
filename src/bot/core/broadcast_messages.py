@@ -3,9 +3,6 @@ from bot.core.helpers.string import strip_for_db
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
-from bot.database.broadcast_messages import FIELD_ENABLED
-from bot.database.broadcast_messages import FIELD_INTERVAL_IN_MINUTES
-from bot.database.broadcast_messages import FIELD_MESSAGE
 from bot.database.broadcast_messages import delete_broadcast_message_by_id as delete_broadcast_message_by_id_db
 from bot.database.broadcast_messages import insert_broadcast_message as insert_broadcast_message_db
 from bot.database.broadcast_messages import select_all_broadcast_messages as select_all_broadcast_messages_db
@@ -14,6 +11,9 @@ from bot.database.broadcast_messages import (
 )
 from bot.database.broadcast_messages import select_broadcast_message_by_id as select_broadcast_message_by_id_db
 from bot.database.broadcast_messages import update_broadcast_message_by_id as update_broadcast_message_by_id_db
+from bot.database.types.fields import FIELD_ENABLED
+from bot.database.types.fields import FIELD_TWITCH_BROADCAST_INTERVAL_IN_MINUTES
+from bot.database.types.fields import FIELD_TWITCH_BROADCAST_MESSAGE
 from bot.database.types.twitch_broadcast_message import TwitchBroadcastMessageDB
 
 
@@ -67,7 +67,12 @@ def update_broadcast_message_by_id(
     message_db = strip_for_db(message)
 
     result = update_broadcast_message_by_id_db(
-        message_id, {FIELD_MESSAGE: message_db, FIELD_INTERVAL_IN_MINUTES: interval_in_minutes, FIELD_ENABLED: enabled}
+        message_id,
+        {
+            FIELD_TWITCH_BROADCAST_MESSAGE: message_db,
+            FIELD_TWITCH_BROADCAST_INTERVAL_IN_MINUTES: interval_in_minutes,
+            FIELD_ENABLED: enabled,
+        },
     )
     if result.state.fail:
         return result

@@ -7,11 +7,11 @@ from bot.core.twitch_feature_flags import (
     select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_core,
 )
 from bot.core.types.programm_parts import PROGRAMM_PARTS
-from bot.database.bot import FIELD_ENABLED
 from bot.database.bot import select_bot as select_bot_db
 from bot.database.discord import select_discord_servers_by as select_discord_servers_by_db
-from bot.database.twitch import FIELD_BOT_ID
 from bot.database.twitch import select_twitch_channels_by as select_twitch_channels_by_db
+from bot.database.types.fields import FIELD_BOT_ID
+from bot.database.types.fields import FIELD_ENABLED
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 

@@ -5,9 +5,11 @@ from bot.chat.twitch_client import TwitchClient
 from bot.core.broadcast_messages import get_all_broadcast_messages as get_all_broadcast_messages_core
 from bot.core.types.broadcast_message_storrage import BroadcastMessageStorage
 from bot.core.types.programm_parts import PROGRAMM_PARTS
-from bot.database.bot import FIELD_ENABLED
 from bot.database.database import Database
 from bot.database.types.discord_server import DiscordServerDB
+from bot.database.types.fields import FIELD_ENABLED
+from bot.database.types.fields import TABLE_DISCORD_NAME
+from bot.database.types.fields import TABLE_TWITCH_NAME
 from bot.database.types.twitch_channel import TwitchChannelDB
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
@@ -26,7 +28,7 @@ async def _start_discord_bot() -> None:
         return
 
     servers = PROGRAMM_PARTS.database.select_all(
-        table_name="bot_discord_lookup", where={FIELD_ENABLED: True}, type_=DiscordServerDB
+        table_name=TABLE_DISCORD_NAME, where={FIELD_ENABLED: True}, type_=DiscordServerDB
     )
 
     if (
@@ -52,7 +54,7 @@ async def _start_twitch_bot() -> None:
         return
 
     channels = PROGRAMM_PARTS.database.select_all(
-        table_name="bot_twitch_lookup", where={FIELD_ENABLED: True}, type_=TwitchChannelDB
+        table_name=TABLE_TWITCH_NAME, where={FIELD_ENABLED: True}, type_=TwitchChannelDB
     )
 
     if (
