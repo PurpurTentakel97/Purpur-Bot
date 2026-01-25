@@ -18,6 +18,7 @@ from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.routes.api_auth import router as auth_router
 from bot.frontend.routes.api_icons import router as icon_router
+from bot.frontend.routes.api_webhooks import router as webhooks_router
 from bot.frontend.routes.dashboard_alias import router as dashboard_alias_router
 from bot.frontend.routes.dashboard_commands import router as dashboard_commands_router
 from bot.frontend.routes.dashboard_counter import router as dashboard_counter_router
@@ -55,6 +56,7 @@ async def main(_: FastAPI) -> AsyncGenerator[None]:
 app: Final = FastAPI(lifespan=main)
 app.mount("/static", StaticFiles(directory="src/bot/frontend/static"), name="static")
 app.include_router(auth_router)
+app.include_router(webhooks_router)
 app.include_router(home_router)
 app.include_router(icon_router)
 app.include_router(dashboard_main_router)
