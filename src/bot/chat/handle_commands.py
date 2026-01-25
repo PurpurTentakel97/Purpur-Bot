@@ -4,9 +4,13 @@ from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
 from bot.core.alias_dict import add_alias as add_alias_core
 from bot.core.alias_dict import delete_alias as delete_alias_core
+from bot.core.alias_dict import disable_alias_by_bot_id as disable_alias_by_bot_id_core
 from bot.core.alias_dict import edit_dict_alias as edit_dict_alias_core
 from bot.core.alias_dict import edit_dict_explanation as edit_dict_explanation_core
+from bot.core.alias_dict import enable_alias_by_bot_id as enable_alias_by_bot_id_core
 from bot.core.commands import delete_command as delete_command_core
+from bot.core.commands import disable_command_by_bot_id as disable_command_by_bot_id_core
+from bot.core.commands import enable_command_by_bot_id as enable_command_by_bot_id_core
 from bot.core.commands import get_command_with_counter as get_command_core
 from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_core
 from bot.core.commands import save_command as save_command_core
@@ -80,6 +84,18 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
                         + f" renamed successfully to '{result.value.command}'."
                     )
                 return message.to_response_message(f"Failed to rename command: {_result_lookup(result.state)}")
+
+            case ["!command", "enable", command_name, *_]:
+                result = enable_command_by_bot_id_core(message.bot_id, command_name)
+                if result.state.success and result.value is not None:
+                    return message.to_response_message(f"Command '{result.value.command}' enabled successfully.")
+                return message.to_response_message(f"Failed to enable command: {_result_lookup(result.state)}")
+
+            case ["!command", "disable", command_name, *_]:
+                result = disable_command_by_bot_id_core(message.bot_id, command_name)
+                if result.state.success and result.value is not None:
+                    return message.to_response_message(f"Command '{result.value.command}' disabled successfully.")
+                return message.to_response_message(f"Failed to disable command: {_result_lookup(result.state)}")
 
             case ["!command", "remove", command_name, *_]:
                 result = delete_command_core(message.bot_id, command_name)
@@ -207,6 +223,18 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Alias '{alias}' updated to explanation '{command_message}'.")
                 return message.to_response_message(f"Failed to edit alias explanation: {_result_lookup(result.state)}")
+
+            case ["!dict", "enable", alias, *_]:
+                result = enable_alias_by_bot_id_core(message.bot_id, alias)
+                if result.state.success and result.value is not None:
+                    return message.to_response_message(f"Alias '{alias}' enabled successfully.")
+                return message.to_response_message(f"Failed to enable alias: {_result_lookup(result.state)}")
+
+            case ["!dict", "disable", alias, *_]:
+                result = disable_alias_by_bot_id_core(message.bot_id, alias)
+                if result.state.success and result.value is not None:
+                    return message.to_response_message(f"Alias '{alias}' disabled successfully.")
+                return message.to_response_message(f"Failed to disable alias: {_result_lookup(result.state)}")
 
             case ["!dict", "remove", alias, *_]:
                 result = delete_alias_core(message.bot_id, alias)

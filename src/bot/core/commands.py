@@ -165,6 +165,14 @@ def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[Bas
     return update_command_db(bot_id, old_name_db, {FIELD_BASIC_COMMAND_COMMAND: new_name_db.value})
 
 
+def enable_command_by_bot_id(bot_id: int, name: str) -> Result[BasicCommandDB]:
+    return update_command_db(bot_id, identifier_for_db(name), {FIELD_ENABLED: True})
+
+
+def disable_command_by_bot_id(bot_id: int, name: str) -> Result[BasicCommandDB]:
+    return update_command_db(bot_id, identifier_for_db(name), {FIELD_ENABLED: False})
+
+
 def delete_command_by_id(command_id: int) -> Result[None]:
     return delete_command_by_id_db(command_id)
 
