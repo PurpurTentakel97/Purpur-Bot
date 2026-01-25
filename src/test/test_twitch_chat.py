@@ -45,6 +45,7 @@ async def test_twitch_chat_init_registers_events() -> None:
 @pytest.mark.asyncio
 async def test_twitch_chat_on_ready() -> None:
     mock_chat = MagicMock()
+    mock_chat.send_message = AsyncMock()
     chat = TwitchChat(mock_chat, 1, "channel")
 
     mock_event = MagicMock()
@@ -53,6 +54,7 @@ async def test_twitch_chat_on_ready() -> None:
     await chat._on_ready(mock_event)  # type: ignore[reportPrivateUsage]
 
     mock_event.chat.join_room.assert_called_once_with("channel")
+    mock_chat.send_message.assert_called_once_with("channel", "Tentakel Bot joined")
 
 
 @pytest.mark.asyncio
@@ -140,9 +142,11 @@ async def test_twitch_chat_permissions() -> None:
 @pytest.mark.asyncio
 async def test_twitch_chat_terminate() -> None:
     mock_chat = MagicMock()
+    mock_chat.send_message = AsyncMock()
     chat = TwitchChat(mock_chat, 1, "channel")
     await chat.terminate(mock_chat)
     mock_chat.stop.assert_called_once()
+    mock_chat.send_message.assert_called_once_with("channel", "Tentakel Bot left")
 
 
 @pytest.mark.asyncio
