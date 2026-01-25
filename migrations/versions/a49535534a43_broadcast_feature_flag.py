@@ -19,12 +19,8 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "twitch_feature_flags", sa.Column("can_broadcast", sa.Boolean(), nullable=False, server_default="True")
-    )
-    op.add_column(
-        "discord_feature_flags", sa.Column("can_broadcast", sa.Boolean(), nullable=False, server_default="False")
-    )
+    op.add_column("twitch_feature_flags", sa.Column("can_broadcast", sa.Boolean(), nullable=False, server_default="1"))
+    op.add_column("discord_feature_flags", sa.Column("can_broadcast", sa.Boolean(), nullable=False, server_default="0"))
 
 
 def downgrade() -> None:

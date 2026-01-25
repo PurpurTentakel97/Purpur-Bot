@@ -5,6 +5,7 @@ from bot.chat.twitch_client import TwitchClient
 from bot.core.broadcast_messages import get_all_broadcast_messages as get_all_broadcast_messages_core
 from bot.core.types.broadcast_message_storrage import BroadcastMessageStorage
 from bot.core.types.programm_parts import PROGRAMM_PARTS
+from bot.database.bot import FIELD_ENABLED
 from bot.database.database import Database
 from bot.database.types.discord_server import DiscordServerDB
 from bot.database.types.twitch_channel import TwitchChannelDB
@@ -24,7 +25,9 @@ async def _start_discord_bot() -> None:
     if PROGRAMM_PARTS.discord is None:
         return
 
-    servers = PROGRAMM_PARTS.database.select_all(table_name="bot_discord_lookup", where={}, type_=DiscordServerDB)
+    servers = PROGRAMM_PARTS.database.select_all(
+        table_name="bot_discord_lookup", where={FIELD_ENABLED: True}, type_=DiscordServerDB
+    )
 
     if (
         servers.value is None
@@ -48,7 +51,9 @@ async def _start_twitch_bot() -> None:
     if PROGRAMM_PARTS.twitch is None:
         return
 
-    channels = PROGRAMM_PARTS.database.select_all(table_name="bot_twitch_lookup", where={}, type_=TwitchChannelDB)
+    channels = PROGRAMM_PARTS.database.select_all(
+        table_name="bot_twitch_lookup", where={FIELD_ENABLED: True}, type_=TwitchChannelDB
+    )
 
     if (
         channels.value is None

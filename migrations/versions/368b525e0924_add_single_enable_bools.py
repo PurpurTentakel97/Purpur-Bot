@@ -19,12 +19,12 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.add_column("alias_dict", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="True"))
-    op.add_column("basic_commands", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="True"))
-    op.add_column("twitch_broadcast_message", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="True"))
-    op.add_column("bot_twitch_lookup", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="True"))
-    op.add_column("bot_discord_lookup", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="True"))
-    op.add_column("bot_config", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="True"))
+    op.add_column("alias_dict", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="1"))
+    op.add_column("basic_commands", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="1"))
+    op.add_column("twitch_broadcast_message", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="1"))
+    op.add_column("bot_twitch_lookup", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="1"))
+    op.add_column("bot_discord_lookup", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="1"))
+    op.add_column("bot_config", sa.Column("enabled", sa.Boolean(), nullable=False, server_default="1"))
 
 
 def downgrade() -> None:
