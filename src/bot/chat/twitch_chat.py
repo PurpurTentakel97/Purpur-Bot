@@ -58,6 +58,7 @@ class TwitchChat(Chat):
         return instance
 
     async def terminate(self, twitch: TwitchClient) -> None:
+        await self.send_broadcast_message("Tentakel Bot left")
         self.chat.stop()
         twitch.disconnect_chat(self)
         log_twitch(LogLevel.INFO, f"Twitch chat for {self.channel_name} terminated.")
@@ -72,6 +73,7 @@ class TwitchChat(Chat):
 
     async def _on_ready(self, ready_event: EventData) -> None:
         await ready_event.chat.join_room(self.channel_name)
+        await self.send_broadcast_message("Tentakel Bot joined")
         log_twitch(LogLevel.INFO, f"Twitch chat connected to {self.channel_name}")
 
     async def _on_message(self, message: TwitchChatMessage) -> None:
