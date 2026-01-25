@@ -91,6 +91,14 @@ def update_alias_by_id(entry_id: int, alias: str, explanation: str, enabled: boo
     )
 
 
+def enable_alias_by_bot_id(bot_id: int, alias: str) -> Result[AliasDictEntry]:
+    return update_dict_entry_db(bot_id, identifier_for_db(alias), {FIELD_ENABLED: True})
+
+
+def disable_alias_by_bot_id(bot_id: int, alias: str) -> Result[AliasDictEntry]:
+    return update_dict_entry_db(bot_id, identifier_for_db(alias), {FIELD_ENABLED: False})
+
+
 def delete_alias(bot_id: int, alias: str) -> Result[None]:
     return delete_dict_entry_db(bot_id, identifier_for_db(alias))
 
