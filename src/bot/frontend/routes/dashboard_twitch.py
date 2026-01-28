@@ -22,6 +22,7 @@ from bot.core.twitch import add_twitch_channel as add_twitch_channel_core
 from bot.core.twitch import delete_twitch_channel as delete_twitch_channel_core
 from bot.core.twitch import get_twitch_channels_from_bot as get_twitch_channels_core
 from bot.core.twitch import update_twitch_channel_enabled_by_id as update_twitch_channel_enabled_by_id_core
+from bot.core.twitch_event_hub import TwitchEventHub
 from bot.core.twitch_feature_flags import (
     select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_core,
 )
@@ -114,6 +115,12 @@ async def dashboard_twitch_delete(
         url=f"{url}{separator}success_message=Twitch channel deleted successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
+
+
+@router.get("/broadcaster_id/{channel_name:str}")
+async def get_broadcaster_id(channel_name: str) -> dict[str, Optional[str]]:
+    broadcaster_id = await TwitchEventHub.get_broadcaster_id(channel_name)
+    return {"broadcaster_id": broadcaster_id}
 
 
 # channel

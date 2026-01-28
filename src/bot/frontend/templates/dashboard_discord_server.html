@@ -77,6 +77,113 @@
     input:checked + .slider:before {
         transform: translateX(24px);
     }
+
+    /* Live Messages Table */
+    .live-messages-section {
+        margin-top: 2rem;
+    }
+
+    .live-messages-table-container {
+        background-color: #333;
+        border-radius: 8px;
+        border: 1px solid #444;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    .live-messages-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: #efeff1;
+    }
+
+    .live-messages-table th,
+    .live-messages-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #444;
+    }
+
+    .live-messages-table th {
+        background-color: #26262c;
+        color: #adadb8;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .live-messages-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .live-messages-table tr:hover {
+        background-color: #3a3a3a;
+    }
+
+    .live-messages-input {
+        background-color: #222;
+        color: #efeff1;
+        border: 1px solid #444;
+        border-radius: 4px;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.9rem;
+        width: 100%;
+        resize: vertical;
+    }
+
+    .live-messages-input:focus {
+        border-color: #5865F2;
+        outline: none;
+    }
+
+    .btn {
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        border: none;
+        transition: background-color 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: #5865F2;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #4752c4;
+    }
+
+    .btn-danger {
+        background-color: #e91916;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #b1110f;
+    }
+
+    .btn-sm {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .add-live-message-container {
+        margin-top: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #adadb8;
+        font-size: 0.9rem;
+    }
 </style>
 {% endblock %}
 
@@ -117,4 +224,112 @@
             </div>
         </form>
     </div>
+
+    <div class="discord-section live-messages-section">
+        <h2>{{ server.server_name }} - Discord Live Messages</h2>
+        <div class="live-messages-table-container">
+            <table class="live-messages-table">
+                <thead>
+                    <tr>
+                        <th>Discord Channel</th>
+                        <th>Twitch Channel</th>
+                        <th>Message</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if twitch_event_hubs %}
+                        {% for hub in twitch_event_hubs %}
+                        <tr>
+                            <td>{{ hub.channel_id }}</td>
+                            <td>{{ hub.broadcaster_id }}</td>
+                            <td>{{ hub.message }}</td>
+                            <td style="text-align: right;">
+                                <form action="/dashboard/discord/{{ bot.id }}/{{ server.server_id }}/live_message/delete/{{ hub.id }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #adadb8;">No discord live messages were found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="discord-section add-live-message-container">
+        <h2>Add New Discord Live Message</h2>
+        <form action="/dashboard/discord/{{ bot.id }}/{{ server.server_id }}/live_message/save" method="POST">
+            <div class="form-group">
+                <label for="discord_channel_id">Discord Channel</label>
+                <select id="discord_channel_id" name="discord_channel_id" class="live-messages-input" required>
+                    <option value="" disabled selected>Select a channel...</option>
+                    {% for channel in discord_channels %}
+                    <option value="{{ channel.id }}">#{{ channel.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="twitch_channel">Twitch Channel Name</label>
+                <input type="text" id="twitch_channel" class="live-messages-input" placeholder="e.g. xqc" required>
+            </div>
+            <div class="form-group">
+                <label for="broadcaster_id">Broadcaster ID</label>
+                <input type="text" id="broadcaster_id" name="broadcaster_id" class="live-messages-input" placeholder="Broadcaster ID will appear here..." readonly required>
+            </div>
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" class="live-messages-input" placeholder="Enter live message..." rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Discord Live Message</button>
+        </form>
+    </div>
+
+    <script>
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        const fetchBroadcasterId = async () => {
+            const channelName = document.getElementById('twitch_channel').value.trim();
+            const broadcasterIdInput = document.getElementById('broadcaster_id');
+
+            if (!channelName) {
+                broadcasterIdInput.value = '';
+                return;
+            }
+
+            broadcasterIdInput.placeholder = 'Fetching...';
+
+            try {
+                const response = await fetch(`/dashboard/twitch/broadcaster_id/${channelName}`);
+                const data = await response.json();
+
+                if (data.broadcaster_id) {
+                    broadcasterIdInput.value = data.broadcaster_id;
+                } else {
+                    broadcasterIdInput.value = '';
+                    broadcasterIdInput.placeholder = 'Broadcaster ID not found';
+                }
+            } catch (error) {
+                console.error('Error fetching broadcaster ID:', error);
+                broadcasterIdInput.value = '';
+                broadcasterIdInput.placeholder = 'Error fetching ID';
+            }
+        };
+
+        document.getElementById('twitch_channel').addEventListener('input', debounce(fetchBroadcasterId, 500));
+    </script>
 {% endblock %}
