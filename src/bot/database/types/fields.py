@@ -12,6 +12,7 @@ TABLE_DISCORD_FEATURE_FLAGS_NAME: Final = "discord_feature_flags"
 TABLE_TWITCH_NAME: Final = "bot_twitch_lookup"
 TABLE_TWITCH_AUTH_NAME: Final = "twitch_auth"
 TABLE_TWITCH_FEATURE_FLAGS_NAME: Final = "twitch_feature_flags"
+TABLE_TWITCH_EVENT_HUB_NAME: Final = "twitch_event_hub"
 
 # Specific Fields
 FIELD_ALIAS_NAME: Final = "alias"
@@ -31,6 +32,9 @@ FIELD_DISCORD_SERVER_ID: Final = "server_id"
 FIELD_DISCORD_SERVER_NAME: Final = "server_name"
 FIELD_TWITCH_CHANNEL_NAME: Final = "channel_name"
 FIELD_TWITCH_USER_ID: Final = "twitch_user_id"
+FIELD_TWITCH_BROADCASTER_ID: Final = "broadcaster_id"
+FIELD_TWITCH_LIVE_MESSAGE: Final = "message"
+FIELD_DISCORD_CHANNEL_ID: Final = "channel_id"
 
 FIELD_ENABLED: Final = "enabled"
 FIELD_CAN_COMMANDS: Final = "can_commands"
