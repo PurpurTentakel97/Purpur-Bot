@@ -59,6 +59,9 @@ async def _start_twitch_bot() -> None:
     except Exception as e:
         log_default(LogLevel.ERROR, f"Failed to start Twitch Event Hub: {e}")
 
+    if PROGRAMM_PARTS.event_hub is None:
+        log_default(LogLevel.WARNING, "Twitch Event Hub is not initialized. Some features may not work.")
+
     channels = PROGRAMM_PARTS.database.select_all(
         table_name=TABLE_TWITCH_NAME, where={FIELD_ENABLED: True}, type_=TwitchChannelDB
     )

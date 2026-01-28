@@ -84,7 +84,6 @@ class TwitchClient:
                 twitch = await Twitch(
                     APP_CONTEXT.twitch_client_id.value_or_rise(),
                     APP_CONTEXT.twitch_credentials.value_or_rise(),
-                    authenticate_app=False,
                 )
                 twitch.user_auth_refresh_callback = _user_user_refresh
 

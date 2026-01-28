@@ -32,7 +32,7 @@ class TwitchEventHub:
         return user.id
 
     @classmethod
-    def create(cls) -> Self:
+    def create(cls) -> Optional[Self]:
         from bot.core.types.programm_parts import PROGRAMM_PARTS
 
         if TYPE_CHECKING:
@@ -41,7 +41,12 @@ class TwitchEventHub:
             not APP_CONTEXT.twitch_subscription_callback_url.is_valid()
             or not APP_CONTEXT.twitch_eventsub_secret.is_valid()
         ):
-            raise ValueError("Twitch subscription callback URL and EventSub secret must be provided")
+            log_twitch(
+                LogLevel.WARNING,
+                "Twitch subscription callback URL and EventSub secret must be provided to start the Event Hub. "
+                + "Event Hub will not be started.",
+            )
+            return None
 
         if not PROGRAMM_PARTS.twitch:
             raise ValueError("Twitch client must be initialized")
@@ -79,11 +84,6 @@ class TwitchEventHub:
                 log_twitch(
                     LogLevel.ERROR,
                     f"Failed to start Twitch Event Hub: {e}\n"
-                    + "To fix this locally:\n"
-                    + "1. Use a tool like ngrok to get an HTTPS URL: `ngrok http 8080`\n"
-                    + "2. Update TWITCH_SUBSCRIPTION_CALLBACK_URL in your .env file with the ngrok HTTPS URL.\n"
-                    + "3. Alternatively, set ENVIRONMENT_STATE=DEVELOPMENT"
-                    + "to bypass this check for local testing with Twitch CLI.",
                 )
             raise e
 
