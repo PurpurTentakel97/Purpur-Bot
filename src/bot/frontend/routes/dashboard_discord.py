@@ -201,8 +201,9 @@ async def dashboard_discord_feature_flag_update(
     feature_flag_id: int,
     can_commands: Annotated[bool, Form()] = False,
     can_alias: Annotated[bool, Form()] = False,
+    can_twitch_live: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = update_discord_feature_flags_by_id_core(feature_flag_id, can_commands, can_alias)
+    result = update_discord_feature_flags_by_id_core(feature_flag_id, can_commands, can_alias, can_twitch_live)
 
     if result.state.fail:
         return RedirectResponse(

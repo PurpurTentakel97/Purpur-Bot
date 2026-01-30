@@ -7,6 +7,7 @@ class FeatureFlagsDB(BaseModel):
     can_commands: bool
     can_alias: bool
     can_broadcast: bool
+    can_twitch_live: bool
 
 
 class TwitchFeatureFlagsDB(FeatureFlagsDB):

@@ -40,6 +40,7 @@ FIELD_ENABLED: Final = "enabled"
 FIELD_CAN_COMMANDS: Final = "can_commands"
 FIELD_CAN_ALIAS: Final = "can_alias"
 FIELD_CAN_BROADCAST = "can_broadcast"
+FIELD_CAN_TWITCH_LIVE: Final = "can_twitch_live"
 
 FIELD_ACCESS_TOKEN: Final = "access_token"
 FIELD_REFRESH_TOKEN: Final = "refresh_token"

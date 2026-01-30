@@ -221,6 +221,17 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+
+                <div class="feature-card">
+                    <div class="feature-info">
+                        <h3>Twitch Live</h3>
+                        <p><small style="color: #ffb3b3;">(Test button ignores this setting)</small></p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="can_twitch_live" value="True" {% if feature_flags.can_twitch_live %}checked{% endif %} onchange="this.form.submit()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
         </form>
     </div>
