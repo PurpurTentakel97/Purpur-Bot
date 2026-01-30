@@ -297,6 +297,7 @@ async def dashboard_discord_live_message_test(
         )
 
     return RedirectResponse(
-        url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Test discord live message sent successfully",
+        url=f"/dashboard/discord/{bot.id}/server/{server_id}"
+        + "?success_message=Test discord live message sent successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )

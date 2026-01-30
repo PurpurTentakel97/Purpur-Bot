@@ -101,24 +101,29 @@ class DiscordClient(Client):
         if not isinstance(channel, discord.TextChannel):
             log_discord(
                 LogLevel.ERROR,
-                f"Cannot send Twitch live message: Channel {message.discord_channel_id} not found or not a text channel.",
+                f"Cannot send Twitch live message: Channel {message.discord_channel_id}"
+                + " not found or not a text channel.",
             )
             return
 
         # Styling: Embed
+        preview_url = (
+            f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{message.broadcaster_name.lower()}-640x360.jpg"
+        )
+
         embed = discord.Embed(
-            title="🔴 Stream is Live!",
-            description="Stream description here.",
-            url="https://twitch.tv/codingpurpurtentakel",
+            title=f"{message.broadcaster_name} is now live on Twitch!",
+            url=message.channel_url,
             color=discord.Color.purple(),
             timestamp=discord.utils.utcnow(),
-            type="rich",
+            description=f"{message.stream_title}\n### Category: \n{message.category_name}",
         )
+        embed.set_image(url=preview_url)
 
         # Buttons: View (Placeholder for later handling)
         view = discord.ui.View()
         # Example of adding a button (commented out or just as a placeholder)
-        # view.add_item(discord.ui.Button(label="Watch Now", url="https://twitch.tv/..."))
+        view.add_item(discord.ui.Button(label="Watch Now", url=message.channel_url))
 
         try:
             await channel.send(content=message.message, embed=embed, view=view)
