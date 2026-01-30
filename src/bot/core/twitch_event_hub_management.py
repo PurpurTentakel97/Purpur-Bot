@@ -1,3 +1,5 @@
+from twitchAPI.helper import first
+
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
@@ -43,20 +45,19 @@ async def send_test_twitch_event_hub_entry(id_: int) -> Result[None]:
     if hub_entry.state.fail or hub_entry.value is None:
         return hub_entry.cast_to(type(None))
 
-    dummy_broadcaster_name = "coder2k"  # todo: replace with twitch data
-    dummy_stream_title = "Bester Titel"  # todo: replace with twitch data
-    dummy_category_name = "Software and Game Development"  # todo: replace with twitch data
-    dummy_channel_url = f"https://twitch.tv/{dummy_broadcaster_name}"  # todo: replace with twitch data
+    channel_name = await first(PROGRAMM_PARTS.twitch.client.get_users(user_ids=[hub_entry.value.broadcaster_id]))
+    if not channel_name:
+        return Result(ResultState.ERROR, None)
 
     message = TwitchOnlineMessage(
         id=hub_entry.value.id,
         discord_server_id=hub_entry.value.server_id,
         discord_channel_id=hub_entry.value.channel_id,
         message=hub_entry.value.message,
-        broadcaster_name=dummy_broadcaster_name,
-        stream_title=dummy_stream_title,
-        category_name=dummy_category_name,
-        channel_url=dummy_channel_url,
+        broadcaster_name=channel_name.display_name,
+        stream_title="Stream Title | Product Placement (Kappa) | Obviously no real stream title",
+        category_name="Category Name",
+        channel_url=f"https://twitch.tv/{channel_name.display_name.lower()}",
     )
 
     await PROGRAMM_PARTS.discord.send_twitch_live_message(message)
