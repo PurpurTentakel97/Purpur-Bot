@@ -157,7 +157,7 @@
                                 </td>
                                 <td>
                                     <a href="/dashboard/global/{{ bot.id }}" class="btn btn-edit">Edit</a>
-                                    <form action="/bot/delete/{{ bot.id }}" method="post" style="display: inline;">
+                                    <form action="/bot/delete/{{ bot.id }}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to remove this bot?');">
                                         <button type="submit" class="btn btn-remove">Remove</button>
                                     </form>
                                 </td>
