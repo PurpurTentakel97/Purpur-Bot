@@ -5,6 +5,7 @@ from bot.core.types.twitch_online_message import TwitchOnlineMessage
 from bot.database.twitch_event_hub import delete_twitch_event_hub_by_id as delete_twitch_event_hub_by_id_db
 from bot.database.twitch_event_hub import insert_twitch_event_hub as insert_twitch_event_hub_db
 from bot.database.twitch_event_hub import select_twitch_event_hub_by_id as select_twitch_event_hub_by_id_db
+from bot.database.twitch_event_hub import update_twitch_event_hub_by_id as update_twitch_event_hub_by_id_db
 from bot.database.types.fields import FIELD_BOT_ID
 from bot.database.types.fields import FIELD_DISCORD_CHANNEL_ID
 from bot.database.types.fields import FIELD_DISCORD_SERVER_ID
@@ -61,6 +62,10 @@ async def send_test_twitch_event_hub_entry(id_: int) -> Result[None]:
     await PROGRAMM_PARTS.discord.send_twitch_live_message(message)
 
     return Result(ResultState.SUCCESS, None)
+
+
+async def update_twitch_event_hub_message(id_: int, message: str) -> Result[None]:
+    return update_twitch_event_hub_by_id_db(id_, {FIELD_TWITCH_LIVE_MESSAGE: message})
 
 
 async def delete_twitch_event_hub_entry(id_: int) -> Result[None]:

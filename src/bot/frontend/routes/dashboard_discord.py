@@ -274,6 +274,30 @@ async def dashboard_discord_live_message_save(
     )
 
 
+@router.post("/{bot_id:int}/{server_id:int}/live_message/update/{id:int}")
+async def dashboard_discord_live_message_update(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    server_id: int,
+    id: int,
+    message: Annotated[str, Form()],
+) -> RedirectResponse:
+    from bot.core.twitch_event_hub_management import update_twitch_event_hub_message
+
+    result = await update_twitch_event_hub_message(id, message)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/discord/{bot.id}/server/{server_id}"
+            + f"?error_message=Failed to update discord live message | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Discord live message updated successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
 @router.post("/{bot_id:int}/{server_id:int}/live_message/delete/{id:int}")
 async def dashboard_discord_live_message_delete(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],

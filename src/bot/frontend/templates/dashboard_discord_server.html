@@ -243,8 +243,13 @@
                         <tr>
                             <td>#{{ channel_names.get(hub.channel_id, hub.channel_id) }}</td>
                             <td>{{ broadcaster_names.get(hub.broadcaster_id, hub.broadcaster_id) }}</td>
-                            <td>{{ hub.message }}</td>
-                            <td style="text-align: right;">
+                            <td>
+                                <form id="update-form-{{ hub.id }}" action="/dashboard/discord/{{ bot.id }}/{{ server.server_id }}/live_message/update/{{ hub.id }}" method="POST">
+                                    <textarea name="message" class="live-messages-input" rows="2" style="min-width: 200px;">{{ hub.message }}</textarea>
+                                </form>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <button type="submit" form="update-form-{{ hub.id }}" class="btn btn-primary btn-sm">Update</button>
                                 <form action="/dashboard/discord/{{ bot.id }}/{{ server.server_id }}/live_message/test/{{ hub.id }}" method="POST" style="display:inline;">
                                     <button type="submit" class="btn btn-primary btn-sm">Test</button>
                                 </form>

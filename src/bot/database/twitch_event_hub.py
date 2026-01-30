@@ -32,6 +32,14 @@ def select_twitch_event_hub_by_id(id_: int) -> Result[TwitchEventHubDB]:
     )
 
 
+def update_twitch_event_hub_by_id(id_: int, data: dict[str, Any]) -> Result[None]:
+    return PROGRAMM_PARTS.database.update(
+        table_name=TABLE_TWITCH_EVENT_HUB_NAME,
+        where={FIELD_ID: id_},
+        data=data,
+    )
+
+
 def delete_twitch_event_hub_by_id(id_: int) -> Result[None]:
     return PROGRAMM_PARTS.database.delete(
         table_name=TABLE_TWITCH_EVENT_HUB_NAME,
