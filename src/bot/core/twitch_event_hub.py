@@ -81,10 +81,7 @@ class TwitchEventHub:
                 event_sub.callback_url = callback_url
         except RuntimeError as e:
             if "HTTPS is required" in str(e):
-                log_twitch(
-                    LogLevel.ERROR,
-                    f"Failed to start Twitch Event Hub: {e}\n"
-                )
+                log_twitch(LogLevel.ERROR, f"Failed to start Twitch Event Hub: {e}\n")
             raise e
 
         event_sub.secret = APP_CONTEXT.twitch_eventsub_secret.value_or_rise()

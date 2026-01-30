@@ -241,8 +241,8 @@
                     {% if twitch_event_hubs %}
                         {% for hub in twitch_event_hubs %}
                         <tr>
-                            <td>{{ hub.channel_id }}</td>
-                            <td>{{ hub.broadcaster_id }}</td>
+                            <td>#{{ channel_names.get(hub.channel_id, hub.channel_id) }}</td>
+                            <td>{{ broadcaster_names.get(hub.broadcaster_id, hub.broadcaster_id) }}</td>
                             <td>{{ hub.message }}</td>
                             <td style="text-align: right;">
                                 <form action="/dashboard/discord/{{ bot.id }}/{{ server.server_id }}/live_message/test/{{ hub.id }}" method="POST" style="display:inline;">
