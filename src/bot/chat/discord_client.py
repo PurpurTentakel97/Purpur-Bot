@@ -9,6 +9,7 @@ from discord import Client
 from bot.chat.discord_server import DiscordServer
 from bot.chat.types.message import ChatMessage
 from bot.core.app_context import APP_CONTEXT
+from bot.core.types.twitch_online_message import TwitchOnlineMessage
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord
 
@@ -87,6 +88,43 @@ class DiscordClient(Client):
         instance._start()
 
         return instance
+
+    async def send_twitch_live_message(self, message: TwitchOnlineMessage) -> None:
+        if message.discord_server_id not in self._servers:
+            log_discord(
+                LogLevel.WARNING,
+                f"Cannot send Twitch live message: Server {message.discord_server_id} not initialized.",
+            )
+            return
+
+        channel = self.get_channel(message.discord_channel_id)
+        if not isinstance(channel, discord.TextChannel):
+            log_discord(
+                LogLevel.ERROR,
+                f"Cannot send Twitch live message: Channel {message.discord_channel_id} not found or not a text channel.",
+            )
+            return
+
+        # Styling: Embed
+        embed = discord.Embed(
+            title="🔴 Stream is Live!",
+            description="Stream description here.",
+            url="https://twitch.tv/codingpurpurtentakel",
+            color=discord.Color.purple(),
+            timestamp=discord.utils.utcnow(),
+            type="rich",
+        )
+
+        # Buttons: View (Placeholder for later handling)
+        view = discord.ui.View()
+        # Example of adding a button (commented out or just as a placeholder)
+        # view.add_item(discord.ui.Button(label="Watch Now", url="https://twitch.tv/..."))
+
+        try:
+            await channel.send(content=message.message, embed=embed, view=view)
+            log_discord(LogLevel.DEBUG, f"Twitch live message sent to channel {message.discord_channel_id}.")
+        except discord.HTTPException as e:
+            log_discord(LogLevel.ERROR, f"Failed to send Twitch live message: {e}")
 
     async def on_ready(self) -> None:
         log_discord(LogLevel.INFO, "Discord client is ready!")

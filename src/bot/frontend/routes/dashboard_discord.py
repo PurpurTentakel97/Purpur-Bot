@@ -23,6 +23,9 @@ from bot.core.discord_feature_flags import (
 from bot.core.discord_feature_flags import update_discord_feature_flags_by_id as update_discord_feature_flags_by_id_core
 from bot.core.twitch_event_hub_management import add_twitch_event_hub_entry as add_twitch_event_hub_entry_core
 from bot.core.twitch_event_hub_management import delete_twitch_event_hub_entry as delete_twitch_event_hub_entry_core
+from bot.core.twitch_event_hub_management import (
+    send_test_twitch_event_hub_entry as send_test_twitch_event_hub_entry_core,
+)
 from bot.database.twitch_event_hub import (
     select_twitch_event_hubs_by_server_id as select_twitch_event_hubs_by_server_id_db,
 )
@@ -274,5 +277,26 @@ async def dashboard_discord_live_message_delete(
 
     return RedirectResponse(
         url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Discord live message deleted successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.post("/{bot_id:int}/{server_id:int}/live_message/test/{id:int}")
+async def dashboard_discord_live_message_test(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    server_id: int,
+    id: int,
+) -> RedirectResponse:
+    result = await send_test_twitch_event_hub_entry_core(id)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/discord/{bot.id}/server/{server_id}"
+            + f"?error_message=Failed to send test discord live message | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Test discord live message sent successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )

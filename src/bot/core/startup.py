@@ -3,7 +3,7 @@ from bot.chat.on_demand import start_single_discord_bot
 from bot.chat.on_demand import start_single_twitch_bot
 from bot.chat.twitch_client import TwitchClient
 from bot.core.broadcast_messages import get_all_broadcast_messages as get_all_broadcast_messages_core
-from bot.core.twitch_event_hub import TwitchEventHub
+# from bot.core.twitch_event_hub import TwitchEventHub
 from bot.core.types.broadcast_message_storrage import BroadcastMessageStorage
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.database import Database
@@ -54,10 +54,10 @@ async def _start_twitch_bot() -> None:
     if PROGRAMM_PARTS.twitch is None:
         return
 
-    try:
-        PROGRAMM_PARTS.event_hub = TwitchEventHub.create()
-    except Exception as e:
-        log_default(LogLevel.ERROR, f"Failed to start Twitch Event Hub: {e}")
+    # try:
+    #    PROGRAMM_PARTS.event_hub = TwitchEventHub.create()
+    # except Exception as e:
+    #    log_default(LogLevel.ERROR, f"Failed to start Twitch Event Hub: {e}")
 
     if PROGRAMM_PARTS.event_hub is None:
         log_default(LogLevel.WARNING, "Twitch Event Hub is not initialized. Some features may not work.")
