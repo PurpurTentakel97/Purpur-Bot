@@ -1,0 +1,10 @@
+services:
+  purpur-bot:
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - ./.env:/app/.env
+      - ./container_data:/app/data
+    restart: unless-stopped
+    ports:
+      - "8000:8000"

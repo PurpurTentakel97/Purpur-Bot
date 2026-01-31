@@ -13,6 +13,8 @@ from bot.core.helpers.env import get_env_var_or_default
 from bot.core.helpers.env import get_env_var_or_rise
 from bot.core.types.environment_state import Environment
 from bot.core.types.twitch_tokens import TwitchTokens
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
 
 
 @final
@@ -93,10 +95,15 @@ class AppContext:
         self._update_env_file(
             self._ENV_FILE_PATH,
             {"TWITCH_ACCESS_TOKEN": new_access_token, "TWITCH_REFRESH_TOKEN": new_refresh_token},
+            self.environment_state.value(),
         )
 
-    @classmethod
-    def _update_env_file(cls, path: Path, updates: dict[str, str]) -> None:
+    @staticmethod
+    def _update_env_file(path: Path, updates: dict[str, str], environment_state: Environment) -> None:
+        if environment_state.is_production():
+            log_default(LogLevel.INFO, "Skipping env file update in production environment.")
+            return
+
         try:
             original = path.read_text(encoding="utf-8")
         except FileNotFoundError:
