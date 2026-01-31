@@ -13,7 +13,7 @@ COPY migrations /app/migrations
 
 RUN uv sync --no-dev --frozen
 
-COPY container/entrypoint.sh /app/
+COPY entrypoint.sh /app/
 RUN chmod +x /app/*.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]

@@ -1,0 +1,9 @@
+services:
+  purpur-bot:
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - ./.env:/app/.env
+      - ./container_data:/app/data
+    ports:
+      - "8000:8000"
