@@ -34,7 +34,8 @@ async def _unsubscribe(broadcaster_id: str) -> None:
     if hubs_by_broadcaster_id.state.fail or hubs_by_broadcaster_id.value is None:
         return None
 
-    if len(hubs_by_broadcaster_id.value) == 0:
+    filtered = [h for h in hubs_by_broadcaster_id.value if h.enabled]
+    if len(filtered) == 0:
         return await PROGRAMM_PARTS.event_hub.unsubscribe(broadcaster_id)
 
     return None
