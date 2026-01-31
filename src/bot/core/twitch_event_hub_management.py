@@ -8,9 +8,10 @@ from bot.database.twitch_event_hub import delete_twitch_event_hub_by_id as delet
 from bot.database.twitch_event_hub import insert_twitch_event_hub as insert_twitch_event_hub_db
 from bot.database.twitch_event_hub import select_twitch_event_hub_by_id as select_twitch_event_hub_by_id_db
 from bot.database.twitch_event_hub import update_twitch_event_hub_by_id as update_twitch_event_hub_by_id_db
-from bot.database.types.fields import FIELD_BOT_ID, FIELD_ENABLED
+from bot.database.types.fields import FIELD_BOT_ID
 from bot.database.types.fields import FIELD_DISCORD_CHANNEL_ID
 from bot.database.types.fields import FIELD_DISCORD_SERVER_ID
+from bot.database.types.fields import FIELD_ENABLED
 from bot.database.types.fields import FIELD_TWITCH_BROADCASTER_ID
 from bot.database.types.fields import FIELD_TWITCH_LIVE_MESSAGE
 
