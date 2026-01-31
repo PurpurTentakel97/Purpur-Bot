@@ -76,9 +76,11 @@ def test_twitch_tokens_try_load_missing_refresh() -> None:
 
 
 def test_update_env_file_new_file(tmp_path: Path) -> None:
+    from bot.core.types.environment_state import Environment
+
     env_file = tmp_path / ".env"
     updates = {"KEY1": "VAL1", "KEY2": "VAL2"}
-    AppContext._update_env_file(env_file, updates)  # type: ignore[reportPrivateUsage]
+    AppContext._update_env_file(env_file, updates, Environment.DEVELOPMENT)  # type: ignore[reportPrivateUsage]
 
     content = env_file.read_text(encoding="utf-8")
     assert "KEY1=VAL1\n" in content
@@ -86,11 +88,13 @@ def test_update_env_file_new_file(tmp_path: Path) -> None:
 
 
 def test_update_env_file_update_existing(tmp_path: Path) -> None:
+    from bot.core.types.environment_state import Environment
+
     env_file = tmp_path / ".env"
     env_file.write_text("KEY1=OLD1\n# Comment\nexport KEY2=OLD2\n", encoding="utf-8")
 
     updates = {"KEY1": "NEW1", "KEY2": "NEW2", "KEY3": "NEW3"}
-    AppContext._update_env_file(env_file, updates)  # type: ignore[reportPrivateUsage]
+    AppContext._update_env_file(env_file, updates, Environment.DEVELOPMENT)  # type: ignore[reportPrivateUsage]
 
     content = env_file.read_text(encoding="utf-8")
     assert "KEY1=NEW1\n" in content
@@ -103,17 +107,21 @@ def test_update_env_file_update_existing(tmp_path: Path) -> None:
 
 
 def test_update_env_file_no_newline_at_end(tmp_path: Path) -> None:
+    from bot.core.types.environment_state import Environment
+
     env_file = tmp_path / ".env"
     env_file.write_text("KEY1=VAL1", encoding="utf-8")
 
     updates = {"KEY2": "VAL2"}
-    AppContext._update_env_file(env_file, updates)  # type: ignore[reportPrivateUsage]
+    AppContext._update_env_file(env_file, updates, Environment.DEVELOPMENT)  # type: ignore[reportPrivateUsage]
 
     content = env_file.read_text(encoding="utf-8")
     assert content == "KEY1=VAL1\nKEY2=VAL2\n"
 
 
 def test_update_env_file_complex(tmp_path: Path) -> None:
+    from bot.core.types.environment_state import Environment
+
     env_file = tmp_path / ".env"
     initial_content = (
         "KEY1=VAL1\n"
@@ -132,7 +140,7 @@ def test_update_env_file_complex(tmp_path: Path) -> None:
         "KEY4": "NEW4",
         "KEY6": "NEW6",
     }
-    AppContext._update_env_file(env_file, updates)  # type: ignore[reportPrivateUsage]
+    AppContext._update_env_file(env_file, updates, Environment.DEVELOPMENT)  # type: ignore[reportPrivateUsage]
 
     content = env_file.read_text(encoding="utf-8")
     lines = content.splitlines(keepends=True)
@@ -168,7 +176,7 @@ def test_app_context_update_twitch_tokens(tmp_path: Path) -> None:
             twitch_credentials="cr",
             twitch_tokens=None,
             twitch_redirect_uri="r",
-            environment_state=Environment.PRODUCTION,
+            environment_state=Environment.DEVELOPMENT,
             jwt_secret="j",
             twitch_subscription_callback_url=None,
             twitch_eventsub_secret="e",

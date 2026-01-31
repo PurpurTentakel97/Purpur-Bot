@@ -95,10 +95,12 @@ class AppContext:
         self._update_env_file(
             self._ENV_FILE_PATH,
             {"TWITCH_ACCESS_TOKEN": new_access_token, "TWITCH_REFRESH_TOKEN": new_refresh_token},
+            self.environment_state.value(),
         )
 
-    def _update_env_file(self, path: Path, updates: dict[str, str]) -> None:
-        if self.environment_state.value().is_production():
+    @staticmethod
+    def _update_env_file(path: Path, updates: dict[str, str], environment_state: Environment) -> None:
+        if environment_state.is_production():
             log_default(LogLevel.INFO, "Skipping env file update in production environment.")
             return
 
