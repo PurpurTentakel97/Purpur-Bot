@@ -35,7 +35,7 @@ async def test_twitch_client_create_success_with_tokens() -> None:
         assert isinstance(client, TwitchClient)
         assert client.client == mock_twitch_instance
 
-        mock_twitch_cls.assert_called_once_with("id", "cred", authenticate_app=False)
+        mock_twitch_cls.assert_called_once_with("id", "cred")
         mock_twitch_instance.set_user_authentication.assert_called_once_with(
             "access",
             TwitchClient._SCOPES,  # type: ignore[reportPrivateUsage]
