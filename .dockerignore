@@ -1,0 +1,6 @@
+/src/test/
+/.venv/
+.coverage
+.env
+bot.db
+__pycache__/

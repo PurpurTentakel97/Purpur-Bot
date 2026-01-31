@@ -1,0 +1,9 @@
+services:
+  purpur-bot:
+    build:
+      context: ../
+      dockerfile: container/Dockerfile
+    volumes:
+      - ./../.env:/app/.env
+    ports:
+      - "8080:8080"
