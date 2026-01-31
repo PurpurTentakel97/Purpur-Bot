@@ -7,7 +7,7 @@ from twitchAPI.eventsub.webhook import EventSubWebhook
 from twitchAPI.helper import first
 
 from bot.core.app_context import APP_CONTEXT
-from bot.helpers.log import LogLevel
+from bot.helpers.log import LogLevel, log_exception, LogProgram
 from bot.helpers.log import log_twitch
 
 
@@ -63,7 +63,7 @@ class TwitchEventHub:
             )
         except RuntimeError as e:
             if "HTTPS is required" in str(e):
-                log_twitch(LogLevel.ERROR, f"Failed to start Twitch Event Hub: {e}\n")
+                log_exception(e, LogProgram.Twitch, f"Failed to start Twitch Event Hub")
             raise e
 
         event_sub.secret = APP_CONTEXT.twitch_eventsub_secret.value_or_rise()
@@ -93,7 +93,7 @@ class TwitchEventHub:
             self._sub_ids_by_broadcaster[broadcaster_id] = sub_id
             log_twitch(LogLevel.INFO, f"Subscribed to {broadcaster_id} (Subscription ID: {sub_id}).")
         except Exception as e:
-            log_twitch(LogLevel.ERROR, f"Failed to subscribe to {broadcaster_id}: {e} | {e.args}")
+            log_exception(e, LogProgram.Twitch, f"Failed to subscribe to {broadcaster_id}")
 
     async def unsubscribe(self, broadcaster_id: str) -> None:
         if broadcaster_id not in self._sub_ids_by_broadcaster:
@@ -106,4 +106,4 @@ class TwitchEventHub:
             del self._sub_ids_by_broadcaster[broadcaster_id]
             log_twitch(LogLevel.INFO, f"Unsubscribed from {broadcaster_id} (Subscription ID: {sub_id}).")
         except Exception as e:
-            log_twitch(LogLevel.ERROR, f"Failed to unsubscribe from {broadcaster_id}: {e}")
+            log_exception(e, LogProgram.Twitch, f"Failed to unsubscribe from {broadcaster_id}")
