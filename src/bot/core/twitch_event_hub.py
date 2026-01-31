@@ -51,34 +51,16 @@ class TwitchEventHub:
         if not PROGRAMM_PARTS.twitch:
             raise ValueError("Twitch client must be initialized")
 
-        callback_url = APP_CONTEXT.twitch_subscription_callback_url.value_or_rise()
-        is_dev = APP_CONTEXT.environment_state.value().is_development()
-
-        if is_dev and not callback_url.startswith("https"):
-            log_twitch(
-                LogLevel.WARNING,
-                "Twitch Event Hub is starting with a non-HTTPS callback URL in DEVELOPMENT mode. "
-                + "This is only for local testing (e.g. with Twitch CLI). "
-                + "For real Twitch events, you MUST use an HTTPS callback URL.",
-            )
+        if not APP_CONTEXT.twitch_subscription_callback_url.value_or_rise().startswith("https://"):
+            log_twitch(LogLevel.ERROR, "Twitch subscription callback URL must be HTTPS.")
+            return None
 
         try:
-            # EventSubWebhook strictly requires the URL to start with 'https' in its constructor.
-            # To allow local development without HTTPS, we temporarily prefix it if in DEVELOPMENT mode,
-            # then set it back to the original value after instantiation.
-            effective_url = callback_url
-            if is_dev and not callback_url.startswith("https"):
-                effective_url = callback_url.replace("http://", "https://")
-                if not effective_url.startswith("https://"):
-                    effective_url = "https://" + effective_url
-
             event_sub = EventSubWebhook(
-                callback_url=effective_url,
+                callback_url=APP_CONTEXT.twitch_subscription_callback_url.value_or_rise(),
                 port=APP_CONTEXT.twitch_eventsub_port.value(),
                 twitch=PROGRAMM_PARTS.twitch.client,
             )
-            if is_dev and not callback_url.startswith("https"):
-                event_sub.callback_url = callback_url
         except RuntimeError as e:
             if "HTTPS is required" in str(e):
                 log_twitch(LogLevel.ERROR, f"Failed to start Twitch Event Hub: {e}\n")
