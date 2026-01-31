@@ -3,6 +3,7 @@ from typing import Any
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.database.types.fields import FIELD_ID
+from bot.database.types.fields import FIELD_TWITCH_BROADCASTER_ID
 from bot.database.types.fields import TABLE_TWITCH_EVENT_HUB_NAME
 from bot.database.types.twitch_event_hub import TwitchEventHubDB
 
@@ -28,6 +29,14 @@ def select_twitch_event_hub_by_id(id_: int) -> Result[TwitchEventHubDB]:
     return PROGRAMM_PARTS.database.select_one(
         table_name=TABLE_TWITCH_EVENT_HUB_NAME,
         where={FIELD_ID: id_},
+        type_=TwitchEventHubDB,
+    )
+
+
+def select_twitch_event_hubs_by_broadcaster_id(broadcaster_id: str) -> Result[list[TwitchEventHubDB]]:
+    return PROGRAMM_PARTS.database.select_all(
+        table_name=TABLE_TWITCH_EVENT_HUB_NAME,
+        where={FIELD_TWITCH_BROADCASTER_ID: broadcaster_id},
         type_=TwitchEventHubDB,
     )
 
