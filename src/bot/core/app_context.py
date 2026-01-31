@@ -13,7 +13,8 @@ from bot.core.helpers.env import get_env_var_or_default
 from bot.core.helpers.env import get_env_var_or_rise
 from bot.core.types.environment_state import Environment
 from bot.core.types.twitch_tokens import TwitchTokens
-from bot.helpers.log import LogLevel, log_default
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
 
 
 @final
