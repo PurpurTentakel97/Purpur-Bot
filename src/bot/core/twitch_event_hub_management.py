@@ -8,7 +8,7 @@ from bot.database.twitch_event_hub import delete_twitch_event_hub_by_id as delet
 from bot.database.twitch_event_hub import insert_twitch_event_hub as insert_twitch_event_hub_db
 from bot.database.twitch_event_hub import select_twitch_event_hub_by_id as select_twitch_event_hub_by_id_db
 from bot.database.twitch_event_hub import update_twitch_event_hub_by_id as update_twitch_event_hub_by_id_db
-from bot.database.types.fields import FIELD_BOT_ID
+from bot.database.types.fields import FIELD_BOT_ID, FIELD_ENABLED
 from bot.database.types.fields import FIELD_DISCORD_CHANNEL_ID
 from bot.database.types.fields import FIELD_DISCORD_SERVER_ID
 from bot.database.types.fields import FIELD_TWITCH_BROADCASTER_ID
@@ -16,7 +16,11 @@ from bot.database.types.fields import FIELD_TWITCH_LIVE_MESSAGE
 
 
 async def add_twitch_event_hub_entry(
-    bot_id: int, server_id: int, channel_id: int, broadcaster_id: str, message: str
+    bot_id: int,
+    server_id: int,
+    channel_id: int,
+    broadcaster_id: str,
+    message: str,
 ) -> Result[int]:
     data = {
         FIELD_BOT_ID: bot_id,
@@ -65,8 +69,8 @@ async def send_test_twitch_event_hub_entry(id_: int) -> Result[None]:
     return Result(ResultState.SUCCESS, None)
 
 
-async def update_twitch_event_hub_message(id_: int, message: str) -> Result[None]:
-    return update_twitch_event_hub_by_id_db(id_, {FIELD_TWITCH_LIVE_MESSAGE: message})
+async def update_twitch_event_hub(id_: int, message: str, enabled: bool) -> Result[None]:
+    return update_twitch_event_hub_by_id_db(id_, {FIELD_TWITCH_LIVE_MESSAGE: message, FIELD_ENABLED: enabled})
 
 
 async def delete_twitch_event_hub_entry(id_: int) -> Result[None]:

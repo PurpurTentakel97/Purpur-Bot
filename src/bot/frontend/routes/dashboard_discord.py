@@ -38,7 +38,7 @@ from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
-
+from bot.core.twitch_event_hub_management import update_twitch_event_hub as update_twitch_event_hub_core
 router: Final = APIRouter(
     prefix="/dashboard/discord",
     dependencies=[Depends(get_authenticated_twitch_user), Depends(get_authenticated_discord_user)],
@@ -281,10 +281,10 @@ async def dashboard_discord_live_message_update(
     server_id: int,
     id: int,
     message: Annotated[str, Form()],
+    enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    from bot.core.twitch_event_hub_management import update_twitch_event_hub_message
 
-    result = await update_twitch_event_hub_message(id, message)
+    result = await update_twitch_event_hub_core(id, message, enabled)
 
     if result.state.fail:
         return RedirectResponse(
