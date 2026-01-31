@@ -20,3 +20,6 @@ class Environment(Enum):
 
     def is_production(self) -> bool:
         return self == Environment.PRODUCTION
+
+    def is_development(self) -> bool:
+        return self == Environment.DEVELOPMENT

@@ -21,10 +21,19 @@ from bot.core.discord_feature_flags import (
     select_discord_feature_flags_by_server_id as select_discord_feature_flags_by_server_id_core,
 )
 from bot.core.discord_feature_flags import update_discord_feature_flags_by_id as update_discord_feature_flags_by_id_core
+from bot.core.twitch_event_hub_management import add_twitch_event_hub_entry as add_twitch_event_hub_entry_core
+from bot.core.twitch_event_hub_management import delete_twitch_event_hub_entry as delete_twitch_event_hub_entry_core
+from bot.core.twitch_event_hub_management import (
+    send_test_twitch_event_hub_entry as send_test_twitch_event_hub_entry_core,
+)
+from bot.database.twitch_event_hub import (
+    select_twitch_event_hubs_by_server_id as select_twitch_event_hubs_by_server_id_db,
+)
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_discord_user
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.discord import get_allowed_discord_servers
+from bot.frontend.helpers.discord import get_discord_channels
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
@@ -151,6 +160,21 @@ async def dashboard_discord_server(
     if discord_feature_flags.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Discord Feature Flags not found")
 
+    discord_channels = get_discord_channels(server_id)
+    twitch_event_hubs = select_twitch_event_hubs_by_server_id_db(server_id)
+
+    # Resolve IDs to Names for the table
+    channel_names = {c["id"]: c["name"] for c in discord_channels}
+    broadcaster_names: dict[str, str] = {}
+    if twitch_event_hubs.value and APP_CONTEXT.twitch_client_id.is_valid():
+        from bot.core.types.programm_parts import PROGRAMM_PARTS
+
+        if PROGRAMM_PARTS.twitch:
+            broadcaster_ids = [hub.broadcaster_id for hub in twitch_event_hubs.value]
+            if broadcaster_ids:
+                async for user in PROGRAMM_PARTS.twitch.client.get_users(user_ids=broadcaster_ids):
+                    broadcaster_names[user.id] = user.display_name or user.login
+
     return template.TemplateResponse(
         request=request,
         name="dashboard_discord_server.html",
@@ -162,6 +186,10 @@ async def dashboard_discord_server(
             "discord_server": discord_servers.value,
             "active_tab": server_id,
             "feature_flags": discord_feature_flags.value,
+            "discord_channels": discord_channels,
+            "twitch_event_hubs": twitch_event_hubs.value,
+            "channel_names": channel_names,
+            "broadcaster_names": broadcaster_names,
         },
     )
 
@@ -173,8 +201,9 @@ async def dashboard_discord_feature_flag_update(
     feature_flag_id: int,
     can_commands: Annotated[bool, Form()] = False,
     can_alias: Annotated[bool, Form()] = False,
+    can_twitch_live: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = update_discord_feature_flags_by_id_core(feature_flag_id, can_commands, can_alias)
+    result = update_discord_feature_flags_by_id_core(feature_flag_id, can_commands, can_alias, can_twitch_live)
 
     if result.state.fail:
         return RedirectResponse(
@@ -213,5 +242,101 @@ async def dashboard_discord_server_update(
     separator = "&" if "?" in url else "?"
     return RedirectResponse(
         url=f"{url}{separator}success_message=Discord server updated successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.post("/{bot_id:int}/{server_id:int}/live_message/save")
+async def dashboard_discord_live_message_save(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    server_id: int,
+    discord_channel_id: Annotated[int, Form()],
+    broadcaster_id: Annotated[str, Form()],
+    message: Annotated[str, Form()],
+) -> RedirectResponse:
+    result = await add_twitch_event_hub_entry_core(
+        bot_id=bot.id,
+        server_id=server_id,
+        channel_id=discord_channel_id,
+        broadcaster_id=broadcaster_id,
+        message=message,
+    )
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/discord/{bot.id}/server/{server_id}"
+            + f"?error_message=Failed to save discord live message | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Discord live message saved successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.post("/{bot_id:int}/{server_id:int}/live_message/update/{id:int}")
+async def dashboard_discord_live_message_update(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    server_id: int,
+    id: int,
+    message: Annotated[str, Form()],
+) -> RedirectResponse:
+    from bot.core.twitch_event_hub_management import update_twitch_event_hub_message
+
+    result = await update_twitch_event_hub_message(id, message)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/discord/{bot.id}/server/{server_id}"
+            + f"?error_message=Failed to update discord live message | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Discord live message updated successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.post("/{bot_id:int}/{server_id:int}/live_message/delete/{id:int}")
+async def dashboard_discord_live_message_delete(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    server_id: int,
+    id: int,
+) -> RedirectResponse:
+    result = await delete_twitch_event_hub_entry_core(id)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/discord/{bot.id}/server/{server_id}"
+            + f"?error_message=Failed to delete discord live message | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Discord live message deleted successfully",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.post("/{bot_id:int}/{server_id:int}/live_message/test/{id:int}")
+async def dashboard_discord_live_message_test(
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    server_id: int,
+    id: int,
+) -> RedirectResponse:
+    result = await send_test_twitch_event_hub_entry_core(id)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/discord/{bot.id}/server/{server_id}"
+            + f"?error_message=Failed to send test discord live message | reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/discord/{bot.id}/server/{server_id}"
+        + "?success_message=Test discord live message sent successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )

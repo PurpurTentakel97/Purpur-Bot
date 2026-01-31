@@ -22,3 +22,7 @@ coverage_html/
 
 # database
 bot.db
+
+# docker
+data/
+container_data/

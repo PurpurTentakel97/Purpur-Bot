@@ -170,6 +170,9 @@ def test_app_context_update_twitch_tokens(tmp_path: Path) -> None:
             twitch_redirect_uri="r",
             environment_state=Environment.PRODUCTION,
             jwt_secret="j",
+            twitch_subscription_callback_url=None,
+            twitch_eventsub_secret="e",
+            twitch_eventsub_port=8080,
         )
 
         ctx.update_twitch_tokens("new_access", "new_refresh")

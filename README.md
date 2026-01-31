@@ -1,5 +1,11 @@
 # Tentakel Bot
 
+## Docker
+```sh
+docker compose -f .\container\docker-compose.yml up
+docker compose -f .\container\docker-compose.yml build
+```
+
 ## Features:
 - Twitch and Discord integration
 - Multiple permission levels

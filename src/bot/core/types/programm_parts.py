@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from typing import Optional
 
 from attr import dataclass
@@ -7,11 +8,15 @@ from bot.chat.twitch_client import TwitchClient
 from bot.core.types.broadcast_message_storrage import BroadcastMessageStorage
 from bot.database.database import Database
 
+if TYPE_CHECKING:
+    from bot.core.twitch_event_hub import TwitchEventHub
+
 
 @dataclass
 class ProgramParts:
     discord: Optional[DiscordClient] = None
     twitch: Optional[TwitchClient] = None
+    event_hub: Optional["TwitchEventHub"] = None
     _database: Optional[Database] = None
     broadcast: Optional[BroadcastMessageStorage] = None
 

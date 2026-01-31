@@ -8,6 +8,7 @@ from typing import final
 
 from dotenv import load_dotenv
 
+from bot.core.helpers.env import get_env_var_as_int_or_default
 from bot.core.helpers.env import get_env_var_or_default
 from bot.core.helpers.env import get_env_var_or_rise
 from bot.core.types.environment_state import Environment
@@ -67,6 +68,9 @@ class AppContext:
         twitch_redirect_uri: str,
         environment_state: Environment,
         jwt_secret: str,
+        twitch_subscription_callback_url: Optional[str],
+        twitch_eventsub_secret: Optional[str],
+        twitch_eventsub_port: int,
     ) -> None:
         self.discord_token: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_token)
         self.discord_client_id: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_client_id)
@@ -78,6 +82,11 @@ class AppContext:
         self.twitch_redirect_uri: AppContextEntry[str] = AppContextEntry(twitch_redirect_uri)
         self.environment_state: AppContextEntry[Environment] = AppContextEntry(environment_state)
         self.jwt_secret: AppContextEntry[str] = AppContextEntry(jwt_secret)
+        self.twitch_subscription_callback_url: OptionalAppContextEntry[str] = OptionalAppContextEntry(
+            twitch_subscription_callback_url
+        )
+        self.twitch_eventsub_secret: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_eventsub_secret)
+        self.twitch_eventsub_port: AppContextEntry[int] = AppContextEntry(twitch_eventsub_port)
 
     def update_twitch_tokens(self, new_access_token: str, new_refresh_token: str) -> None:
         self.twitch_tokens.set_value(TwitchTokens(new_access_token, new_refresh_token))
@@ -144,4 +153,7 @@ APP_CONTEXT = AppContext(
     ),
     environment_state=Environment.from_string(get_env_var_or_default("ENVIRONMENT_STATE", "production")),
     jwt_secret=get_env_var_or_rise("JWT_SECRET"),
+    twitch_subscription_callback_url=get_env_var_or_default("TWITCH_SUBSCRIPTION_CALLBACK_URL", None),
+    twitch_eventsub_secret=get_env_var_or_default("TWITCH_EVENTSUB_SECRET", None),
+    twitch_eventsub_port=get_env_var_as_int_or_default("TWITCH_EVENTSUB_PORT", 8080),
 )

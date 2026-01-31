@@ -21,7 +21,7 @@ from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default
 from bot.helpers.log import log_exception
 
-DATABASE_PATH = Path(__file__).parent.parent.parent.parent / "bot.db"
+DATABASE_PATH = Path(__file__).parent.parent.parent.parent / "data" / "bot.db"
 
 
 class Database:

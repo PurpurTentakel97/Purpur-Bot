@@ -9,6 +9,9 @@ async def _stop_discord_bot() -> None:
 
 
 async def _stop_twitch_bot() -> None:
+    if PROGRAMM_PARTS.event_hub is not None:
+        await PROGRAMM_PARTS.event_hub.terminate()
+
     if PROGRAMM_PARTS.twitch is None:
         return
 
