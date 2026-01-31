@@ -93,7 +93,7 @@ class TwitchEventHub:
             self._sub_ids_by_broadcaster[broadcaster_id] = sub_id
             log_twitch(LogLevel.INFO, f"Subscribed to {broadcaster_id} (Subscription ID: {sub_id}).")
         except Exception as e:
-            log_twitch(LogLevel.ERROR, f"Failed to subscribe to {broadcaster_id}: {e}")
+            log_twitch(LogLevel.ERROR, f"Failed to subscribe to {broadcaster_id}: {e} | {e.args}")
 
     async def unsubscribe(self, broadcaster_id: str) -> None:
         if broadcaster_id not in self._sub_ids_by_broadcaster:
