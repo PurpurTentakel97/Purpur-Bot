@@ -1,66 +1,171 @@
 # Tentakel Bot
 
-## Docker
-```sh
-docker compose -f .\container\docker-compose.yml up
-docker compose -f .\container\docker-compose.yml build
-```
+## Getting Started
+First, you don't need to host the bot yourself.
+You can use the [hosted version](https://purpur-bot.coder2k.net).
+But you are welcome to host it yourself if you want to.
 
-## Features:
-- Twitch and Discord integration
-- Multiple permission levels
-- Multiple Bot Instances
+Thanks to [coder2k](https://github.com/mgerhold) that I'm allowed to host the bot on his server.
 
-## Configuration:
+### UV Setup
+
+| Description        | Command                                                             |
+|--------------------|---------------------------------------------------------------------|
+| install uv         | ``pip install uv``                                                  |
+| setup dependencies | ``uv sync``                                                         |
+| start the bot      | ``uv run --no-dev uvicorn --host 0.0.0.0 --port 8000 bot.main:app`` |
+| start check        | ``uv run poe check``                                                |
+| start fix          | ``uv run poe fix``                                                  |
+| start test         | ``uv run poe test``                                                 |
+
+### Docker Setup
+
+This is a production-ready docker setup. No development setup.
+
+| Description        | Command                    |
+|--------------------|----------------------------|
+| build docker image | ``docker compose build``   |
+| start docker image | ``docker compose up -d``   |
+| show docker logs   | ``docker compose logs -f`` |
+
+### Deployed Version:
+
+Modify the .env file to your needs.
+You can either use the current docker setup and build the docker image yourself with docker compose on the server.
+Or you can modify the [docker compose file](docker-compose.yml) to download the last version from GitHub.
+Then you only need the docker compose file and the .env file on your server and start it.
+The GitHub URl is: `` image: ghcr.io/purpurtentakel97/purpur-bot:<version>``. The version is the release tag on GitHub
+or `nightly`
+I recomend to add a second port where you can dedicate run the Twitch subscriptions. Seams to make things a lot easier.
+
 ### .env file:
-The .env file should be located in the root directory. You can use the [example](.env.sample) as a template.
+
+The .env file should be located in the root directory. You should use the [example](.env.sample) as a template.
 Add at least one of the Discord or Twitch credentials.
 The Bot is fully functional if you only support one platform. The other bot will just not start.
 Twitch's tokens will be updated automatically within the .env file.
 
-### config file:
-There should be a config.json in the root directory. If not, start the bot once, and it will be created.
-The generated config will look something like this: (0.0.1):
+## Features:
 
-```json
-{
-  "version": "0.0.1",
-  "user": [
-    {
-      "id": 0,
-      "name": "default",
-      "twitch": [
-        "twitch_channel_name"
-      ],
-      "discord": [
-        0
-      ]
-    }
-  ]
-}
-```
+### General:
 
-The list within the user tag can be extended to create multiple bots.
-Within the twitch tag you can add multiple twitch channels by their name.
-Within the discord tag you can add multiple discord servers by their id. When you don't know the id: let the bot join your server and run the bot. The bot will mark messages vom that server with the server_id within the console.
+The Bot connects to Twitch and Discord individually.
+It reacts to Discord and Twitch Messages.
+It can connect to multiple Twitch channels and Discord servers.
+It can handle multiple Bot instances.
+Nearly all features are able to turn on and off via the web interface.
 
-**NOTE:** The ID will be used within the database. Make sure it is unique within your bot configuration. And make sure it will not change over time.
+### Web Interface:
+
+The Bot has a web interface.
+It can be used to manage the Bot.
+The web interface needs at least a Twitch OAuth login to set up a bot.
+If you also want to use the bot on a Discord server, you also need a Discord OAuth login.
+To set up a bot and let a bot join some channels, you need to use the web interface.
+
+### Build in Commands:
+
+The Bot has some build in commands.
+This can be used to manage the Bot via Discord and Twitch chats.
+Not all features are available via the build in commands.
+If a command is not available, use the web interface.
+A table of all commands can be found in the build in the commands section.
+
+### Custom Commands
+
+The bot has custom commands.
+These can be managed via the web interface and the build in commands.
+The commands can handle counter. The counter-syntax will be explained in the counter-section file.
+
+### Counter
+
+The bot has a counter-system.
+This can be used to handle counter within the custom commands.
+The Syntax for the counter is explained in the counter-section.
+
+### Broadcast Messages:
+
+The Bot can send custom messages to specific Twitch chats in a custom interval.
+
+### Aliases:
+
+The bot can handle aliases.
+The bot will respond with an explanation when the registered word appears within a message.
+
+
 
 ## Permission Levels:
+
 ### general Permission Levels:
+
 1. Admin
 2. Moderator
 3. Special User
 4. User
 
 ### Permission mapping per Platform:
+
 #### Twitch:
-    - Admin: when the broadcaster batch is present
-    - Moderator: Twitchs Moderator role
-    - Special User: Twitchs vip role
-    - User: enyone else
+
+- Admin: when the broadcaster batch is present
+- Moderator: Twitches Moderator role
+- Special User: Twitches vip role
+- User: anyone else
+
 #### Discord:
-    - Admin: Server Member with admin rights
-    - Moderator: Server Member with manage messages permission
-    - Special User: Server Member with "vip" or "VIP" role
-    - User: enyone else
+
+- Admin: Server Member with admin rights
+- Moderator: Server Member with manage messages permission
+- Special User: Server Member with "vip" or "VIP" role
+- User: anyone else
+
+## Build in Commands:
+
+- '*' -> ignores all remaining words
+- '<>' -> variable
+- '<*>' -> captures all remaining words
+
+| Commands                                       | Description                                                              | Min Permission Level |
+|------------------------------------------------|--------------------------------------------------------------------------|----------------------|
+| !commands *                                    | Prints a list of all commands                                            | User                 |
+| !command add \<name\> \<message*\>             | Adds a custom command (this will add a counter if one is added)          | Mod                  |
+| !command edit_name \<old_name\> \<new_name\> * | Edits a custom command name                                              | Mod                  |
+| !command edit_message \<name\> \<message*\>    | Edits a custom command message (this will add a counter if one is added) | Mod                  |
+| !command enable \<name\> *                     | Enables a custom command                                                 | Mod                  |
+| !command disable \<name\> *                    | Disables a custom command                                                | Mod                  |
+| !command remove \<name\> *                     | Deletes a custom command                                                 | Mod                  |
+| !command *                                     | prints a list of command related commands                                | Mod                  |
+| !counter add \<name\> *                        | Adds a counter and initialze it with 0                                   | Mod                  |
+| !counter reset \<name\> *                      | Resets a counter to 0                                                    | Mod                  |
+| !counter show \<name\> *                       | Prints the current value of a counter                                    | Mod                  |
+| !counter edit_name \<old_name\> \<new_name\> * | Sets a new name for a counter                                            | Mod                  |
+| !counter edit_count \<name\> \<value\> *       | Sets the count of a counter to a specified value                         | Mod                  |
+| !counter increment \<name\> *                  | Increments a counter by 1                                                | Mod                  |
+| !counter increment_by \<name\> \<value\> *     | Increments a counter by a specified value                                | Mod                  |
+| !counter decrement \<name\> *                  | Decrements a counter by 1                                                | Mod                  |
+| !counter decrement_by \<name\> \<value\> *     | Decrements a counter by a specified value                                | Mod                  |
+| !counter remove \<name\> *                     | Removes a counter if it is unused                                        | Mod                  |
+| !counter *                                     | Prints a list of counter related commands                                | Mod                  |
+| !dict add \<alias\> \<message*\>               | Adds an alias                                                            | Mod                  |
+| !dict edit_name \<old_alias\> \<new_alias\> *  | Edits an alias                                                           | Mod                  |
+| !dict edit_message \<alias\> \<message*\>      | Edits an alias message                                                   | Mod                  |
+| !dict enable \<alias\> *                       | Enables an alias                                                         | Mod                  |
+| !dict disable \<alias\> *                      | Disables an alias                                                        | Mod                  |
+| !dict remove \<alias\> *                       | Removes an alias                                                         | Mod                  |
+| !dict *                                        | Prints a list of dictionary related commands                             | Mod                  |
+| !<name> *                                      | If no build in commands triggers, executes the custom command            | User                 |
+
+## Counter
+
+Counter can be used within custom commands.
+Counters are integers that can be incremented, decremented or displayed.
+They can turn positive and negative.
+
+| Syntax                | Example                        | Description                                                     |
+|-----------------------|--------------------------------|-----------------------------------------------------------------|
+| {\<name\>}            | Naya claped {counter} times.   | Displays the current value of a counter                         |
+| {\<name\>+\<value\> } | Naya claped {counter+1} times. | Increments a counter by a specified value before displaying it  |
+| {\<name\>-\<value\> } | Naye claped {counter-1} times. | Decrements a counter by a specified value  before displaying it |
+
+Tipp:
+You can increment or decrement a counter by any value, so `{counter+4711}` is valid. 

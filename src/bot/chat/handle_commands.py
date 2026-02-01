@@ -177,7 +177,7 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
                     )
                 return message.to_response_message(f"Failed to decrement counter: {_result_lookup(result.state)}")
 
-            case ["!counter", "set_count", counter_name, value, *_]:
+            case ["!counter", "edit_count", counter_name, value, *_]:
                 v = _to_int(value)
                 if v is None:
                     return message.to_response_message("Invalid value. Must be a number.")
@@ -187,7 +187,7 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
                     return message.to_response_message(f"Counter '{result.value.name}' set to '{result.value.count}'.")
                 return message.to_response_message(f"Failed to set counter value: {_result_lookup(result.state)}")
 
-            case ["!counter", "set_name", counter_name, new_name, *_]:
+            case ["!counter", "edit_name", counter_name, new_name, *_]:
                 result = edit_counter_name_core(message.bot_id, counter_name, new_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(
@@ -198,7 +198,7 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
             case ["!counter", *_]:
                 return message.to_response_message(
                     "Invalid command format. Use '!counter"
-                    + " add|reset|remove|show|increment|decrement|set_name|set_count <counter_name> <new_value>'"
+                    + " add|reset|remove|show|increment|decrement|edit_name|edit_count <counter_name> <new_value>'"
                 )
 
             # dict
@@ -211,7 +211,7 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
                     )
                 return message.to_response_message(f"Failed to add alias: {_result_lookup(result.state)}")
 
-            case ["!dict", "edit_alias", old_alias, new_alias, *_]:
+            case ["!dict", "edit_name", old_alias, new_alias, *_]:
                 result = edit_dict_alias_core(message.bot_id, old_alias, new_alias)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Alias '{old_alias}' updated to '{new_alias}'.")
@@ -244,7 +244,7 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
 
             case ["!dict", *_]:
                 return message.to_response_message(
-                    "Invalid command format. Use '!dict add|edit_alias|edit_message|remove <alias> <new_value>'"
+                    "Invalid command format. Use '!dict add|edit_name|edit_message|remove <alias> <new_value>'"
                 )
 
             case _:
