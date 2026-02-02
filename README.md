@@ -9,14 +9,14 @@ Thanks to [coder2k](https://github.com/mgerhold) that I'm allowed to host the bo
 
 ### UV Setup
 
-| Description        | Command              |
-|--------------------|----------------------|
-| install uv         | ``pip install uv``   |
-| setup dependencies | ``uv sync``          |
-| start the bot      | ``uv run poe start`` |
-| start check        | ``uv run poe check`` |
-| start fix          | ``uv run poe fix``   |
-| start test         | ``uv run poe test``  |
+| Description        | Command                                                             |
+|--------------------|---------------------------------------------------------------------|
+| install uv         | ``pip install uv``                                                  |
+| setup dependencies | ``uv sync``                                                         |
+| start the bot      | ``uv run --no-dev uvicorn --host 0.0.0.0 --port 8000 bot.main:app`` |
+| start check        | ``uv run poe check``                                                |
+| start fix          | ``uv run poe fix``                                                  |
+| start test         | ``uv run poe test``                                                 |
 
 ### Docker Setup
 
