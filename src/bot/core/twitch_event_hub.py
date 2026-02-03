@@ -82,7 +82,7 @@ class TwitchEventHub:
 
     async def subscribe(self, broadcaster_id: str) -> None:
         async def _on_stream_online(event: Any) -> None:
-            log_twitch(LogLevel.DEBUG, f"Received stream online event for {broadcaster_id}.")
+            log_twitch(LogLevel.DEBUG, f"Received stream online event for {broadcaster_id}. | {event}")
 
         if broadcaster_id in self._sub_ids_by_broadcaster:
             log_twitch(LogLevel.INFO, f"Already subscribed to {broadcaster_id}. Skipping.")

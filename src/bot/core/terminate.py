@@ -9,13 +9,16 @@ async def _stop_discord_bot() -> None:
 
 
 async def _stop_twitch_bot() -> None:
-    if PROGRAMM_PARTS.event_hub is not None:
-        await PROGRAMM_PARTS.event_hub.terminate()
-
     if PROGRAMM_PARTS.twitch is None:
         return
 
     await PROGRAMM_PARTS.twitch.terminate()
+
+
+async def _stop_twitch_event_hub() -> None:
+    if PROGRAMM_PARTS.event_hub is None:
+        return
+    await PROGRAMM_PARTS.event_hub.terminate()
 
 
 def _stop_database() -> None:
@@ -30,6 +33,7 @@ def _stop_broadcast() -> None:
 
 
 async def terminate_programm() -> None:
+    await _stop_twitch_event_hub()
     await _stop_discord_bot()
     await _stop_twitch_bot()
     _stop_database()

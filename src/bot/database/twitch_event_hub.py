@@ -2,7 +2,7 @@ from typing import Any
 
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
-from bot.database.types.fields import FIELD_ID
+from bot.database.types.fields import FIELD_ENABLED, FIELD_ID
 from bot.database.types.fields import FIELD_TWITCH_BROADCASTER_ID
 from bot.database.types.fields import TABLE_TWITCH_EVENT_HUB_NAME
 from bot.database.types.twitch_event_hub import TwitchEventHubDB
@@ -12,6 +12,12 @@ def insert_twitch_event_hub(data: dict[str, Any]) -> Result[int]:
     return PROGRAMM_PARTS.database.insert(
         table_name=TABLE_TWITCH_EVENT_HUB_NAME,
         data=data,
+    )
+
+
+def select_all_enabled_twitch_hubs() -> Result[list[TwitchEventHubDB]]:
+    return PROGRAMM_PARTS.database.select_all(
+        table_name=TABLE_TWITCH_EVENT_HUB_NAME, where={FIELD_ENABLED: True}, type_=TwitchEventHubDB
     )
 
 

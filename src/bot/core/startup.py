@@ -3,10 +3,12 @@ from bot.chat.on_demand import start_single_discord_bot
 from bot.chat.on_demand import start_single_twitch_bot
 from bot.chat.twitch_client import TwitchClient
 from bot.core.broadcast_messages import get_all_broadcast_messages as get_all_broadcast_messages_core
+from bot.core.discord_feature_flags import select_discord_feature_flags_by_server_id
 from bot.core.twitch_event_hub import TwitchEventHub
 from bot.core.types.broadcast_message_storrage import BroadcastMessageStorage
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.database import Database
+from bot.database.twitch_event_hub import select_all_enabled_twitch_hubs as select_all_enabled_twitch_hubs_db
 from bot.database.types.discord_server import DiscordServerDB
 from bot.database.types.fields import FIELD_ENABLED
 from bot.database.types.fields import TABLE_DISCORD_NAME
@@ -53,15 +55,6 @@ async def _start_twitch_bot() -> None:
 
     if PROGRAMM_PARTS.twitch is None:
         return
-
-    try:
-        PROGRAMM_PARTS.event_hub = TwitchEventHub.create()
-    except Exception as e:
-        log_default(LogLevel.ERROR, f"Failed to start Twitch Event Hub: {e}")
-
-    if PROGRAMM_PARTS.event_hub is None:
-        log_default(LogLevel.WARNING, "Twitch Event Hub is not initialized. Some features may not work.")
-
     channels = PROGRAMM_PARTS.database.select_all(
         table_name=TABLE_TWITCH_NAME, where={FIELD_ENABLED: True}, type_=TwitchChannelDB
     )
@@ -83,6 +76,30 @@ async def _start_twitch_bot() -> None:
         await start_single_twitch_bot(channel.bot_id, channel.channel_name)
 
 
+async def _start_twitch_event_hub() -> None:
+    try:
+        PROGRAMM_PARTS.event_hub = TwitchEventHub.create()
+    except Exception as e:
+        log_default(LogLevel.ERROR, f"Failed to start Twitch Event Hub: {e}")
+
+    if PROGRAMM_PARTS.event_hub is None:
+        log_default(LogLevel.WARNING, "Twitch Event Hub is not initialized. Some features may not work.")
+        return
+
+    enabled_hubs = select_all_enabled_twitch_hubs_db()
+    if enabled_hubs.state.fail or enabled_hubs.value is None:
+        log_default(LogLevel.ERROR, "Could not load Twitch Feature Flags. Aborting subscribe to Twitch Events...")
+        return
+
+    for hub in enabled_hubs.value:
+        feature_flags = select_discord_feature_flags_by_server_id(hub.bot_id, hub.server_id)
+        if feature_flags.state.fail or feature_flags.value is None:
+            log_default(LogLevel.ERROR, f"Discord Feature Flags for bot {hub.bot_id} not found. Skipping...")
+            continue
+        if feature_flags.value.can_twitch_live:
+            await PROGRAMM_PARTS.event_hub.subscribe(hub.broadcaster_id)
+
+
 def _start_broadcast() -> None:
     broadcast_messages = get_all_broadcast_messages_core()
     if broadcast_messages.value is None:
@@ -100,4 +117,5 @@ async def startup_programm() -> None:
 
     await _start_discord_bot()
     await _start_twitch_bot()
+    await _start_twitch_event_hub()
     _start_broadcast()
