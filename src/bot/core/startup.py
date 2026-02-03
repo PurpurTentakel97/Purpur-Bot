@@ -1,3 +1,7 @@
+import asyncio
+from collections.abc import Coroutine
+from typing import Any
+
 from bot.chat.discord_client import DiscordClient
 from bot.chat.on_demand import start_single_discord_bot
 from bot.chat.on_demand import start_single_twitch_bot
@@ -91,13 +95,16 @@ async def _start_twitch_event_hub() -> None:
         log_default(LogLevel.ERROR, "Could not load Twitch Feature Flags. Aborting subscribe to Twitch Events...")
         return
 
+    tasks: list[Coroutine[Any, Any, None]] = []
     for hub in enabled_hubs.value:
         feature_flags = select_discord_feature_flags_by_server_id(hub.bot_id, hub.server_id)
         if feature_flags.state.fail or feature_flags.value is None:
             log_default(LogLevel.ERROR, f"Discord Feature Flags for bot {hub.bot_id} not found. Skipping...")
             continue
         if feature_flags.value.can_twitch_live:
-            await PROGRAMM_PARTS.event_hub.subscribe(hub.broadcaster_id)
+            tasks.append(PROGRAMM_PARTS.event_hub.subscribe(hub.broadcaster_id))
+    if tasks:
+        await asyncio.gather(*tasks)
 
 
 def _start_broadcast() -> None:

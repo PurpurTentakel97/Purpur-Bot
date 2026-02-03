@@ -2,7 +2,8 @@ from typing import Any
 
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
-from bot.database.types.fields import FIELD_ENABLED, FIELD_ID
+from bot.database.types.fields import FIELD_ENABLED
+from bot.database.types.fields import FIELD_ID
 from bot.database.types.fields import FIELD_TWITCH_BROADCASTER_ID
 from bot.database.types.fields import TABLE_TWITCH_EVENT_HUB_NAME
 from bot.database.types.twitch_event_hub import TwitchEventHubDB
