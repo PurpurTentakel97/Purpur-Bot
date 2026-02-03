@@ -7,7 +7,9 @@ from twitchAPI.eventsub.webhook import EventSubWebhook
 from twitchAPI.helper import first
 
 from bot.core.app_context import APP_CONTEXT
-from bot.helpers.log import LogLevel, log_exception, LogProgram
+from bot.helpers.log import LogLevel
+from bot.helpers.log import LogProgram
+from bot.helpers.log import log_exception
 from bot.helpers.log import log_twitch
 
 
@@ -63,7 +65,7 @@ class TwitchEventHub:
             )
         except RuntimeError as e:
             if "HTTPS is required" in str(e):
-                log_exception(e, LogProgram.Twitch, f"Failed to start Twitch Event Hub")
+                log_exception(e, LogProgram.Twitch, "Failed to start Twitch Event Hub")
             raise e
 
         event_sub.secret = APP_CONTEXT.twitch_eventsub_secret.value_or_rise()
