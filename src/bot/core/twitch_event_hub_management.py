@@ -18,7 +18,8 @@ from bot.database.types.fields import FIELD_DISCORD_SERVER_ID
 from bot.database.types.fields import FIELD_ENABLED
 from bot.database.types.fields import FIELD_TWITCH_BROADCASTER_ID
 from bot.database.types.fields import FIELD_TWITCH_LIVE_MESSAGE
-from bot.helpers.log import log_default, LogLevel
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
 
 
 async def _subscribe(broadcaster_id: str) -> None:
@@ -121,8 +122,10 @@ async def send_twitch_event_hub_entry(broadcast_id: str, message: TwitchOnlineMe
         await PROGRAMM_PARTS.discord.send_twitch_live_message(full_message)
 
 
-async def update_twitch_event_hub(id_: int, message: str, enabled: bool) -> Result[None]:
-    result = update_twitch_event_hub_by_id_db(id_, {FIELD_TWITCH_LIVE_MESSAGE: message, FIELD_ENABLED: enabled})
+async def update_twitch_event_hub(id_: int, channel_id: int, message: str, enabled: bool) -> Result[None]:
+    result = update_twitch_event_hub_by_id_db(
+        id_, {FIELD_DISCORD_CHANNEL_ID: channel_id, FIELD_TWITCH_LIVE_MESSAGE: message, FIELD_ENABLED: enabled}
+    )
 
     if result.state.fail:
         return result

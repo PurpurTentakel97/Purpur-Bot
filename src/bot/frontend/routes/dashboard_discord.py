@@ -281,10 +281,11 @@ async def dashboard_discord_live_message_update(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     server_id: int,
     id: int,
+    discord_channel_id: Annotated[int, Form()],
     message: Annotated[str, Form()],
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = await update_twitch_event_hub_core(id, message, enabled)
+    result = await update_twitch_event_hub_core(id, discord_channel_id, message, enabled)
 
     if result.state.fail:
         return RedirectResponse(
