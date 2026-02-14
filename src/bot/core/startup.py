@@ -90,6 +90,8 @@ async def _start_twitch_event_hub() -> None:
         log_default(LogLevel.WARNING, "Twitch Event Hub is not initialized. Some features may not work.")
         return
 
+    await PROGRAMM_PARTS.event_hub.sync_subscriptions()
+
     enabled_hubs = select_all_enabled_twitch_hubs_db()
     if enabled_hubs.state.fail or enabled_hubs.value is None:
         log_default(LogLevel.ERROR, "Could not load Twitch Feature Flags. Aborting subscribe to Twitch Events...")
