@@ -10,7 +10,7 @@ from twitchAPI.object.eventsub import StreamOnlineEvent
 
 from bot.core.app_context import APP_CONTEXT
 from bot.core.types.twitch_online_message import TwitchOnlineMessageLight
-from bot.helpers.log import LogLevel, log_default
+from bot.helpers.log import LogLevel
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 from bot.helpers.log import log_twitch
@@ -163,7 +163,6 @@ class TwitchEventHub:
 
             # The broadcaster ID is stored in the 'condition' dictionary
             broadcaster_id = sub["condition"].get("broadcaster_user_id")
-            log_default(LogLevel.DEBUG, f"Found subscription: {sub} | Broadcaster ID: {broadcaster_id}")
             if broadcaster_id and sub["status"] == "enabled":
                 self._sub_ids_by_broadcaster[broadcaster_id] = sub["id"]
                 # We need to manually add the callback to the library's internal mapping
