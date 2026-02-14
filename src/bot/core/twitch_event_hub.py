@@ -57,9 +57,12 @@ class TwitchEventHub:
             log_twitch(LogLevel.ERROR, "Twitch subscription callback URL must be HTTPS.")
             return None
 
+        callback_url = APP_CONTEXT.twitch_subscription_callback_url.value_or_rise()
+        log_twitch(LogLevel.INFO, f"Starting Twitch Event Hub with callback URL: {callback_url}")
+
         try:
             event_sub = EventSubWebhook(
-                callback_url=APP_CONTEXT.twitch_subscription_callback_url.value_or_rise(),
+                callback_url=callback_url,
                 port=APP_CONTEXT.twitch_eventsub_port.value(),
                 twitch=PROGRAMM_PARTS.twitch.client,
             )
