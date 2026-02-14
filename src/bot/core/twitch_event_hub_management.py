@@ -88,7 +88,7 @@ async def send_test_twitch_event_hub_entry(id_: int) -> Result[None]:
         discord_server_id=hub_entry.value.server_id,
         discord_channel_id=hub_entry.value.channel_id,
         broadcaster_id=hub_entry.value.broadcaster_id,
-        message=hub_entry.value.message,
+        message=f"[TEST MESSAGE]\n\n{hub_entry.value.message}",
         broadcaster_name=channel_name.display_name,
         stream_title="Stream Title | Product Placement (Kappa) | Obviously no real stream title",
         category_name="Category Name",
