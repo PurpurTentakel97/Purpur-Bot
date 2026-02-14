@@ -18,6 +18,7 @@ from bot.database.types.fields import FIELD_DISCORD_SERVER_ID
 from bot.database.types.fields import FIELD_ENABLED
 from bot.database.types.fields import FIELD_TWITCH_BROADCASTER_ID
 from bot.database.types.fields import FIELD_TWITCH_LIVE_MESSAGE
+from bot.helpers.log import log_default, LogLevel
 
 
 async def _subscribe(broadcaster_id: str) -> None:
@@ -32,14 +33,16 @@ async def _unsubscribe(broadcaster_id: str) -> None:
         return None
 
     hubs_by_broadcaster_id = select_twitch_event_hubs_by_broadcaster_id_db(broadcaster_id)
-    if hubs_by_broadcaster_id.state.fail or hubs_by_broadcaster_id.value is None:
+    if hubs_by_broadcaster_id.value is None:
+        log_default(LogLevel.WARNING, f"Failed to fetch event hubs for broadcaster {hubs_by_broadcaster_id}")
         return None
 
     filtered = [h for h in hubs_by_broadcaster_id.value if h.enabled]
-    if len(filtered) == 0:
-        return await PROGRAMM_PARTS.event_hub.unsubscribe(broadcaster_id)
+    if len(filtered) > 0:
+        log_default(LogLevel.INFO, "Ignoring unsubscribing because there are other hubs still listening.")
+        return None
 
-    return None
+    return await PROGRAMM_PARTS.event_hub.unsubscribe(broadcaster_id)
 
 
 async def add_twitch_event_hub_entry(
