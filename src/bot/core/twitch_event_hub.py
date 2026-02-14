@@ -1,3 +1,4 @@
+import asyncio
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Optional
@@ -8,7 +9,8 @@ from twitchAPI.helper import first
 from twitchAPI.object.eventsub import StreamOnlineEvent
 
 from bot.core.app_context import APP_CONTEXT
-from bot.helpers.log import LogLevel
+from bot.core.types.twitch_online_message import TwitchOnlineMessageLight
+from bot.helpers.log import LogLevel, log_default
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 from bot.helpers.log import log_twitch
@@ -71,6 +73,7 @@ class TwitchEventHub:
                 callback_url=callback_url,
                 port=APP_CONTEXT.twitch_eventsub_port.value(),
                 twitch=PROGRAMM_PARTS.twitch.client,
+                callback_loop=asyncio.get_running_loop(),
             )
         except RuntimeError as e:
             if "HTTPS is required" in str(e):
@@ -160,6 +163,7 @@ class TwitchEventHub:
 
             # The broadcaster ID is stored in the 'condition' dictionary
             broadcaster_id = sub["condition"].get("broadcaster_user_id")
+            log_default(LogLevel.DEBUG, f"Found subscription: {sub} | Broadcaster ID: {broadcaster_id}")
             if broadcaster_id and sub["status"] == "enabled":
                 self._sub_ids_by_broadcaster[broadcaster_id] = sub["id"]
                 # We need to manually add the callback to the library's internal mapping
@@ -175,5 +179,40 @@ class TwitchEventHub:
                 log_twitch(LogLevel.INFO, f"Synced subscription for {broadcaster_id} (ID: {sub['id']})")
 
     async def _on_stream_online(self, event: StreamOnlineEvent) -> None:
+        asyncio.create_task(self._on_stream_online_task(event))
+
+    async def _on_stream_online_task(self, event: StreamOnlineEvent) -> None:
+        from bot.core.types.programm_parts import PROGRAMM_PARTS
+
+        if TYPE_CHECKING:
+            assert PROGRAMM_PARTS.twitch
+
         broadcaster_id = event.event.broadcaster_user_id
-        log_twitch(LogLevel.DEBUG, f"Received stream online event for {broadcaster_id}. | {event}")
+        broadcaster_name = event.event.broadcaster_user_name
+
+        stream_title = "No Title"
+        category_name = "No Category"
+
+        try:
+            if PROGRAMM_PARTS.twitch:
+                channel_infos = await PROGRAMM_PARTS.twitch.client.get_channel_information(broadcaster_id)
+                if channel_infos:
+                    channel_info = channel_infos[0]
+                    stream_title = channel_info.title
+                    category_name = channel_info.game_name
+        except Exception as e:
+            log_exception(e, LogProgram.Twitch, f"Failed to fetch channel info for {broadcaster_id}")
+
+        message_light = TwitchOnlineMessageLight(
+            broadcaster_id=broadcaster_id,
+            broadcaster_name=broadcaster_name,
+            channel_url=f"https://twitch.tv/{event.event.broadcaster_user_login}",
+            stream_title=stream_title,
+            category_name=category_name,
+        )
+
+        log_twitch(LogLevel.DEBUG, f"Received stream online event for {broadcaster_id}. | {message_light}")
+
+        from bot.core.twitch_event_hub_management import send_twitch_event_hub_entry
+
+        await send_twitch_event_hub_entry(broadcaster_id, message_light)

@@ -4,6 +4,7 @@ from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.core.types.twitch_online_message import TwitchOnlineMessage
+from bot.core.types.twitch_online_message import TwitchOnlineMessageLight
 from bot.database.twitch_event_hub import delete_twitch_event_hub_by_id as delete_twitch_event_hub_by_id_db
 from bot.database.twitch_event_hub import insert_twitch_event_hub as insert_twitch_event_hub_db
 from bot.database.twitch_event_hub import select_twitch_event_hub_by_id as select_twitch_event_hub_by_id_db
@@ -82,6 +83,7 @@ async def send_test_twitch_event_hub_entry(id_: int) -> Result[None]:
         id=hub_entry.value.id,
         discord_server_id=hub_entry.value.server_id,
         discord_channel_id=hub_entry.value.channel_id,
+        broadcaster_id=hub_entry.value.broadcaster_id,
         message=hub_entry.value.message,
         broadcaster_name=channel_name.display_name,
         stream_title="Stream Title | Product Placement (Kappa) | Obviously no real stream title",
@@ -92,6 +94,28 @@ async def send_test_twitch_event_hub_entry(id_: int) -> Result[None]:
     await PROGRAMM_PARTS.discord.send_twitch_live_message(message)
 
     return Result(ResultState.SUCCESS, None)
+
+
+async def send_twitch_event_hub_entry(broadcast_id: str, message: TwitchOnlineMessageLight) -> None:
+    if PROGRAMM_PARTS.discord is None:
+        return
+
+    hubs_result = select_twitch_event_hubs_by_broadcaster_id_db(broadcast_id)
+    if hubs_result.state.fail or hubs_result.value is None:
+        return
+
+    for hub in hubs_result.value:
+        if not hub.enabled:
+            continue
+
+        full_message = message.advance(
+            id_=hub.id,
+            discord_server_id=hub.server_id,
+            discord_channel_id=hub.channel_id,
+            message=hub.message,
+        )
+
+        await PROGRAMM_PARTS.discord.send_twitch_live_message(full_message)
 
 
 async def update_twitch_event_hub(id_: int, message: str, enabled: bool) -> Result[None]:
