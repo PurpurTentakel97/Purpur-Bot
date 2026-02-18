@@ -1,6 +1,12 @@
+from datetime import UTC
+from datetime import datetime
+
+from attr import dataclass
 from twitchAPI.helper import first
 
+from bot.core.app_context import APP_CONTEXT
 from bot.core.discord_feature_flags import select_discord_feature_flags_by_server_id
+from bot.core.time import is_cooldown_passed_in_minutes
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
@@ -21,6 +27,16 @@ from bot.database.types.fields import FIELD_TWITCH_BROADCASTER_ID
 from bot.database.types.fields import FIELD_TWITCH_LIVE_MESSAGE
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
+
+
+@dataclass(frozen=True)
+class CooldownKey:
+    bot_id: int
+    server_id: int
+    broadcast_id: str
+
+
+twitch_live_message_cooldown_table: dict[CooldownKey, datetime] = {}
 
 
 async def _subscribe(broadcaster_id: str) -> None:
@@ -125,6 +141,15 @@ async def send_twitch_event_hub_entry(broadcast_id: str, message: TwitchOnlineMe
             )
             continue
 
+        cooldown_key = CooldownKey(bot_id=hub.bot_id, server_id=hub.server_id, broadcast_id=broadcast_id)
+        if cooldown_key in twitch_live_message_cooldown_table:
+            if not is_cooldown_passed_in_minutes(
+                twitch_live_message_cooldown_table[cooldown_key],
+                APP_CONTEXT.twitch_live_message_cooldown_in_minutes.value(),
+            ):
+                log_default(LogLevel.INFO, f"Twitch Live message for {broadcast_id} is on cooldown. Skipping...")
+                continue
+
         full_message = message.advance(
             id_=hub.id,
             discord_server_id=hub.server_id,
@@ -133,6 +158,8 @@ async def send_twitch_event_hub_entry(broadcast_id: str, message: TwitchOnlineMe
         )
 
         await PROGRAMM_PARTS.discord.send_twitch_live_message(full_message)
+
+        twitch_live_message_cooldown_table[cooldown_key] = datetime.now(UTC)
 
 
 async def update_twitch_event_hub(id_: int, channel_id: int, message: str, enabled: bool) -> Result[None]:
