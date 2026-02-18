@@ -1,5 +1,6 @@
 from twitchAPI.helper import first
 
+from bot.core.discord_feature_flags import select_discord_feature_flags_by_server_id
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
@@ -110,6 +111,18 @@ async def send_twitch_event_hub_entry(broadcast_id: str, message: TwitchOnlineMe
 
     for hub in hubs_result.value:
         if not hub.enabled:
+            continue
+
+        feature_flags = select_discord_feature_flags_by_server_id(hub.bot_id, hub.server_id)
+        if feature_flags.state.fail or feature_flags.value is None:
+            log_default(LogLevel.ERROR, f"Discord Feature Flags for server {hub.server_id} not found. Skipping...")
+            continue
+
+        if not feature_flags.value.can_twitch_live:
+            log_default(
+                LogLevel.DEBUG,
+                f"Discord Feature Flags for server {hub.server_id} do not allow Twitch Live. Skipping...",
+            )
             continue
 
         full_message = message.advance(
