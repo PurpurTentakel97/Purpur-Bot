@@ -6,6 +6,7 @@ from bot.chat.discord_client import DiscordClient
 from bot.chat.on_demand import start_single_discord_bot
 from bot.chat.on_demand import start_single_twitch_bot
 from bot.chat.twitch_client import TwitchClient
+from bot.core.app_context import APP_CONTEXT
 from bot.core.broadcast_messages import get_all_broadcast_messages as get_all_broadcast_messages_core
 from bot.core.discord_feature_flags import select_discord_feature_flags_by_server_id
 from bot.core.twitch_event_hub import TwitchEventHub
@@ -19,6 +20,7 @@ from bot.database.types.fields import TABLE_DISCORD_NAME
 from bot.database.types.fields import TABLE_TWITCH_NAME
 from bot.database.types.twitch_channel import TwitchChannelDB
 from bot.helpers.log import LogLevel
+from bot.helpers.log import LogLevelConfig
 from bot.helpers.log import log_default
 
 
@@ -118,6 +120,21 @@ def _start_broadcast() -> None:
 
 
 async def startup_programm() -> None:
+    if APP_CONTEXT.environment_state.value().is_development():
+        LogLevelConfig.set_all_levels(LogLevel.DEBUG)
+        log_default(
+            LogLevel.CRITICAL,
+            "Running in development mode. Logging all levels... "
+            + "| Logging with level CRITICAL to ensure it will be logged.",
+        )
+    else:
+        LogLevelConfig.set_all_levels(LogLevel.INFO)
+        log_default(
+            LogLevel.CRITICAL,
+            "Running in production mode. Logging only INFO and the above levels."
+            + "| Logging with level CRITICAL to ensure it will be logged.",
+        )
+
     _start_database()
 
     if PROGRAMM_PARTS.database_unwrapped() is None:
