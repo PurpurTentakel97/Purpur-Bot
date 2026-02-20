@@ -74,7 +74,9 @@ async def get_twitch_icon(
                 content_type = img_response.headers.get("Content-Type", "image/png")
 
             TWITCH_ICON_CACHE[user_id] = (image_bytes, content_type, now)
-            return Response(content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"})
+            return Response(
+                content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"}
+            )
         finally:
             await twitch.close()
     except Exception as e:
@@ -112,7 +114,9 @@ async def get_twitch_icon_by_login(login: str) -> Response:
                 content_type = img_response.headers.get("Content-Type", "image/png")
 
             TWITCH_ICON_CACHE[cache_key] = (image_bytes, content_type, now)
-            return Response(content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"})
+            return Response(
+                content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"}
+            )
         finally:
             await twitch.close()
     except Exception as e:
