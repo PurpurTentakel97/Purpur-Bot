@@ -161,11 +161,11 @@ Counter can be used within custom commands.
 Counters are integers that can be incremented, decremented or displayed.
 They can turn positive and negative.
 
-| Syntax                | Example                        | Description                                                     |
-|-----------------------|--------------------------------|-----------------------------------------------------------------|
-| {\<name\>}            | Naya claped {counter} times.   | Displays the current value of a counter                         |
-| {\<name\>+\<value\> } | Naya claped {counter+1} times. | Increments a counter by a specified value before displaying it  |
-| {\<name\>-\<value\> } | Naye claped {counter-1} times. | Decrements a counter by a specified value  before displaying it |
+| Syntax                | Example                        | Description                                                    |
+|-----------------------|--------------------------------|----------------------------------------------------------------|
+| {\<name\>}            | Naya claped {counter} times.   | Displays the current value of a counter                        |
+| {\<name\>+\<value\> } | Naya claped {counter+1} times. | Increments a counter by a specified value before displaying it |
+| {\<name\>-\<value\> } | Naye claped {counter-1} times. | Decrements a counter by a specified value before displaying it |
 
 Tipp:
 You can increment or decrement a counter by any value, so `{counter+4711}` is valid. 
