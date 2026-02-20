@@ -184,13 +184,45 @@
         color: #adadb8;
         font-size: 0.9rem;
     }
+
+    .server-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .server-icon-title {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: #444;
+        object-fit: cover;
+    }
+
+    .twitch-icon-small {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #444;
+        object-fit: cover;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+
+    .twitch-channel-cell {
+        display: flex;
+        align-items: center;
+    }
 </style>
 {% endblock %}
 
 {% block discord_content %}
     <div class="discord-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2>{{ server.server_name }} - Server Settings</h2>
+            <div class="server-header">
+                <img src="/icons/discord/server_icon/{{ server.server_id }}" alt="Icon" class="server-icon-title">
+                <h2 style="margin: 0;">{{ server.server_name }} - Server Settings</h2>
+            </div>
             <form action="/dashboard/discord/{{ bot.id }}/{{ server.server_id }}/server/update/{{ server.id }}" method="POST" style="display: flex; align-items: center; gap: 1rem;">
                 <label class="switch">
                     <input type="checkbox" name="enabled" value="True" {% if server.enabled %}checked{% endif %} onchange="this.form.submit()">
@@ -253,7 +285,12 @@
                     {% if twitch_event_hubs %}
                         {% for hub in twitch_event_hubs %}
                         <tr>
-                            <td>{{ broadcaster_names.get(hub.broadcaster_id, hub.broadcaster_id) }}</td>
+                            <td>
+                                <div class="twitch-channel-cell">
+                                    <img src="/icons/twitch/icon/{{ broadcaster_logins.get(hub.broadcaster_id, broadcaster_names.get(hub.broadcaster_id, hub.broadcaster_id)) }}" alt="" class="twitch-icon-small">
+                                    {{ broadcaster_names.get(hub.broadcaster_id, hub.broadcaster_id) }}
+                                </div>
+                            </td>
                             <td>
                                 <select name="discord_channel_id" class="live-messages-input" form="update-form-{{ hub.id }}">
                                     {% for channel in discord_channels %}

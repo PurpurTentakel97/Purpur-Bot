@@ -41,6 +41,16 @@
         border-radius: 50%;
     }
 
+    /* Profile Picture */
+    .profile-pic {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        vertical-align: middle;
+        margin-right: 10px;
+        border: 2px solid #9146ff;
+    }
+
     input:checked + .slider {
         background-color: #9146ff;
     }
@@ -57,6 +67,7 @@
     <table class="twitch-table">
         <thead>
         <tr>
+            <th>Icon</th>
             <th>Channel Name</th>
             <th>Enabled</th>
             <th>Actions</th>
@@ -66,6 +77,9 @@
         {% if twitch_channels %}
         {% for channel in twitch_channels %}
         <tr>
+            <td>
+                <img src="/icons/twitch/icon/{{ channel.channel_name }}" alt="{{ channel.channel_name }}" class="profile-pic">
+            </td>
             <td>{{ channel.channel_name }}</td>
             <td>
                 <form action="/dashboard/twitch/{{ bot.id }}/{{ channel.channel_name }}/channel/update/{{ channel.id }}" method="POST">
@@ -85,7 +99,7 @@
         {% endfor %}
         {% else %}
         <tr>
-            <td colspan="2">No channels joined yet.</td>
+            <td colspan="4">No channels joined yet.</td>
         </tr>
         {% endif %}
         </tbody>

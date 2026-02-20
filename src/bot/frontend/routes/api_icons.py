@@ -28,6 +28,9 @@ TWITCH_ICON_CACHE: Final[dict[str, tuple[bytes, str, datetime]]] = {}
 # Cache for discord icons: user_id -> (image_bytes, content_type, timestamp)
 DISCORD_ICON_CACHE: Final[dict[int, tuple[bytes, str, datetime]]] = {}
 
+# Cache for discord server icons: server_id -> (image_bytes, content_type, timestamp)
+DISCORD_SERVER_ICON_CACHE: Final[dict[int, tuple[bytes, str, datetime]]] = {}
+
 # Transparent 1x1 pixel PNG
 TRANSPARENT_PIXEL: Final[bytes] = (
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
@@ -60,6 +63,7 @@ async def get_twitch_icon(
         )
         try:
             user = await first(twitch.get_users(user_ids=[user_id]))
+
             if user is None:
                 return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
 
@@ -77,6 +81,46 @@ async def get_twitch_icon(
             await twitch.close()
     except Exception as e:
         log_exception(e, LogProgram.Frontend, f"Failed to fetch Twitch icon for user {user_id}")
+        return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+
+
+@router.get("/twitch/icon/{login}")
+async def get_twitch_icon_by_login(login: str) -> Response:
+    now = datetime.now(UTC)
+    cache_key = f"login_{login.lower()}"
+
+    if cache_key in TWITCH_ICON_CACHE:
+        image_bytes, content_type, timestamp = TWITCH_ICON_CACHE[cache_key]
+        if now - timestamp < timedelta(minutes=30):
+            return Response(
+                content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"}
+            )
+
+    try:
+        twitch = await Twitch(
+            APP_CONTEXT.twitch_client_id.value_or_rise(),
+            APP_CONTEXT.twitch_credentials.value_or_rise(),
+        )
+        try:
+            user = await first(twitch.get_users(logins=[login]))
+
+            if user is None:
+                return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+
+            async with httpx.AsyncClient() as client:
+                img_response = await client.get(user.profile_image_url)
+                img_response.raise_for_status()
+                image_bytes = img_response.content
+                content_type = img_response.headers.get("Content-Type", "image/png")
+
+            TWITCH_ICON_CACHE[cache_key] = (image_bytes, content_type, now)
+            return Response(
+                content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"}
+            )
+        finally:
+            await twitch.close()
+    except Exception as e:
+        log_exception(e, LogProgram.Frontend, f"Failed to fetch Twitch icon for {cache_key}")
         return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
 
 
@@ -106,4 +150,46 @@ async def get_discord_icon(discord_user: Annotated[Optional[DiscordUserInfo], De
         return Response(content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"})
     except Exception as e:
         log_exception(e, LogProgram.Frontend, f"Failed to fetch Discord icon for user {user_id}")
+        return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+
+
+@router.get("/discord/server_icon/{server_id}")
+async def get_discord_server_icon(server_id: int) -> Response:
+    now = datetime.now(UTC)
+
+    if server_id in DISCORD_SERVER_ICON_CACHE:
+        image_bytes, content_type, timestamp = DISCORD_SERVER_ICON_CACHE[server_id]
+        if now - timestamp < timedelta(minutes=30):
+            return Response(
+                content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"}
+            )
+
+    try:
+        from bot.core.types.programm_parts import PROGRAMM_PARTS
+
+        if PROGRAMM_PARTS.discord is None:
+            return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+
+        guild = PROGRAMM_PARTS.discord.get_guild(server_id)
+        if guild is None:
+            try:
+                guild = await PROGRAMM_PARTS.discord.fetch_guild(server_id)
+            except Exception as e:
+                log_exception(e, LogProgram.Frontend, f"Failed to fetch guild {server_id} from Discord API")
+                return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+
+        if guild.icon is None:
+            return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+
+        icon_url = guild.icon.url
+        async with httpx.AsyncClient() as client:
+            img_response = await client.get(icon_url)
+            img_response.raise_for_status()
+            image_bytes = img_response.content
+            content_type = img_response.headers.get("Content-Type", "image/png")
+
+        DISCORD_SERVER_ICON_CACHE[server_id] = (image_bytes, content_type, now)
+        return Response(content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"})
+    except Exception as e:
+        log_exception(e, LogProgram.Frontend, f"Failed to fetch Discord server icon for {server_id}")
         return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
