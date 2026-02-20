@@ -30,12 +30,22 @@
     }
 
     .discord-sidebar-menu li a {
-        display: block;
-        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
         color: #ccc;
         text-decoration: none;
         transition: background-color 0.2s, color 0.2s;
         border-bottom: 1px solid #444;
+    }
+
+    .discord-sidebar-menu li a .server-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #444;
+        object-fit: cover;
     }
 
     .discord-sidebar-menu li:last-child a {
@@ -121,12 +131,15 @@
     <aside class="discord-sidebar">
         <ul class="discord-sidebar-menu">
             <li>
-                <a href="/dashboard/discord/{{ bot.id }}" class="{{ 'active' if active_tab == 'server' else '' }}">Server</a>
+                <a href="/dashboard/discord/{{ bot.id }}" class="{{ 'active' if active_tab == 'server' else '' }}">
+                    Server
+                </a>
             </li>
             {% for server in discord_server %}
             <li>
                 <a href="/dashboard/discord/{{ bot.id }}/server/{{ server.server_id }}"
                    class="{{ 'active' if active_tab == server.server_id else '' }}">
+                    <img src="/icons/discord/server_icon/{{ server.server_id }}" alt="Icon" class="server-icon">
                     {{ server.server_name }}
                 </a>
             </li>

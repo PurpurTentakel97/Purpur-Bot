@@ -184,13 +184,30 @@
         color: #adadb8;
         font-size: 0.9rem;
     }
+
+    .server-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .server-icon-title {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: #444;
+        object-fit: cover;
+    }
 </style>
 {% endblock %}
 
 {% block discord_content %}
     <div class="discord-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2>{{ server.server_name }} - Server Settings</h2>
+            <div class="server-header">
+                <img src="/icons/discord/server_icon/{{ server.server_id }}" alt="Icon" class="server-icon-title">
+                <h2 style="margin: 0;">{{ server.server_name }} - Server Settings</h2>
+            </div>
             <form action="/dashboard/discord/{{ bot.id }}/{{ server.server_id }}/server/update/{{ server.id }}" method="POST" style="display: flex; align-items: center; gap: 1rem;">
                 <label class="switch">
                     <input type="checkbox" name="enabled" value="True" {% if server.enabled %}checked{% endif %} onchange="this.form.submit()">

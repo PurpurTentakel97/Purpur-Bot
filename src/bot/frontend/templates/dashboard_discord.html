@@ -48,6 +48,20 @@
     input:checked + .slider:before {
         transform: translateX(20px);
     }
+
+    .server-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .server-icon-large {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #444;
+        object-fit: cover;
+    }
 </style>
 {% endblock %}
 
@@ -66,7 +80,12 @@
         {% if discord_server %}
         {% for server in discord_server %}
         <tr>
-            <td>{{ server.server_name }}</td>
+            <td>
+                <div class="server-cell">
+                    <img src="/icons/discord/server_icon/{{ server.server_id }}" alt="Icon" class="server-icon-large">
+                    {{ server.server_name }}
+                </div>
+            </td>
             <td>
                 <form action="/dashboard/discord/{{ bot.id }}/{{ server.server_id }}/server/update/{{ server.id }}" method="POST">
                     <label class="switch">
