@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
+from starlette.responses import FileResponse
 from starlette.responses import Response
 
 from bot.chat.message_handler import handle_messages
@@ -115,3 +116,8 @@ async def general_exception_handler(request: Request, exc: Exception) -> Respons
         },
         status_code=500,
     )
+
+
+@app.get("/favicon.ico")
+async def favicon() -> FileResponse:
+    return FileResponse("src/bot/frontend/static/favicon.png")
