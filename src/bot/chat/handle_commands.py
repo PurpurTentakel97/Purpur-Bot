@@ -62,21 +62,21 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
     if message.sender_permission_level.is_permitted(PermissionLevel.SPECIAL_USER):
         match parts:
             # command
-            case ["!command", "add", command_name, *msg]:
+            case ["!com", "add", command_name, *msg]:
                 command_message = " ".join(msg)
                 result = save_command_core(message.bot_id, command_name, command_message)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Command '{result.value.command}' saved successfully.")
                 return message.to_response_message(f"Failed to save command: {_result_lookup(result.state)}")
 
-            case ["!command", "edit_message", command_name, *msg]:
+            case ["!com", "edit_message", command_name, *msg]:
                 command_message = " ".join(msg)
                 result = update_command_message_core(message.bot_id, command_name, command_message)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Command '{result.value.command}' edited successfully.")
                 return message.to_response_message(f"Failed to edit command message: {_result_lookup(result.state)}")
 
-            case ["!command", "edit_name", old_command_name, new_command_name, *_]:
+            case ["!com", "edit_name", old_command_name, new_command_name, *_]:
                 result = update_command_name_core(message.bot_id, old_command_name, new_command_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(
@@ -85,19 +85,19 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
                     )
                 return message.to_response_message(f"Failed to rename command: {_result_lookup(result.state)}")
 
-            case ["!command", "enable", command_name, *_]:
+            case ["!com", "enable", command_name, *_]:
                 result = enable_command_by_bot_id_core(message.bot_id, command_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Command '{result.value.command}' enabled successfully.")
                 return message.to_response_message(f"Failed to enable command: {_result_lookup(result.state)}")
 
-            case ["!command", "disable", command_name, *_]:
+            case ["!com", "disable", command_name, *_]:
                 result = disable_command_by_bot_id_core(message.bot_id, command_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Command '{result.value.command}' disabled successfully.")
                 return message.to_response_message(f"Failed to disable command: {_result_lookup(result.state)}")
 
-            case ["!command", "remove", command_name, *_]:
+            case ["!com", "remove", command_name, *_]:
                 result = delete_command_core(message.bot_id, command_name)
                 if result.state.success:
                     return message.to_response_message(
@@ -105,9 +105,9 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
                     )
                 return message.to_response_message(f"Failed to delete command: {_result_lookup(result.state)}")
 
-            case ["!command", *_]:
+            case ["!com", *_]:
                 return message.to_response_message(
-                    "Invalid command format. Use '!command add|edit|remove <command_name> <command_message>'"
+                    "Invalid command format. Use '!com add|edit|remove <command_name> <command_message>'"
                 )
 
             # counter
@@ -251,7 +251,7 @@ def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optio
                 pass
 
     match parts:
-        case ["!commands", *_]:
+        case ["!coms", *_]:
             result = get_commands_by_bot_id_core(message.bot_id)
 
             if result.state.success and result.value is not None:
