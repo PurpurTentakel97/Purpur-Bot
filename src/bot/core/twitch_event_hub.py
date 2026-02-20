@@ -210,7 +210,7 @@ class TwitchEventHub:
             category_name=category_name,
         )
 
-        log_twitch(LogLevel.DEBUG, f"Received stream online event for {broadcaster_id}. | {message_light}")
+        log_twitch(LogLevel.INFO, f"Received stream online event for {broadcaster_id}. | {message_light}")
 
         from bot.core.twitch_event_hub_management import send_twitch_event_hub_entry
 
