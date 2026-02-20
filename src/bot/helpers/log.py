@@ -66,6 +66,12 @@ class LogLevelConfig:
     twitch: ClassVar[LogLevelConfigEntry] = LogLevelConfigEntry()
 
     @classmethod
+    def set_all_levels(cls, level: LogLevel) -> None:
+        cls.default.level = level
+        cls.discord.level = level
+        cls.twitch.level = level
+
+    @classmethod
     def reset(cls) -> None:
         cls.default.level = LogLevel.DEFAULT_LOG_LEVEL
         cls.discord.level = LogLevel.DEFAULT_LOG_LEVEL
