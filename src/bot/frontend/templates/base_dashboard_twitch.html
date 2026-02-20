@@ -30,12 +30,22 @@
     }
 
     .twitch-sidebar-menu li a {
-        display: block;
-        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
         color: #ccc;
         text-decoration: none;
         transition: background-color 0.2s, color 0.2s;
         border-bottom: 1px solid #444;
+    }
+
+    .twitch-sidebar-menu li a .channel-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #444;
+        object-fit: cover;
     }
 
     .twitch-sidebar-menu li:last-child a {
@@ -127,6 +137,7 @@
                 <li>
                     <a href="/dashboard/twitch/{{ bot.id }}/channel/{{ channel.channel_name }}"
                        class="{{ 'active' if active_channel == channel.channel_name else '' }}">
+                        <img src="/icons/twitch/icon/{{ channel.channel_name }}" alt="Icon" class="channel-icon">
                         {{ channel.channel_name }}
                     </a>
                 </li>
