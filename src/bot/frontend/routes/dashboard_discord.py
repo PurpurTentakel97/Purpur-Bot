@@ -167,14 +167,16 @@ async def dashboard_discord_server(
     # Resolve IDs to Names for the table
     channel_names = {c["id"]: c["name"] for c in discord_channels}
     broadcaster_names: dict[str, str] = {}
+    broadcaster_logins: dict[str, str] = {}
     if twitch_event_hubs.value and APP_CONTEXT.twitch_client_id.is_valid():
         from bot.core.types.programm_parts import PROGRAMM_PARTS
 
-        if PROGRAMM_PARTS.twitch:
+        if PROGRAMM_PARTS.twitch is not None:
             broadcaster_ids = [hub.broadcaster_id for hub in twitch_event_hubs.value]
             if broadcaster_ids:
                 async for user in PROGRAMM_PARTS.twitch.client.get_users(user_ids=broadcaster_ids):
                     broadcaster_names[user.id] = user.display_name or user.login
+                    broadcaster_logins[user.id] = user.login
 
     return template.TemplateResponse(
         request=request,
@@ -191,6 +193,7 @@ async def dashboard_discord_server(
             "twitch_event_hubs": twitch_event_hubs.value,
             "channel_names": channel_names,
             "broadcaster_names": broadcaster_names,
+            "broadcaster_logins": broadcaster_logins,
         },
     )
 

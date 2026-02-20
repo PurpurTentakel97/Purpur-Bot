@@ -10,7 +10,9 @@ from fastapi import APIRouter
 from fastapi import Depends
 from starlette.responses import Response
 from twitchAPI.helper import first
+from twitchAPI.twitch import Twitch
 
+from bot.core.app_context import APP_CONTEXT
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.types.discord_user_info import DiscordUserInfo
@@ -55,24 +57,26 @@ async def get_twitch_icon(
             )
 
     try:
-        from bot.core.types.programm_parts import PROGRAMM_PARTS
+        twitch = await Twitch(
+            APP_CONTEXT.twitch_client_id.value_or_rise(),
+            APP_CONTEXT.twitch_credentials.value_or_rise(),
+        )
+        try:
+            user = await first(twitch.get_users(user_ids=[user_id]))
 
-        if PROGRAMM_PARTS.twitch is None:
-            return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+            if user is None:
+                return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
 
-        user = await first(PROGRAMM_PARTS.twitch.client.get_users(user_ids=[user_id]))
+            async with httpx.AsyncClient() as client:
+                img_response = await client.get(user.profile_image_url)
+                img_response.raise_for_status()
+                image_bytes = img_response.content
+                content_type = img_response.headers.get("Content-Type", "image/png")
 
-        if user is None:
-            return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
-
-        async with httpx.AsyncClient() as client:
-            img_response = await client.get(user.profile_image_url)
-            img_response.raise_for_status()
-            image_bytes = img_response.content
-            content_type = img_response.headers.get("Content-Type", "image/png")
-
-        TWITCH_ICON_CACHE[user_id] = (image_bytes, content_type, now)
-        return Response(content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"})
+            TWITCH_ICON_CACHE[user_id] = (image_bytes, content_type, now)
+            return Response(content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"})
+        finally:
+            await twitch.close()
     except Exception as e:
         log_exception(e, LogProgram.Frontend, f"Failed to fetch Twitch icon for user {user_id}")
         return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
@@ -91,24 +95,26 @@ async def get_twitch_icon_by_login(login: str) -> Response:
             )
 
     try:
-        from bot.core.types.programm_parts import PROGRAMM_PARTS
+        twitch = await Twitch(
+            APP_CONTEXT.twitch_client_id.value_or_rise(),
+            APP_CONTEXT.twitch_credentials.value_or_rise(),
+        )
+        try:
+            user = await first(twitch.get_users(logins=[login]))
 
-        if PROGRAMM_PARTS.twitch is None:
-            return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+            if user is None:
+                return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
 
-        user = await first(PROGRAMM_PARTS.twitch.client.get_users(logins=[login]))
+            async with httpx.AsyncClient() as client:
+                img_response = await client.get(user.profile_image_url)
+                img_response.raise_for_status()
+                image_bytes = img_response.content
+                content_type = img_response.headers.get("Content-Type", "image/png")
 
-        if user is None:
-            return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
-
-        async with httpx.AsyncClient() as client:
-            img_response = await client.get(user.profile_image_url)
-            img_response.raise_for_status()
-            image_bytes = img_response.content
-            content_type = img_response.headers.get("Content-Type", "image/png")
-
-        TWITCH_ICON_CACHE[cache_key] = (image_bytes, content_type, now)
-        return Response(content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"})
+            TWITCH_ICON_CACHE[cache_key] = (image_bytes, content_type, now)
+            return Response(content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"})
+        finally:
+            await twitch.close()
     except Exception as e:
         log_exception(e, LogProgram.Frontend, f"Failed to fetch Twitch icon for {cache_key}")
         return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
