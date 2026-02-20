@@ -127,14 +127,14 @@ The bot will respond with an explanation when the registered word appears within
 
 | Commands                                       | Description                                                              | Min Permission Level |
 |------------------------------------------------|--------------------------------------------------------------------------|----------------------|
-| !commands *                                    | Prints a list of all commands                                            | User                 |
-| !command add \<name\> \<message*\>             | Adds a custom command (this will add a counter if one is added)          | Mod                  |
-| !command edit_name \<old_name\> \<new_name\> * | Edits a custom command name                                              | Mod                  |
-| !command edit_message \<name\> \<message*\>    | Edits a custom command message (this will add a counter if one is added) | Mod                  |
-| !command enable \<name\> *                     | Enables a custom command                                                 | Mod                  |
-| !command disable \<name\> *                    | Disables a custom command                                                | Mod                  |
-| !command remove \<name\> *                     | Deletes a custom command                                                 | Mod                  |
-| !command *                                     | prints a list of command related commands                                | Mod                  |
+| !coms *                                        | Prints a list of all commands                                            | User                 |
+| !com add \<name\> \<message*\>                 | Adds a custom command (this will add a counter if one is added)          | Mod                  |
+| !com edit_name \<old_name\> \<new_name\> *     | Edits a custom command name                                              | Mod                  |
+| !com edit_message \<name\> \<message*\>        | Edits a custom command message (this will add a counter if one is added) | Mod                  |
+| !com enable \<name\> *                         | Enables a custom command                                                 | Mod                  |
+| !com disable \<name\> *                        | Disables a custom command                                                | Mod                  |
+| !com remove \<name\> *                         | Deletes a custom command                                                 | Mod                  |
+| !com *                                         | prints a list of command related commands                                | Mod                  |
 | !counter add \<name\> *                        | Adds a counter and initialze it with 0                                   | Mod                  |
 | !counter reset \<name\> *                      | Resets a counter to 0                                                    | Mod                  |
 | !counter show \<name\> *                       | Prints the current value of a counter                                    | Mod                  |
@@ -161,11 +161,11 @@ Counter can be used within custom commands.
 Counters are integers that can be incremented, decremented or displayed.
 They can turn positive and negative.
 
-| Syntax                | Example                        | Description                                                     |
-|-----------------------|--------------------------------|-----------------------------------------------------------------|
-| {\<name\>}            | Naya claped {counter} times.   | Displays the current value of a counter                         |
-| {\<name\>+\<value\> } | Naya claped {counter+1} times. | Increments a counter by a specified value before displaying it  |
-| {\<name\>-\<value\> } | Naye claped {counter-1} times. | Decrements a counter by a specified value  before displaying it |
+| Syntax                | Example                        | Description                                                    |
+|-----------------------|--------------------------------|----------------------------------------------------------------|
+| {\<name\>}            | Naya claped {counter} times.   | Displays the current value of a counter                        |
+| {\<name\>+\<value\> } | Naya claped {counter+1} times. | Increments a counter by a specified value before displaying it |
+| {\<name\>-\<value\> } | Naye claped {counter-1} times. | Decrements a counter by a specified value before displaying it |
 
 Tipp:
 You can increment or decrement a counter by any value, so `{counter+4711}` is valid. 
