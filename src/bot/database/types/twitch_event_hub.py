@@ -8,3 +8,4 @@ class TwitchEventHubDB(BaseModel):
     message: str
     server_id: int
     channel_id: int
+    enabled: bool

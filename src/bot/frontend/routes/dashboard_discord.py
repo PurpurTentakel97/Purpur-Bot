@@ -26,6 +26,7 @@ from bot.core.twitch_event_hub_management import delete_twitch_event_hub_entry a
 from bot.core.twitch_event_hub_management import (
     send_test_twitch_event_hub_entry as send_test_twitch_event_hub_entry_core,
 )
+from bot.core.twitch_event_hub_management import update_twitch_event_hub as update_twitch_event_hub_core
 from bot.database.twitch_event_hub import (
     select_twitch_event_hubs_by_server_id as select_twitch_event_hubs_by_server_id_db,
 )
@@ -280,11 +281,11 @@ async def dashboard_discord_live_message_update(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     server_id: int,
     id: int,
+    discord_channel_id: Annotated[int, Form()],
     message: Annotated[str, Form()],
+    enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    from bot.core.twitch_event_hub_management import update_twitch_event_hub_message
-
-    result = await update_twitch_event_hub_message(id, message)
+    result = await update_twitch_event_hub_core(id, discord_channel_id, message, enabled)
 
     if result.state.fail:
         return RedirectResponse(

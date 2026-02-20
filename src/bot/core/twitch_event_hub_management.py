@@ -1,22 +1,74 @@
+from datetime import UTC
+from datetime import datetime
+
+from attr import dataclass
 from twitchAPI.helper import first
 
+from bot.core.app_context import APP_CONTEXT
+from bot.core.discord_feature_flags import select_discord_feature_flags_by_server_id
+from bot.core.time import is_cooldown_passed_in_minutes
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.core.types.twitch_online_message import TwitchOnlineMessage
+from bot.core.types.twitch_online_message import TwitchOnlineMessageLight
 from bot.database.twitch_event_hub import delete_twitch_event_hub_by_id as delete_twitch_event_hub_by_id_db
 from bot.database.twitch_event_hub import insert_twitch_event_hub as insert_twitch_event_hub_db
 from bot.database.twitch_event_hub import select_twitch_event_hub_by_id as select_twitch_event_hub_by_id_db
+from bot.database.twitch_event_hub import (
+    select_twitch_event_hubs_by_broadcaster_id as select_twitch_event_hubs_by_broadcaster_id_db,
+)
 from bot.database.twitch_event_hub import update_twitch_event_hub_by_id as update_twitch_event_hub_by_id_db
 from bot.database.types.fields import FIELD_BOT_ID
 from bot.database.types.fields import FIELD_DISCORD_CHANNEL_ID
 from bot.database.types.fields import FIELD_DISCORD_SERVER_ID
+from bot.database.types.fields import FIELD_ENABLED
 from bot.database.types.fields import FIELD_TWITCH_BROADCASTER_ID
 from bot.database.types.fields import FIELD_TWITCH_LIVE_MESSAGE
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
+
+
+@dataclass(frozen=True)
+class CooldownKey:
+    bot_id: int
+    server_id: int
+    broadcast_id: str
+
+
+twitch_live_message_cooldown_table: dict[CooldownKey, datetime] = {}
+
+
+async def _subscribe(broadcaster_id: str) -> None:
+    if not PROGRAMM_PARTS.event_hub:
+        return None
+
+    return await PROGRAMM_PARTS.event_hub.subscribe(broadcaster_id)
+
+
+async def _unsubscribe(broadcaster_id: str) -> None:
+    if not PROGRAMM_PARTS.event_hub:
+        return None
+
+    hubs_by_broadcaster_id = select_twitch_event_hubs_by_broadcaster_id_db(broadcaster_id)
+    if hubs_by_broadcaster_id.value is None:
+        log_default(LogLevel.WARNING, f"Failed to fetch event hubs for broadcaster {hubs_by_broadcaster_id}")
+        return None
+
+    filtered = [h for h in hubs_by_broadcaster_id.value if h.enabled]
+    if len(filtered) > 0:
+        log_default(LogLevel.INFO, "Ignoring unsubscribing because there are other hubs still listening.")
+        return None
+
+    return await PROGRAMM_PARTS.event_hub.unsubscribe(broadcaster_id)
 
 
 async def add_twitch_event_hub_entry(
-    bot_id: int, server_id: int, channel_id: int, broadcaster_id: str, message: str
+    bot_id: int,
+    server_id: int,
+    channel_id: int,
+    broadcaster_id: str,
+    message: str,
 ) -> Result[int]:
     data = {
         FIELD_BOT_ID: bot_id,
@@ -28,8 +80,7 @@ async def add_twitch_event_hub_entry(
 
     result = insert_twitch_event_hub_db(data)
 
-    if result.state.success and PROGRAMM_PARTS.event_hub:
-        await PROGRAMM_PARTS.event_hub.subscribe(broadcaster_id)
+    await _subscribe(broadcaster_id)
 
     return result
 
@@ -53,7 +104,8 @@ async def send_test_twitch_event_hub_entry(id_: int) -> Result[None]:
         id=hub_entry.value.id,
         discord_server_id=hub_entry.value.server_id,
         discord_channel_id=hub_entry.value.channel_id,
-        message=hub_entry.value.message,
+        broadcaster_id=hub_entry.value.broadcaster_id,
+        message=f"[TEST MESSAGE]\n\n{hub_entry.value.message}",
         broadcaster_name=channel_name.display_name,
         stream_title="Stream Title | Product Placement (Kappa) | Obviously no real stream title",
         category_name="Category Name",
@@ -65,8 +117,69 @@ async def send_test_twitch_event_hub_entry(id_: int) -> Result[None]:
     return Result(ResultState.SUCCESS, None)
 
 
-async def update_twitch_event_hub_message(id_: int, message: str) -> Result[None]:
-    return update_twitch_event_hub_by_id_db(id_, {FIELD_TWITCH_LIVE_MESSAGE: message})
+async def send_twitch_event_hub_entry(broadcast_id: str, message: TwitchOnlineMessageLight) -> None:
+    if PROGRAMM_PARTS.discord is None:
+        return
+
+    hubs_result = select_twitch_event_hubs_by_broadcaster_id_db(broadcast_id)
+    if hubs_result.state.fail or hubs_result.value is None:
+        return
+
+    for hub in hubs_result.value:
+        if not hub.enabled:
+            continue
+
+        feature_flags = select_discord_feature_flags_by_server_id(hub.bot_id, hub.server_id)
+        if feature_flags.state.fail or feature_flags.value is None:
+            log_default(LogLevel.ERROR, f"Discord Feature Flags for server {hub.server_id} not found. Skipping...")
+            continue
+
+        if not feature_flags.value.can_twitch_live:
+            log_default(
+                LogLevel.DEBUG,
+                f"Discord Feature Flags for server {hub.server_id} do not allow Twitch Live. Skipping...",
+            )
+            continue
+
+        cooldown_key = CooldownKey(bot_id=hub.bot_id, server_id=hub.server_id, broadcast_id=broadcast_id)
+        if cooldown_key in twitch_live_message_cooldown_table:
+            if not is_cooldown_passed_in_minutes(
+                twitch_live_message_cooldown_table[cooldown_key],
+                APP_CONTEXT.twitch_live_message_cooldown_in_minutes.value(),
+            ):
+                log_default(LogLevel.INFO, f"Twitch Live message for {broadcast_id} is on cooldown. Skipping...")
+                continue
+
+        full_message = message.advance(
+            id_=hub.id,
+            discord_server_id=hub.server_id,
+            discord_channel_id=hub.channel_id,
+            message=hub.message,
+        )
+
+        await PROGRAMM_PARTS.discord.send_twitch_live_message(full_message)
+
+        twitch_live_message_cooldown_table[cooldown_key] = datetime.now(UTC)
+
+
+async def update_twitch_event_hub(id_: int, channel_id: int, message: str, enabled: bool) -> Result[None]:
+    result = update_twitch_event_hub_by_id_db(
+        id_, {FIELD_DISCORD_CHANNEL_ID: channel_id, FIELD_TWITCH_LIVE_MESSAGE: message, FIELD_ENABLED: enabled}
+    )
+
+    if result.state.fail:
+        return result
+
+    hub_entry = select_twitch_event_hub_by_id_db(id_)
+    if hub_entry.state.fail or hub_entry.value is None:
+        return hub_entry.cast_to(type(None))
+
+    if enabled:
+        await _subscribe(hub_entry.value.broadcaster_id)
+    else:
+        await _unsubscribe(hub_entry.value.broadcaster_id)
+
+    return result
 
 
 async def delete_twitch_event_hub_entry(id_: int) -> Result[None]:
@@ -74,9 +187,11 @@ async def delete_twitch_event_hub_entry(id_: int) -> Result[None]:
     if hub_entry.state.fail or hub_entry.value is None:
         return hub_entry.cast_to(type(None))
 
-    result = delete_twitch_event_hub_by_id_db(id_)
+    delete_result = delete_twitch_event_hub_by_id_db(id_)
 
-    if result.state.success and PROGRAMM_PARTS.event_hub:
-        await PROGRAMM_PARTS.event_hub.unsubscribe(hub_entry.value.broadcaster_id)
+    if not delete_result.state.success:
+        return delete_result
 
-    return result
+    await _unsubscribe(hub_entry.value.broadcaster_id)
+
+    return delete_result
