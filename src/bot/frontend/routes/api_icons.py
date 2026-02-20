@@ -60,6 +60,7 @@ async def get_twitch_icon(
         )
         try:
             user = await first(twitch.get_users(user_ids=[user_id]))
+
             if user is None:
                 return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
 
@@ -77,6 +78,46 @@ async def get_twitch_icon(
             await twitch.close()
     except Exception as e:
         log_exception(e, LogProgram.Frontend, f"Failed to fetch Twitch icon for user {user_id}")
+        return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+
+
+@router.get("/twitch/icon/{login}")
+async def get_twitch_icon_by_login(login: str) -> Response:
+    now = datetime.now(UTC)
+    cache_key = f"login_{login.lower()}"
+
+    if cache_key in TWITCH_ICON_CACHE:
+        image_bytes, content_type, timestamp = TWITCH_ICON_CACHE[cache_key]
+        if now - timestamp < timedelta(minutes=30):
+            return Response(
+                content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"}
+            )
+
+    try:
+        twitch = await Twitch(
+            APP_CONTEXT.twitch_client_id.value_or_rise(),
+            APP_CONTEXT.twitch_credentials.value_or_rise(),
+        )
+        try:
+            user = await first(twitch.get_users(logins=[login]))
+
+            if user is None:
+                return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
+
+            async with httpx.AsyncClient() as client:
+                img_response = await client.get(user.profile_image_url)
+                img_response.raise_for_status()
+                image_bytes = img_response.content
+                content_type = img_response.headers.get("Content-Type", "image/png")
+
+            TWITCH_ICON_CACHE[cache_key] = (image_bytes, content_type, now)
+            return Response(
+                content=image_bytes, media_type=content_type, headers={"Cache-Control": "public, max-age=1800"}
+            )
+        finally:
+            await twitch.close()
+    except Exception as e:
+        log_exception(e, LogProgram.Frontend, f"Failed to fetch Twitch icon for {cache_key}")
         return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
 
 

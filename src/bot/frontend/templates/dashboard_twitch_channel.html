@@ -214,7 +214,10 @@
 {% block twitch_content %}
     <div class="twitch-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2>{{ name }} - Channel Settings</h2>
+            <div style="display: flex; align-items: center;">
+                <img src="/icons/twitch/icon/{{ name }}" alt="{{ name }}" style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid #9146ff; margin-right: 15px;">
+                <h2 style="margin: 0;">{{ name }} - Channel Settings</h2>
+            </div>
             {% for channel in twitch_channels %}
                 {% if channel.channel_name == name %}
                 <form action="/dashboard/twitch/{{ bot.id }}/{{ name }}/channel/update/{{ channel.id }}" method="POST" style="display: flex; align-items: center; gap: 1rem;">
