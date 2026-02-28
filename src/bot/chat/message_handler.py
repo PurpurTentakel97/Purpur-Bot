@@ -42,7 +42,7 @@ def _get_feature_flags(chat: Chat) -> Result[FeatureFlagsDB]:
     return Result(ResultState.ERROR, None)
 
 
-def handle_single_message(message: ChatMessage) -> list[ChatMessageResponse]:
+async def handle_single_message(message: ChatMessage) -> list[ChatMessageResponse]:
     feature_flags = _get_feature_flags(message.sender_chat)
     if feature_flags.value is None:
         log_default(LogLevel.ERROR, f"failed to get feature flags for chat {message.sender_chat}")
@@ -55,7 +55,7 @@ def handle_single_message(message: ChatMessage) -> list[ChatMessageResponse]:
         response_messages.extend(alias_response)
 
     if message.text.strip().startswith("!"):
-        command_response = handle_command(message, feature_flags.value)
+        command_response = await handle_command(message, feature_flags.value)
         if command_response is not None:
             response_messages.append(command_response)
 
@@ -81,7 +81,7 @@ async def handle_messages() -> None:
                     LogLevel.DEBUG,
                     f"{message.sender_chat.bot_id} | {message.sender_permission_level.name} | {message.text}",
                 )
-                responses = handle_single_message(message)
+                responses = await handle_single_message(message)
                 await send_responses(responses)
 
         if PROGRAMM_PARTS.discord is not None:
@@ -93,7 +93,7 @@ async def handle_messages() -> None:
                     LogLevel.DEBUG,
                     f"{message.sender_chat.bot_id} | {message.sender_permission_level.name} | {message.text}",
                 )
-                responses = handle_single_message(message)
+                responses = await handle_single_message(message)
                 await send_responses(responses)
 
         await asyncio.sleep(0.1)

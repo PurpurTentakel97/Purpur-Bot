@@ -7,6 +7,7 @@ from typing import Self
 from typing import cast
 
 from bot.chat.types.message import ChatMessage
+from bot.chat.types.message_response import ChatMessageResponse
 
 if TYPE_CHECKING:
     from bot.chat.twitch_chat import TwitchChat
@@ -114,15 +115,15 @@ class TwitchClient:
         assert twitch is not None
         return cls(twitch)
 
-    async def send_change_title(self, message: ChatMessage, broadcast_id: str, new_title: str) -> None:
+    async def send_change_title(self, message: ChatMessage, broadcast_id: str, new_title: str) -> ChatMessageResponse:
         try:
             await self.client.modify_channel_information(broadcaster_id=broadcast_id, title=new_title)
-            await message.sender_chat.send_response([message.to_response_message(f"Title changed to '{new_title}'")])
+            return message.to_response_message(f"Title changed to '{new_title}'")
         except TwitchAPIException as e:
             log_exception(e, LogProgram.Twitch, f"Failed to change title of {broadcast_id}")
-            await message.sender_chat.send_response([message.to_response_message(f"Failed to change title: {e}")])
+            return message.to_response_message(f"Failed to change title: {e}")
 
-    async def send_change_game(self, message: ChatMessage, broadcast_id: str, new_game: str) -> None:
+    async def send_change_game(self, message: ChatMessage, broadcast_id: str, new_game: str) -> ChatMessageResponse:
         try:
             game_id: Optional[str] = None
 
@@ -135,16 +136,18 @@ class TwitchClient:
 
             await self.client.modify_channel_information(broadcaster_id=broadcast_id, game_id=game_id)
 
-            await message.sender_chat.send_response([message.to_response_message(f"Game changed to '{new_game}'")])
+            return message.to_response_message(f"Game changed to '{new_game}'")
 
         except TwitchAPIException as e:
             log_exception(e, LogProgram.Twitch, f"Failed to change game of {broadcast_id}")
-            await message.sender_chat.send_response([message.to_response_message(f"Failed to change game: {e}")])
+            return message.to_response_message(f"Failed to change game: {e}")
 
-    async def send_change_tags(self, message: ChatMessage, broadcast_id: str, new_tags: list[str]) -> None:
+    async def send_change_tags(
+        self, message: ChatMessage, broadcast_id: str, new_tags: list[str]
+    ) -> ChatMessageResponse:
         try:
             await self.client.modify_channel_information(broadcaster_id=broadcast_id, tags=new_tags)
-            await message.sender_chat.send_response([message.to_response_message(f"Tags changed to '{new_tags}'")])
+            return message.to_response_message(f"Tags changed to '{new_tags}'")
         except TwitchAPIException as e:
             log_exception(e, LogProgram.Twitch, f"Failed to change tags of {broadcast_id}")
-            await message.sender_chat.send_response([message.to_response_message(f"Failed to change tags: {e}")])
+            return message.to_response_message(f"Failed to change tags: {e}")
