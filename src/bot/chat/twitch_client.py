@@ -24,7 +24,7 @@ from bot.helpers.log import log_twitch
 
 
 class TwitchClient:
-    _SCOPES = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
+    _SCOPES = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT, AuthScope.CHANNEL_MANAGE_BROADCAST]
 
     def __init__(self, client: Twitch) -> None:
         self.client = client
