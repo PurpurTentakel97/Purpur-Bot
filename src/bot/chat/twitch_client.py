@@ -153,8 +153,8 @@ class TwitchClient:
         self, message: ChatMessage, broadcast_id: str, new_tags: list[str]
     ) -> ChatMessageResponse:
         try:
-            # the character limit for tags is 20
-            new_tags = [tag for tag in new_tags if len(tag) <= 20]
+            # the character limit for tags is 25
+            new_tags = [tag for tag in new_tags if len(tag) <= 25]
             # max 10 tags
             new_tags = new_tags[:10]
 
