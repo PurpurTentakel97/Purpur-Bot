@@ -141,9 +141,10 @@ class TwitchClient:
             log_exception(e, LogProgram.Twitch, f"Failed to change game of {broadcast_id}")
             await message.sender_chat.send_response([message.to_response_message(f"Failed to change game: {e}")])
 
-    async def send_change_category(self, message: ChatMessage, broadcast_id: str, new_tags: list[str]) -> None:
+    async def send_change_tags(self, message: ChatMessage, broadcast_id: str, new_tags: list[str]) -> None:
         try:
-            pass
+            await self.client.modify_channel_information(broadcaster_id=broadcast_id, tags=new_tags)
+            await message.sender_chat.send_response([message.to_response_message(f"Tags changed to '{new_tags}'")])
         except TwitchAPIException as e:
-            log_exception(e, LogProgram.Twitch, f"Failed to change category of {broadcast_id}")
-            await message.sender_chat.send_response([message.to_response_message(f"Failed to change category: {e}")])
+            log_exception(e, LogProgram.Twitch, f"Failed to change tags of {broadcast_id}")
+            await message.sender_chat.send_response([message.to_response_message(f"Failed to change tags: {e}")])
