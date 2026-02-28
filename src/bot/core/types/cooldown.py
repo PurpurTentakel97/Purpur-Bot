@@ -19,18 +19,14 @@ class SubscriptionCooldownKey(CooldownKey):
     broadcast_id: str
 
 
-@dataclass
 class Cooldown[T: CooldownKey]:
-    _cooldown_in_seconds: int
-    _data: dict[T, datetime] = {}
+    def __init__(self, cooldown_in_seconds: int) -> None:
+        self._cooldown_in_seconds = cooldown_in_seconds
+        self._data: dict[T, datetime] = {}
 
     @property
     def data(self) -> dict[T, datetime]:
         return self._data
-
-    @data.setter
-    def data(self, data: dict[T, datetime]) -> None:
-        self._data = data
 
     def contains(self, key: T) -> bool:
         return key in self._data
@@ -39,14 +35,15 @@ class Cooldown[T: CooldownKey]:
         self._data[key] = datetime.now(UTC)
 
     def remove(self, key: T) -> None:
-        del self._data[key]
+        if key in self._data:
+            del self._data[key]
 
     def is_in_cooldown(self, key: T) -> bool:
         if key not in self._data:
             return False
 
         offset = datetime.now(UTC) - self._data[key]
-        is_in_cooldown = offset >= timedelta(seconds=self._cooldown_in_seconds)
+        is_in_cooldown = offset < timedelta(seconds=self._cooldown_in_seconds)
 
         if not is_in_cooldown:
             self.remove(key)
