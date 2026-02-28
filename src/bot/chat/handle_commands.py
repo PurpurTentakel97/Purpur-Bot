@@ -68,7 +68,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
                 return message.original_message.room.room_id
         return None
 
-    if message.sender_permission_level.is_permitted(PermissionLevel.SPECIAL_USER):
+    if message.sender_permission_level.is_permitted(PermissionLevel.MODERATOR):
         match parts:
             # twitch-specific commands
             case ["!title", *title]:
