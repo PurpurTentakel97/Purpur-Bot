@@ -1,4 +1,5 @@
 import asyncio
+import time
 from typing import Optional
 from typing import Self
 from typing import final
@@ -107,9 +108,7 @@ class DiscordClient(Client):
             return
 
         # Styling: Embed
-        preview_url = (
-            f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{message.broadcaster_name.lower()}-640x360.jpg"
-        )
+        preview_url = f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{message.broadcaster_name.lower()}-1280x720.jpg?t={int(time.time())}"
 
         embed = discord.Embed(
             title=f"{message.broadcaster_name} is now live on Twitch!",
