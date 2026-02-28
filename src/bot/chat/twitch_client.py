@@ -117,8 +117,12 @@ class TwitchClient:
 
     async def send_change_title(self, message: ChatMessage, broadcast_id: str, new_title: str) -> ChatMessageResponse:
         try:
-            await self.client.modify_channel_information(broadcaster_id=broadcast_id, title=new_title)
-            return message.to_response_message(f"Title changed to '{new_title}'")
+            success = await self.client.modify_channel_information(broadcaster_id=broadcast_id, title=new_title)
+
+            if success:
+                return message.to_response_message(f"Title changed to '{new_title}'")
+
+            return message.to_response_message("Failed to change the title: Twitch API returned an error.")
         except TwitchAPIException as e:
             log_exception(e, LogProgram.Twitch, f"Failed to change title of {broadcast_id}")
             return message.to_response_message(f"Failed to change title: {e}")
@@ -134,9 +138,12 @@ class TwitchClient:
             if not game_id:
                 raise TwitchAPIException(f"Game '{new_game}' not found")
 
-            await self.client.modify_channel_information(broadcaster_id=broadcast_id, game_id=game_id)
+            success = await self.client.modify_channel_information(broadcaster_id=broadcast_id, game_id=game_id)
 
-            return message.to_response_message(f"Game changed to '{new_game}'")
+            if success:
+                return message.to_response_message(f"Game changed to '{new_game}'")
+
+            return message.to_response_message("Failed to change the game: Twitch API returned an error.")
 
         except TwitchAPIException as e:
             log_exception(e, LogProgram.Twitch, f"Failed to change game of {broadcast_id}")
@@ -146,8 +153,16 @@ class TwitchClient:
         self, message: ChatMessage, broadcast_id: str, new_tags: list[str]
     ) -> ChatMessageResponse:
         try:
-            await self.client.modify_channel_information(broadcaster_id=broadcast_id, tags=new_tags)
-            return message.to_response_message(f"Tags changed to '{", ".join(new_tags)}'")
+            # the character limit for tags is 20
+            new_tags = [tag for tag in new_tags if len(tag) <= 20]
+            # max 10 tags
+            new_tags = new_tags[:10]
+
+            success = await self.client.modify_channel_information(broadcaster_id=broadcast_id, tags=new_tags)
+            if success:
+                return message.to_response_message(f"Tags changed to '{', '.join(new_tags)}'")
+
+            return message.to_response_message("Failed to change the tags: Twitch API returned an error.")
         except TwitchAPIException as e:
             log_exception(e, LogProgram.Twitch, f"Failed to change tags of {broadcast_id}")
             return message.to_response_message(f"Failed to change tags: {e}")
