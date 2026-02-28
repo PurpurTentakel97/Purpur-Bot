@@ -147,7 +147,7 @@ class TwitchClient:
     ) -> ChatMessageResponse:
         try:
             await self.client.modify_channel_information(broadcaster_id=broadcast_id, tags=new_tags)
-            return message.to_response_message(f"Tags changed to '{new_tags}'")
+            return message.to_response_message(f"Tags changed to '{", ".join(new_tags)}'")
         except TwitchAPIException as e:
             log_exception(e, LogProgram.Twitch, f"Failed to change tags of {broadcast_id}")
             return message.to_response_message(f"Failed to change tags: {e}")
