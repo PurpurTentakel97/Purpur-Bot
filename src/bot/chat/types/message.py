@@ -25,3 +25,11 @@ class ChatMessage:
 
     def to_response_message(self, response: str) -> ChatMessageResponse:
         return ChatMessageResponse(response, self.sender_chat, self.original_message, self.meta_data)
+
+    @property
+    def has_twitch_message(self) -> bool:
+        return self.sender_chat.is_twitch
+
+    @property
+    def has_discord_message(self) -> bool:
+        return self.sender_chat.is_discord

@@ -1,5 +1,7 @@
 from typing import Optional
 
+from twitchAPI.chat import ChatMessage as TwitchChatMessage
+
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
 from bot.core.alias_dict import add_alias as add_alias_core
@@ -27,6 +29,7 @@ from bot.core.counter import increment_counter_by as increment_counter_by_core
 from bot.core.counter import reset_counter as reset_counter_core
 from bot.core.counter import save_counter as save_counter_core
 from bot.core.types.permission_level import PermissionLevel
+from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import ResultState
 from bot.database.types.feature_flags import FeatureFlagsDB
 
@@ -56,11 +59,66 @@ def _result_lookup(state: ResultState) -> str:
             return "internal error"
 
 
-def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
+async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
     parts = message.text.strip().split(" ")
 
-    if message.sender_permission_level.is_permitted(PermissionLevel.SPECIAL_USER):
+    def get_broadcaster_id() -> Optional[str]:
+        if isinstance(message.original_message, TwitchChatMessage):
+            if message.original_message.room is not None:
+                return message.original_message.room.room_id
+        return None
+
+    if message.sender_permission_level.is_permitted(PermissionLevel.MODERATOR):
         match parts:
+            # twitch-specific commands
+            case ["!title", *title]:
+                if not message.has_twitch_message:
+                    return message.to_response_message("This command is only available in Twitch Chats.")
+                if PROGRAMM_PARTS.twitch is None:
+                    return message.to_response_message("Twitch bot is not running.")
+
+                broadcaster_id = get_broadcaster_id()
+                if broadcaster_id is None:
+                    return message.to_response_message("Failed to get broadcaster ID.")
+
+                new_title = " ".join(title)
+                if not new_title:
+                    return message.to_response_message("Invalid title. Use '!title <new_title>'")
+
+                return await PROGRAMM_PARTS.twitch.send_change_title(message, broadcaster_id, new_title)
+
+            case ["!game", *game]:
+                if not message.has_twitch_message:
+                    return message.to_response_message("This command is only available in Twitch chat.")
+                if PROGRAMM_PARTS.twitch is None:
+                    return message.to_response_message("Twitch bot is not running.")
+
+                broadcaster_id = get_broadcaster_id()
+                if not broadcaster_id:
+                    return message.to_response_message("Failed to get broadcaster ID.")
+
+                new_game = " ".join(game)
+                if not new_game:
+                    return message.to_response_message("Invalid game. Use '!game <new_game>'")
+
+                return await PROGRAMM_PARTS.twitch.send_change_game(message, broadcaster_id, new_game)
+
+            case ["!tags", *tags]:
+                if not message.has_twitch_message:
+                    return message.to_response_message("This command is only available in Twitch chat.")
+
+                if PROGRAMM_PARTS.twitch is None:
+                    return message.to_response_message("Twitch bot is not running.")
+
+                broadcaster_id = get_broadcaster_id()
+                if not broadcaster_id:
+                    return message.to_response_message("Failed to get broadcaster ID.")
+
+                if not tags:
+                    return message.to_response_message("Invalid tags. Use '!tags <tag1> <tag2> ...'")
+
+                return await PROGRAMM_PARTS.twitch.send_change_tags(message, broadcaster_id, tags)
+
             # command
             case ["!com", "add", command_name, *msg]:
                 command_message = " ".join(msg)

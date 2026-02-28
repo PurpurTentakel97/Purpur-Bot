@@ -1,6 +1,7 @@
 # Tentakel Bot
 
 ## Getting Started
+
 First, you don't need to host the bot yourself.
 You can use the [hosted version](https://purpur-bot.coder2k.net).
 But you are welcome to host it yourself if you want to.
@@ -92,8 +93,6 @@ The Bot can send custom messages to specific Twitch chats in a custom interval.
 The bot can handle aliases.
 The bot will respond with an explanation when the registered word appears within a message.
 
-
-
 ## Permission Levels:
 
 ### general Permission Levels:
@@ -125,35 +124,38 @@ The bot will respond with an explanation when the registered word appears within
 - '<>' -> variable
 - '<*>' -> captures all remaining words
 
-| Commands                                       | Description                                                              | Min Permission Level |
-|------------------------------------------------|--------------------------------------------------------------------------|----------------------|
-| !coms *                                        | Prints a list of all commands                                            | User                 |
-| !com add \<name\> \<message*\>                 | Adds a custom command (this will add a counter if one is added)          | Mod                  |
-| !com edit_name \<old_name\> \<new_name\> *     | Edits a custom command name                                              | Mod                  |
-| !com edit_message \<name\> \<message*\>        | Edits a custom command message (this will add a counter if one is added) | Mod                  |
-| !com enable \<name\> *                         | Enables a custom command                                                 | Mod                  |
-| !com disable \<name\> *                        | Disables a custom command                                                | Mod                  |
-| !com remove \<name\> *                         | Deletes a custom command                                                 | Mod                  |
-| !com *                                         | prints a list of command related commands                                | Mod                  |
-| !counter add \<name\> *                        | Adds a counter and initialze it with 0                                   | Mod                  |
-| !counter reset \<name\> *                      | Resets a counter to 0                                                    | Mod                  |
-| !counter show \<name\> *                       | Prints the current value of a counter                                    | Mod                  |
-| !counter edit_name \<old_name\> \<new_name\> * | Sets a new name for a counter                                            | Mod                  |
-| !counter edit_count \<name\> \<value\> *       | Sets the count of a counter to a specified value                         | Mod                  |
-| !counter increment \<name\> *                  | Increments a counter by 1                                                | Mod                  |
-| !counter increment_by \<name\> \<value\> *     | Increments a counter by a specified value                                | Mod                  |
-| !counter decrement \<name\> *                  | Decrements a counter by 1                                                | Mod                  |
-| !counter decrement_by \<name\> \<value\> *     | Decrements a counter by a specified value                                | Mod                  |
-| !counter remove \<name\> *                     | Removes a counter if it is unused                                        | Mod                  |
-| !counter *                                     | Prints a list of counter related commands                                | Mod                  |
-| !dict add \<alias\> \<message*\>               | Adds an alias                                                            | Mod                  |
-| !dict edit_name \<old_alias\> \<new_alias\> *  | Edits an alias                                                           | Mod                  |
-| !dict edit_message \<alias\> \<message*\>      | Edits an alias message                                                   | Mod                  |
-| !dict enable \<alias\> *                       | Enables an alias                                                         | Mod                  |
-| !dict disable \<alias\> *                      | Disables an alias                                                        | Mod                  |
-| !dict remove \<alias\> *                       | Removes an alias                                                         | Mod                  |
-| !dict *                                        | Prints a list of dictionary related commands                             | Mod                  |
-| !<name> *                                      | If no build in commands triggers, executes the custom command            | User                 |
+| Commands                                       | Description                                                                                  | Min Permission Level |
+|------------------------------------------------|----------------------------------------------------------------------------------------------|----------------------|
+| !title \<title*\>                              | Sets the Twitch Title from the Chat it was send in. Note: Max 140 Characters                 | Mod                  |
+| !game \<category*\>                            | Sets the Twitch Category from the Chat it was send in.                                       | Mod                  |
+| !tags \<tags*\>                                | Sets the Twitch Tags from the Chat it was send in. Note: max 10 Tags with max 25. Characters | Mod                  |
+| !coms *                                        | Prints a list of all commands                                                                | User                 |
+| !com add \<name\> \<message*\>                 | Adds a custom command (this will add a counter if one is added)                              | Mod                  |
+| !com edit_name \<old_name\> \<new_name\> *     | Edits a custom command name                                                                  | Mod                  |
+| !com edit_message \<name\> \<message*\>        | Edits a custom command message (this will add a counter if one is added)                     | Mod                  |
+| !com enable \<name\> *                         | Enables a custom command                                                                     | Mod                  |
+| !com disable \<name\> *                        | Disables a custom command                                                                    | Mod                  |
+| !com remove \<name\> *                         | Deletes a custom command                                                                     | Mod                  |
+| !com *                                         | prints a list of command related commands                                                    | Mod                  |
+| !counter add \<name\> *                        | Adds a counter and initialze it with 0                                                       | Mod                  |
+| !counter reset \<name\> *                      | Resets a counter to 0                                                                        | Mod                  |
+| !counter show \<name\> *                       | Prints the current value of a counter                                                        | Mod                  |
+| !counter edit_name \<old_name\> \<new_name\> * | Sets a new name for a counter                                                                | Mod                  |
+| !counter edit_count \<name\> \<value\> *       | Sets the count of a counter to a specified value                                             | Mod                  |
+| !counter increment \<name\> *                  | Increments a counter by 1                                                                    | Mod                  |
+| !counter increment_by \<name\> \<value\> *     | Increments a counter by a specified value                                                    | Mod                  |
+| !counter decrement \<name\> *                  | Decrements a counter by 1                                                                    | Mod                  |
+| !counter decrement_by \<name\> \<value\> *     | Decrements a counter by a specified value                                                    | Mod                  |
+| !counter remove \<name\> *                     | Removes a counter if it is unused                                                            | Mod                  |
+| !counter *                                     | Prints a list of counter related commands                                                    | Mod                  |
+| !dict add \<alias\> \<message*\>               | Adds an alias                                                                                | Mod                  |
+| !dict edit_name \<old_alias\> \<new_alias\> *  | Edits an alias                                                                               | Mod                  |
+| !dict edit_message \<alias\> \<message*\>      | Edits an alias message                                                                       | Mod                  |
+| !dict enable \<alias\> *                       | Enables an alias                                                                             | Mod                  |
+| !dict disable \<alias\> *                      | Disables an alias                                                                            | Mod                  |
+| !dict remove \<alias\> *                       | Removes an alias                                                                             | Mod                  |
+| !dict *                                        | Prints a list of dictionary related commands                                                 | Mod                  |
+| !<name> *                                      | If no build in commands triggers, executes the custom command                                | User                 |
 
 ## Counter
 
