@@ -38,3 +38,4 @@ async def terminate_programm() -> None:
     await _stop_twitch_bot()
     _stop_database()
     _stop_broadcast()
+    # no need to terminate the cooldowns

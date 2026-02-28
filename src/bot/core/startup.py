@@ -11,6 +11,7 @@ from bot.core.broadcast_messages import get_all_broadcast_messages as get_all_br
 from bot.core.discord_feature_flags import select_discord_feature_flags_by_server_id
 from bot.core.twitch_event_hub import TwitchEventHub
 from bot.core.types.broadcast_message_storrage import BroadcastMessageStorage
+from bot.core.types.cooldown import CooldownsWrapper
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.database.database import Database
 from bot.database.twitch_event_hub import select_all_enabled_twitch_hubs as select_all_enabled_twitch_hubs_db
@@ -22,6 +23,10 @@ from bot.database.types.twitch_channel import TwitchChannelDB
 from bot.helpers.log import LogLevel
 from bot.helpers.log import LogLevelConfig
 from bot.helpers.log import log_default
+
+
+def _start_cooldowns() -> None:
+    PROGRAMM_PARTS.cooldowns = CooldownsWrapper()
 
 
 def _start_database() -> None:
@@ -135,6 +140,7 @@ async def startup_programm() -> None:
             + "| Logging with level CRITICAL to ensure it will be logged.",
         )
 
+    _start_cooldowns()
     _start_database()
 
     if PROGRAMM_PARTS.database_unwrapped() is None:

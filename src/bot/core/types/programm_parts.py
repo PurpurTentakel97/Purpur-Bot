@@ -6,6 +6,7 @@ from attr import dataclass
 from bot.chat.discord_client import DiscordClient
 from bot.chat.twitch_client import TwitchClient
 from bot.core.types.broadcast_message_storrage import BroadcastMessageStorage
+from bot.core.types.cooldown import CooldownsWrapper
 from bot.database.database import Database
 
 if TYPE_CHECKING:
@@ -19,6 +20,7 @@ class ProgramParts:
     event_hub: Optional["TwitchEventHub"] = None
     _database: Optional[Database] = None
     broadcast: Optional[BroadcastMessageStorage] = None
+    _cooldowns: Optional[CooldownsWrapper] = None
 
     @property
     def database(self) -> Database:
@@ -32,6 +34,19 @@ class ProgramParts:
 
     def database_unwrapped(self) -> Optional[Database]:
         return self._database
+
+    @property
+    def cooldowns(self) -> CooldownsWrapper:
+        if self._cooldowns is None:
+            raise RuntimeError("ProgramParts.Cooldowns is None")
+        return self._cooldowns
+
+    @cooldowns.setter
+    def cooldowns(self, cooldowns: CooldownsWrapper) -> None:
+        self._cooldowns = cooldowns
+
+    def cooldowns_unwrapped(self) -> Optional[CooldownsWrapper]:
+        return self._cooldowns
 
 
 PROGRAMM_PARTS = ProgramParts()
