@@ -129,7 +129,7 @@ async def authorize_twitch_delete(
     bot_id: int,
     channel_name: str,
 ) -> RedirectResponse:
-    result = delete_broadcast_tokens_core(bot_id, channel_name)
+    result = await delete_broadcast_tokens_core(bot_id, channel_name)
     if result.state.fail:
         return RedirectResponse(
             url=f"/dashboard/twitch/{bot_id}/channel/{channel_name}"

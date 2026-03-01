@@ -4,8 +4,6 @@ from twitchAPI.twitch import Twitch
 from twitchAPI.type import AuthScope
 
 from bot.core.app_context import APP_CONTEXT
-from bot.core.twitch_broadcast_auth import get_broadcast_tokens
-from bot.core.twitch_broadcast_auth import store_or_update_broadcast_tokens
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_twitch
 
@@ -16,6 +14,8 @@ class TwitchBroadcastClientFactory:
         self._scopes = [AuthScope.CHANNEL_MANAGE_BROADCAST, AuthScope.CHANNEL_READ_SUBSCRIPTIONS]
 
     async def get_client(self, bot_id: int, channel_name: str) -> Optional[Twitch]:
+        from bot.core.twitch_broadcast_auth import get_broadcast_tokens
+
         key = (bot_id, channel_name)
         if key in self._clients:
             return self._clients[key]
@@ -37,6 +37,8 @@ class TwitchBroadcastClientFactory:
             # Wait, TwitchClient.create's _user_user_refresh only takes 2 args.
             import time
 
+            from bot.core.twitch_broadcast_auth import store_or_update_broadcast_tokens
+
             expires_at = int(time.time()) + 3600  # default 1 hour
             store_or_update_broadcast_tokens(
                 bot_id, channel_name, tokens.twitch_user_id, new_access_token, new_refresh_token, expires_at
@@ -52,10 +54,18 @@ class TwitchBroadcastClientFactory:
             await client.set_user_authentication(tokens.access_token, self._scopes, tokens.refresh_token, validate=True)
 
             self._clients[key] = client
+            log_twitch(LogLevel.INFO, f"Initialized broadcast client for {channel_name}")
             return client
         except Exception as e:
             log_twitch(LogLevel.ERROR, f"Failed to initialize broadcast client for {channel_name}: {e}")
             return None
+
+    async def remove_client(self, bot_id: int, channel_name: str) -> None:
+        key = (bot_id, channel_name)
+        client = self._clients.pop(key, None)
+        if client:
+            await client.close()
+            log_twitch(LogLevel.INFO, f"Stopped and removed cached broadcast client for {channel_name}")
 
     async def close_all(self) -> None:
         for client in self._clients.values():

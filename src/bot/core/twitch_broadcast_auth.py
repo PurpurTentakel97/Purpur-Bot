@@ -1,4 +1,5 @@
 from bot.core.helpers.string import strip_for_db
+from bot.core.twitch_broadcast_client_factory import TWITCH_BROADCAST_CLIENT_FACTORY
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.twitch_broadcast_auth import delete_broadcast_tokens as delete_broadcast_tokens_db
@@ -37,5 +38,8 @@ def store_or_update_broadcast_tokens(
     return Result(ResultState.SUCCESS, 0)
 
 
-def delete_broadcast_tokens(bot_id: int, channel_name: str) -> Result[None]:
-    return delete_broadcast_tokens_db(bot_id, strip_for_db(channel_name))
+async def delete_broadcast_tokens(bot_id: int, channel_name: str) -> Result[None]:
+    result = delete_broadcast_tokens_db(bot_id, strip_for_db(channel_name))
+    if result.state.success:
+        await TWITCH_BROADCAST_CLIENT_FACTORY.remove_client(bot_id, channel_name)
+    return result
