@@ -68,6 +68,7 @@ class AppContext:
         twitch_credentials: Optional[str],
         twitch_tokens: Optional[TwitchTokens],
         twitch_redirect_uri: str,
+        twitch_authorize_redirect_uri: str,
         environment_state: Environment,
         jwt_secret: str,
         twitch_subscription_callback_url: Optional[str],
@@ -85,6 +86,7 @@ class AppContext:
         self.twitch_credentials: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_credentials)
         self.twitch_tokens: OptionalAppContextEntry[TwitchTokens] = OptionalAppContextEntry(twitch_tokens)
         self.twitch_redirect_uri: AppContextEntry[str] = AppContextEntry(twitch_redirect_uri)
+        self.twitch_authorize_redirect_uri: AppContextEntry[str] = AppContextEntry(twitch_authorize_redirect_uri)
         self.environment_state: AppContextEntry[Environment] = AppContextEntry(environment_state)
         self.jwt_secret: AppContextEntry[str] = AppContextEntry(jwt_secret)
         self.twitch_subscription_callback_url: OptionalAppContextEntry[str] = OptionalAppContextEntry(
@@ -169,6 +171,9 @@ APP_CONTEXT = AppContext(
     twitch_tokens=TwitchTokens.try_load_from_env(),
     twitch_redirect_uri=get_env_var_or_default(
         "TWITCH_REDIRECT_URI", "http://localhost:8000/auth/login/twitch/callback"
+    ),
+    twitch_authorize_redirect_uri=get_env_var_or_default(
+        "TWITCH_AUTHORIZE_REDIRECT_URI", "http://localhost:8000/auth/authorize/twitch/callback"
     ),
     environment_state=Environment.from_string(get_env_var_or_default("ENVIRONMENT_STATE", "production")),
     jwt_secret=get_env_var_or_rise("JWT_SECRET"),
