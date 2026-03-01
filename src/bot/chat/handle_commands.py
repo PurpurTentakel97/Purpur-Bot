@@ -327,6 +327,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
         result = get_command_core(message.bot_id, parts[0].lstrip("!"))
         if result.state.success and result.value is not None:
             cooldown_key = CommandCooldownKey(
+                message.bot_id,
                 parts[0],
                 message.try_get_twitch_broadcaster_id() or "",
                 message.try_get_discord_server_id() or 0,

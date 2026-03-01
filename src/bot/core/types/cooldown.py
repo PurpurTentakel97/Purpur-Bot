@@ -21,6 +21,7 @@ class SubscriptionCooldownKey(CooldownKey):
 
 @dataclass(frozen=True)
 class CommandCooldownKey(CooldownKey):
+    bot_id: int
     command: str
     twitch_channel_id: str
     discord_server_id: int
