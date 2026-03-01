@@ -21,6 +21,7 @@ from twitchAPI.type import TwitchAuthorizationException
 from twitchAPI.type import UnauthorizedException
 
 from bot.core.app_context import APP_CONTEXT
+from bot.core.twitch_broadcast_client_factory import TWITCH_BROADCAST_CLIENT_FACTORY
 from bot.helpers.log import LogLevel
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
@@ -56,6 +57,7 @@ class TwitchClient:
         for chat in self._chats:
             await chat.terminate(self)
         await self.client.close()
+        await TWITCH_BROADCAST_CLIENT_FACTORY.close_all()
         log_twitch(LogLevel.INFO, "Twitch client terminated.")
 
     @classmethod
@@ -120,7 +122,19 @@ class TwitchClient:
             if len(new_title) > 140:
                 return message.to_response_message(f"Title '{new_title}' is too long. (max 140 characters)")
 
-            success = await self.client.modify_channel_information(broadcaster_id=broadcast_id, title=new_title)
+            client = self.client
+            if message.has_twitch_message:
+                from bot.chat.twitch_chat import TwitchChat
+
+                _ = TwitchChat
+                twitch_chat = cast(TwitchChat, message.sender_chat)
+                broadcast_client = await TWITCH_BROADCAST_CLIENT_FACTORY.get_client(
+                    message.bot_id, twitch_chat.channel_name
+                )
+                if broadcast_client is not None:
+                    client = broadcast_client
+
+            success = await client.modify_channel_information(broadcaster_id=broadcast_id, title=new_title)
 
             if not success:
                 return message.to_response_message("Failed to change the title: Twitch API returned an error.")
@@ -132,16 +146,28 @@ class TwitchClient:
 
     async def send_change_game(self, message: ChatMessage, broadcast_id: str, new_game: str) -> ChatMessageResponse:
         try:
+            client = self.client
+            if message.has_twitch_message:
+                from bot.chat.twitch_chat import TwitchChat
+
+                _ = TwitchChat
+                twitch_chat = cast(TwitchChat, message.sender_chat)
+                broadcast_client = await TWITCH_BROADCAST_CLIENT_FACTORY.get_client(
+                    message.bot_id, twitch_chat.channel_name
+                )
+                if broadcast_client is not None:
+                    client = broadcast_client
+
             game_id: Optional[str] = None
 
-            async for game in self.client.get_games(names=[new_game]):
+            async for game in client.get_games(names=[new_game]):
                 game_id = game.id
                 break
 
             if not game_id:
                 return message.to_response_message(f"Game '{new_game}' not found")
 
-            success = await self.client.modify_channel_information(broadcaster_id=broadcast_id, game_id=game_id)
+            success = await client.modify_channel_information(broadcaster_id=broadcast_id, game_id=game_id)
 
             if not success:
                 return message.to_response_message("Failed to change the game: Twitch API returned an error.")
@@ -168,7 +194,19 @@ class TwitchClient:
                     f"Too many tags ({len(new_tags)}). A maximum of 10 tags is allowed. (tags: {', '.join(new_tags)})"
                 )
 
-            success = await self.client.modify_channel_information(broadcaster_id=broadcast_id, tags=new_tags)
+            client = self.client
+            if message.has_twitch_message:
+                from bot.chat.twitch_chat import TwitchChat
+
+                _ = TwitchChat
+                twitch_chat = cast(TwitchChat, message.sender_chat)
+                broadcast_client = await TWITCH_BROADCAST_CLIENT_FACTORY.get_client(
+                    message.bot_id, twitch_chat.channel_name
+                )
+                if broadcast_client is not None:
+                    client = broadcast_client
+
+            success = await client.modify_channel_information(broadcaster_id=broadcast_id, tags=new_tags)
             if not success:
                 return message.to_response_message("Failed to change the tags: Twitch API returned an error.")
 
