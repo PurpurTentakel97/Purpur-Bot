@@ -22,6 +22,7 @@ from bot.core.twitch import add_twitch_channel as add_twitch_channel_core
 from bot.core.twitch import delete_twitch_channel as delete_twitch_channel_core
 from bot.core.twitch import get_twitch_channels_from_bot as get_twitch_channels_core
 from bot.core.twitch import update_twitch_channel_enabled_by_id as update_twitch_channel_enabled_by_id_core
+from bot.core.twitch_broadcast_auth import get_broadcast_tokens as get_broadcast_tokens_core
 from bot.core.twitch_event_hub import TwitchEventHub
 from bot.core.twitch_feature_flags import (
     select_twitch_feature_flags_by_channel_name as select_twitch_feature_flags_by_channel_name_core,
@@ -145,6 +146,9 @@ async def dashboard_twitch_channel(
     if broadcast_message.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Broadcast Message not found")
 
+    broadcast_auth = get_broadcast_tokens_core(bot.id, name)
+    is_broadcast_authorized = broadcast_auth.state.success and broadcast_auth.value is not None
+
     return template.TemplateResponse(
         request=request,
         name="dashboard_twitch_channel.html",
@@ -157,6 +161,7 @@ async def dashboard_twitch_channel(
             "active_channel": name,
             "feature_flags": twitch_feature_flags.value,
             "broadcast_message": broadcast_message.value,
+            "is_broadcast_authorized": is_broadcast_authorized,
         },
     )
 

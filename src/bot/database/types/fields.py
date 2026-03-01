@@ -11,6 +11,7 @@ TABLE_DISCORD_AUTH_NAME: Final = "discord_auth"
 TABLE_DISCORD_FEATURE_FLAGS_NAME: Final = "discord_feature_flags"
 TABLE_TWITCH_NAME: Final = "bot_twitch_lookup"
 TABLE_TWITCH_AUTH_NAME: Final = "twitch_auth"
+TABLE_TWITCH_BROADCAST_AUTH_NAME: Final = "twitch_broadcast_auth"
 TABLE_TWITCH_FEATURE_FLAGS_NAME: Final = "twitch_feature_flags"
 TABLE_TWITCH_EVENT_HUB_NAME: Final = "twitch_event_hub"
 

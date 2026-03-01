@@ -28,11 +28,14 @@ from bot.core.discord_auth import store_or_update_discord_tokens as store_or_upd
 from bot.core.twitch_auth import delete_twitch_tokens as delete_twitch_tokens_core
 from bot.core.twitch_auth import get_twitch_tokens as get_twitch_tokens_core
 from bot.core.twitch_auth import store_or_update_twitch_tokens as store_or_update_twitch_tokens_core
+from bot.core.twitch_broadcast_auth import delete_broadcast_tokens as delete_broadcast_tokens_core
+from bot.core.twitch_broadcast_auth import store_or_update_broadcast_tokens as store_or_update_broadcast_tokens_core
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.auth_constents import DISCORD_SCOPES
 from bot.frontend.helpers.auth_constents import JWT_ALG
 from bot.frontend.helpers.auth_constents import JWT_EXPIRY_DAYS
+from bot.frontend.helpers.auth_constents import TWITCH_BROADCAST_SCOPES
 from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
 from bot.frontend.types.discord_session_cookie_jwt import DiscordSessionCookie
 from bot.frontend.types.discord_user_info import DiscordUserInfo
@@ -45,6 +48,7 @@ from bot.helpers.log import log_exception
 
 router: Final = APIRouter(prefix="/auth")
 TWITCH_OAUTH_STATE_COOKIE_KEY: Final = "TWITCH_OAUTH_STATE_COOKIE"
+TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY: Final = "TWITCH_BROADCAST_OAUTH_STATE_COOKIE"
 DISCORD_OAUTH_STATE_COOKIE_KEY: Final = "DISCORD_OAUTH_STATE_COOKIE"
 
 
@@ -58,6 +62,7 @@ async def auth_twitch() -> RedirectResponse:
         "response_type": "code",
         "scope": " ".join([s.value for s in TWITCH_SCOPES]),
         "state": state,
+        "force_verify": "true",
     }
     url = f"https://id.twitch.tv/oauth2/authorize?{urlencode(params)}"
     response = RedirectResponse(url, status_code=HTTPStatus.FOUND)
@@ -71,6 +76,161 @@ async def auth_twitch() -> RedirectResponse:
         path="/auth",
     )
     return response
+
+
+@router.get("/authorize/twitch")
+async def authorize_twitch(bot_id: int, channel_name: str) -> RedirectResponse:
+    state = secrets.token_urlsafe(32)
+
+    params = {
+        "client_id": APP_CONTEXT.twitch_client_id.value_or_rise(),
+        "redirect_uri": APP_CONTEXT.twitch_authorize_redirect_uri.value(),
+        "response_type": "code",
+        "scope": " ".join([s.value for s in TWITCH_BROADCAST_SCOPES]),
+        "state": state,
+        "force_verify": "true",
+        "prompt": "login",
+    }
+    url = f"https://id.twitch.tv/oauth2/authorize?{urlencode(params)}"
+    response = RedirectResponse(url, status_code=HTTPStatus.FOUND)
+    response.set_cookie(
+        key=TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY,
+        value=state,
+        max_age=600,
+        httponly=True,
+        secure=APP_CONTEXT.environment_state.value().is_production(),
+        samesite="lax",
+        path="/auth",
+    )
+    # Store bot_id and channel_name for the callback
+    response.set_cookie(
+        key="TWITCH_BROADCAST_BOT_ID",
+        value=str(bot_id),
+        max_age=600,
+        httponly=True,
+        secure=APP_CONTEXT.environment_state.value().is_production(),
+        samesite="lax",
+        path="/auth",
+    )
+    response.set_cookie(
+        key="TWITCH_BROADCAST_CHANNEL_NAME",
+        value=channel_name,
+        max_age=600,
+        httponly=True,
+        secure=APP_CONTEXT.environment_state.value().is_production(),
+        samesite="lax",
+        path="/auth",
+    )
+    return response
+
+
+@router.post("/authorize/twitch/delete")
+async def authorize_twitch_delete(
+    bot_id: int,
+    channel_name: str,
+) -> RedirectResponse:
+    result = await delete_broadcast_tokens_core(bot_id, channel_name)
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/twitch/{bot_id}/channel/{channel_name}"
+            + "?error_message=Failed to delete broadcast authorization",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/twitch/{bot_id}/channel/{channel_name}?success_message=Broadcast authorization deleted",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
+
+
+@router.get("/authorize/twitch/callback")
+async def authorize_twitch_callback(request: Request, code: Optional[str], state: Optional[str]) -> RedirectResponse:
+    expected_state: Final = request.cookies.get(TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY)
+    bot_id_str: Final = request.cookies.get("TWITCH_BROADCAST_BOT_ID")
+    channel_name: Final = request.cookies.get("TWITCH_BROADCAST_CHANNEL_NAME")
+
+    if (
+        expected_state is None
+        or state is None
+        or code is None
+        or expected_state != state
+        or bot_id_str is None
+        or channel_name is None
+    ):
+        log_default(
+            LogLevel.ERROR,
+            f"Twitch Broadcast OAuth state mismatch or missing metadata. Expected: {expected_state}, Got: {state}",
+        )
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="OAuth state mismatch or missing code/metadata")
+
+    bot_id = int(bot_id_str)
+
+    try:
+
+        async def _do_authorize() -> None:
+            twitch: Final = await Twitch(
+                APP_CONTEXT.twitch_client_id.value_or_rise(),
+                APP_CONTEXT.twitch_credentials.value_or_rise(),
+                authenticate_app=False,
+            )
+            try:
+                auth: Final = UserAuthenticator(
+                    twitch, TWITCH_BROADCAST_SCOPES, url=APP_CONTEXT.twitch_authorize_redirect_uri.value()
+                )
+                auth_result: Final = await auth.authenticate(user_token=code)  # type: ignore[reportUnknownVariableType]
+                if auth_result is None:
+                    raise HTTPException(
+                        status_code=HTTPStatus.UNAUTHORIZED, detail="Failed to authenticate with Twitch"
+                    )
+                access_token, refresh_token = cast(tuple[str, str], auth_result)
+                await twitch.set_user_authentication(
+                    access_token, TWITCH_BROADCAST_SCOPES, refresh_token, validate=True
+                )
+                user: Final = await first(twitch.get_users())
+                if user is None:
+                    raise HTTPException(
+                        status_code=HTTPStatus.UNAUTHORIZED, detail="Failed to receive user information from Twitch"
+                    )
+
+                now: Final = datetime.now(UTC)
+                # We don't get exact expiry from this call easily, but standard Twitch tokens last ~4 hours.
+                # However, refresh tokens don't expire unless revoked or unused for long.
+                # The DB column is there, we can set a long time or use a standard one.
+                # For now, let's use the same JWT_EXPIRY_DAYS or similar.
+                expires_at_timestamp: Final = int((now + timedelta(days=JWT_EXPIRY_DAYS)).timestamp())
+
+                result = store_or_update_broadcast_tokens_core(
+                    bot_id, channel_name, user.id, access_token, refresh_token, expires_at_timestamp
+                )
+                if not result:
+                    raise HTTPException(
+                        status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                        detail="Failed to save twitch broadcast tokens to a database",
+                    )
+
+                log_default(
+                    LogLevel.INFO,
+                    f"Twitch broadcast authorized for channel {channel_name} (bot {bot_id}) by user {user.id}",
+                )
+            finally:
+                await twitch.close()
+
+        await _do_authorize()
+
+        response = RedirectResponse(
+            url=f"/dashboard/twitch/{bot_id}/channel/{channel_name}?success_message=Broadcast authorization successful",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+        response.delete_cookie(TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY, path="/auth")
+        response.delete_cookie("TWITCH_BROADCAST_BOT_ID", path="/auth")
+        response.delete_cookie("TWITCH_BROADCAST_CHANNEL_NAME", path="/auth")
+        return response
+
+    except Exception as e:
+        log_exception(e, LogProgram.Default, "Error during Twitch Broadcast OAuth Callback")
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="Error during Twitch Broadcast OAuth Callback"
+        ) from e
 
 
 @router.get("/login/twitch/callback")

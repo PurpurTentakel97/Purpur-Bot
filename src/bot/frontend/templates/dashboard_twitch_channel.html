@@ -208,6 +208,59 @@
         gap: 0.5rem;
         justify-content: flex-end;
     }
+
+    /* Authorization Section */
+    .auth-card {
+        background-color: #333;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #444;
+    }
+
+    .auth-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background-color: #26262c;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        border: 1px solid #3a3a3a;
+        margin-bottom: 1.5rem;
+    }
+
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .status-available {
+        background-color: #00f593;
+        box-shadow: 0 0 10px rgba(0, 245, 147, 0.4);
+    }
+
+    .status-unavailable {
+        background-color: #eb0400;
+        box-shadow: 0 0 10px rgba(235, 4, 0, 0.4);
+    }
+
+    .auth-label {
+        font-weight: 600;
+        color: #efeff1;
+        font-size: 0.95rem;
+    }
+
+    .auth-note-label {
+        color: #e91916;
+        font-weight: 700;
+    }
+
+    .auth-help-text {
+        color: #adadb8;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
 </style>
 {% endblock %}
 
@@ -265,6 +318,35 @@
             </div>
             <!-- Ensure other fields are sent if not checked, although FastAPI might handle missing as False with my default values -->
         </form>
+
+        <div class="auth-card" style="margin-top: 1.5rem;">
+            <p class="auth-help-text">
+                Authorizing broadcast rights allows the bot to manage your stream details.
+                This is required for features like <strong>!title</strong>, <strong>!tags</strong>, and <strong>!game</strong> to function correctly.
+            </p>
+            <p class="auth-help-text" style="font-size: 0.8rem; margin-top: -1rem;">
+                <span class="auth-note-label">Note:</span> This authorization is for the account the bot joins.
+                To use a different account than your current browser session,
+                you can click <em>"Not you? Log out"</em> on the Twitch authorization screen.
+            </p>
+            <div class="auth-status">
+                <div class="status-indicator {% if is_broadcast_authorized %}status-available{% else %}status-unavailable{% endif %}"></div>
+                <span class="auth-label">Broadcast Rights: {% if is_broadcast_authorized %}Authorized{% else %}Unauthorized{% endif %}</span>
+            </div>
+            <div style="display: flex; justify-content: flex-start; align-items: center; gap: 1rem;">
+                {% if is_broadcast_authorized %}
+                <form action="/auth/authorize/twitch/delete?bot_id={{ bot.id }}&channel_name={{ name }}" method="POST" onsubmit="return confirm('Are you sure you want to delete the broadcast authorization?');">
+                    <button type="submit" class="btn btn-danger">
+                        Delete Broadcast Authorization
+                    </button>
+                </form>
+                {% else %}
+                <a href="/auth/authorize/twitch?bot_id={{ bot.id }}&channel_name={{ name }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+                    Authorize Broadcast Rights
+                </a>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
     <div class="twitch-section broadcast-section">
