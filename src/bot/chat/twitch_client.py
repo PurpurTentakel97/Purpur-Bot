@@ -122,7 +122,6 @@ class TwitchClient:
             if len(new_title) > 140:
                 return message.to_response_message(f"Title '{new_title}' is too long. (max 140 characters)")
 
-            client = self.client
             if message.has_twitch_message:
                 from bot.chat.twitch_chat import TwitchChat
 
@@ -131,8 +130,14 @@ class TwitchClient:
                 broadcast_client = await TWITCH_BROADCAST_CLIENT_FACTORY.get_client(
                     message.bot_id, twitch_chat.channel_name
                 )
-                if broadcast_client is not None:
-                    client = broadcast_client
+                if broadcast_client is None:
+                    return message.to_response_message(
+                        "Not working because of: Missing Twitch broadcast authorization. "
+                        + "Please authorize the bot in the channel dashboard."
+                    )
+                client = broadcast_client
+            else:
+                client = self.client
 
             success = await client.modify_channel_information(broadcaster_id=broadcast_id, title=new_title)
 
@@ -146,7 +151,6 @@ class TwitchClient:
 
     async def send_change_game(self, message: ChatMessage, broadcast_id: str, new_game: str) -> ChatMessageResponse:
         try:
-            client = self.client
             if message.has_twitch_message:
                 from bot.chat.twitch_chat import TwitchChat
 
@@ -155,8 +159,14 @@ class TwitchClient:
                 broadcast_client = await TWITCH_BROADCAST_CLIENT_FACTORY.get_client(
                     message.bot_id, twitch_chat.channel_name
                 )
-                if broadcast_client is not None:
-                    client = broadcast_client
+                if broadcast_client is None:
+                    return message.to_response_message(
+                        "Not working because of: Missing Twitch broadcast authorization. "
+                        + "Please authorize the bot in the channel dashboard."
+                    )
+                client = broadcast_client
+            else:
+                client = self.client
 
             game_id: Optional[str] = None
 
@@ -194,7 +204,6 @@ class TwitchClient:
                     f"Too many tags ({len(new_tags)}). A maximum of 10 tags is allowed. (tags: {', '.join(new_tags)})"
                 )
 
-            client = self.client
             if message.has_twitch_message:
                 from bot.chat.twitch_chat import TwitchChat
 
@@ -203,8 +212,14 @@ class TwitchClient:
                 broadcast_client = await TWITCH_BROADCAST_CLIENT_FACTORY.get_client(
                     message.bot_id, twitch_chat.channel_name
                 )
-                if broadcast_client is not None:
-                    client = broadcast_client
+                if broadcast_client is None:
+                    return message.to_response_message(
+                        "Not working because of: Missing Twitch broadcast authorization. "
+                        + "Please authorize the bot in the channel dashboard."
+                    )
+                client = broadcast_client
+            else:
+                client = self.client
 
             success = await client.modify_channel_information(broadcaster_id=broadcast_id, tags=new_tags)
             if not success:
