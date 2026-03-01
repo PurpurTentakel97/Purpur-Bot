@@ -29,6 +29,7 @@ from bot.core.discord_auth import store_or_update_discord_tokens as store_or_upd
 from bot.core.twitch_auth import delete_twitch_tokens as delete_twitch_tokens_core
 from bot.core.twitch_auth import get_twitch_tokens as get_twitch_tokens_core
 from bot.core.twitch_auth import store_or_update_twitch_tokens as store_or_update_twitch_tokens_core
+from bot.core.twitch_broadcast_auth import delete_broadcast_tokens as delete_broadcast_tokens_core
 from bot.core.twitch_broadcast_auth import store_or_update_broadcast_tokens as store_or_update_broadcast_tokens_core
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
@@ -122,6 +123,25 @@ async def authorize_twitch(bot_id: int, channel_name: str) -> RedirectResponse:
         path="/auth",
     )
     return response
+
+
+@router.post("/authorize/twitch/delete")
+async def authorize_twitch_delete(
+    bot_id: int,
+    channel_name: str,
+) -> RedirectResponse:
+    result = delete_broadcast_tokens_core(bot_id, channel_name)
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/twitch/{bot_id}/channel/{channel_name}"
+            + "?error_message=Failed to delete broadcast authorization",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    return RedirectResponse(
+        url=f"/dashboard/twitch/{bot_id}/channel/{channel_name}?success_message=Broadcast authorization deleted",
+        status_code=HTTPStatus.SEE_OTHER,
+    )
 
 
 @router.get("/authorize/twitch/callback")
