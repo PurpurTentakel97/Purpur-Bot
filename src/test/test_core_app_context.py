@@ -176,6 +176,7 @@ def test_app_context_update_twitch_tokens(tmp_path: Path) -> None:
             twitch_credentials="cr",
             twitch_tokens=None,
             twitch_redirect_uri="r",
+            twitch_authorize_redirect_uri="ar",
             environment_state=Environment.DEVELOPMENT,
             jwt_secret="j",
             twitch_subscription_callback_url=None,
