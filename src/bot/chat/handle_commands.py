@@ -361,6 +361,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
                 )
             else:
                 if PROGRAMM_PARTS.cooldowns.command_response_cooldown.is_in_cooldown(cooldown_key):
+                    log_default(LogLevel.DEBUG, f"command in Cooldown | message: '{message}'")
                     return None
                 PROGRAMM_PARTS.cooldowns.command_response_cooldown.add(cooldown_key)
 
