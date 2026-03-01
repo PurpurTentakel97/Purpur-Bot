@@ -73,7 +73,9 @@ class AppContext:
         twitch_subscription_callback_url: Optional[str],
         twitch_eventsub_secret: Optional[str],
         twitch_eventsub_port: int,
-        twitch_live_message_cooldown_in_minutes: int,
+        twitch_live_message_cooldown_in_seconds: int,
+        command_response_cooldown_in_seconds: int,
+        alias_response_cooldown_in_seconds: int,
     ) -> None:
         self.discord_token: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_token)
         self.discord_client_id: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_client_id)
@@ -90,8 +92,14 @@ class AppContext:
         )
         self.twitch_eventsub_secret: OptionalAppContextEntry[str] = OptionalAppContextEntry(twitch_eventsub_secret)
         self.twitch_eventsub_port: AppContextEntry[int] = AppContextEntry(twitch_eventsub_port)
-        self.twitch_live_message_cooldown_in_minutes: AppContextEntry[int] = AppContextEntry(
-            twitch_live_message_cooldown_in_minutes
+        self.twitch_live_message_cooldown_in_seconds: AppContextEntry[int] = AppContextEntry(
+            twitch_live_message_cooldown_in_seconds
+        )
+        self.command_response_cooldown_in_seconds: AppContextEntry[int] = AppContextEntry(
+            command_response_cooldown_in_seconds
+        )
+        self.alias_response_cooldown_in_seconds: AppContextEntry[int] = AppContextEntry(
+            alias_response_cooldown_in_seconds
         )
 
     def update_twitch_tokens(self, new_access_token: str, new_refresh_token: str) -> None:
@@ -167,7 +175,9 @@ APP_CONTEXT = AppContext(
     twitch_subscription_callback_url=get_env_var_or_default("TWITCH_SUBSCRIPTION_CALLBACK_URL", None),
     twitch_eventsub_secret=get_env_var_or_default("TWITCH_EVENTSUB_SECRET", None),
     twitch_eventsub_port=get_env_var_as_int_or_default("TWITCH_EVENTSUB_PORT", 8080),
-    twitch_live_message_cooldown_in_minutes=get_env_var_as_int_or_default(
-        "TWITCH_LIVE_MESSAGE_COOLDOWN_IN_MINUTES", 120
+    twitch_live_message_cooldown_in_seconds=get_env_var_as_int_or_default(
+        "TWITCH_LIVE_MESSAGE_COOLDOWN_IN_SECONDS", 7200
     ),
+    command_response_cooldown_in_seconds=get_env_var_as_int_or_default("COMMAND_RESPONSE_COOLDOWN_IN_SECONDS", 15),
+    alias_response_cooldown_in_seconds=get_env_var_as_int_or_default("ALIAS_RESPONSE_COOLDOWN_IN_SECONDS", 15),
 )

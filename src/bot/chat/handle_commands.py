@@ -1,7 +1,5 @@
 from typing import Optional
 
-from twitchAPI.chat import ChatMessage as TwitchChatMessage
-
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
 from bot.core.alias_dict import add_alias as add_alias_core
@@ -28,10 +26,13 @@ from bot.core.counter import increment_counter as increment_counter_core
 from bot.core.counter import increment_counter_by as increment_counter_by_core
 from bot.core.counter import reset_counter as reset_counter_core
 from bot.core.counter import save_counter as save_counter_core
+from bot.core.types.cooldown import CommandCooldownKey
 from bot.core.types.permission_level import PermissionLevel
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import ResultState
 from bot.database.types.feature_flags import FeatureFlagsDB
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
 
 
 def _to_int(value: str) -> Optional[int]:
@@ -61,11 +62,8 @@ def _result_lookup(state: ResultState) -> str:
 
 async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
     parts = message.text.strip().split(" ")
-
-    def get_broadcaster_id() -> Optional[str]:
-        if isinstance(message.original_message, TwitchChatMessage):
-            if message.original_message.room is not None:
-                return message.original_message.room.room_id
+    if len(parts) == 0:
+        log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
         return None
 
     if message.sender_permission_level.is_permitted(PermissionLevel.MODERATOR):
@@ -77,7 +75,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
                 if PROGRAMM_PARTS.twitch is None:
                     return message.to_response_message("Twitch bot is not running.")
 
-                broadcaster_id = get_broadcaster_id()
+                broadcaster_id = message.try_get_twitch_broadcaster_id()
                 if broadcaster_id is None:
                     return message.to_response_message("Failed to get broadcaster ID.")
 
@@ -93,7 +91,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
                 if PROGRAMM_PARTS.twitch is None:
                     return message.to_response_message("Twitch bot is not running.")
 
-                broadcaster_id = get_broadcaster_id()
+                broadcaster_id = message.try_get_twitch_broadcaster_id()
                 if not broadcaster_id:
                     return message.to_response_message("Failed to get broadcaster ID.")
 
@@ -110,7 +108,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
                 if PROGRAMM_PARTS.twitch is None:
                     return message.to_response_message("Twitch bot is not running.")
 
-                broadcaster_id = get_broadcaster_id()
+                broadcaster_id = message.try_get_twitch_broadcaster_id()
                 if not broadcaster_id:
                     return message.to_response_message("Failed to get broadcaster ID.")
 
@@ -325,12 +323,21 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
         case _:
             pass
 
-    if len(parts) < 1:
-        return None
-
     if feature_flags.can_commands:
         result = get_command_core(message.bot_id, parts[0].lstrip("!"))
         if result.state.success and result.value is not None:
+            cooldown_key = CommandCooldownKey(
+                message.bot_id,
+                parts[0],
+                message.try_get_twitch_broadcaster_id() or "",
+                message.try_get_discord_server_id() or 0,
+                message.try_get_discord_channel_id() or 0,
+            )
+            if PROGRAMM_PARTS.cooldowns.command_response_cooldown.is_in_cooldown(cooldown_key):
+                log_default(LogLevel.DEBUG, f"command in Cooldown | message: '{message}'")
+                return None
+            PROGRAMM_PARTS.cooldowns.command_response_cooldown.add(cooldown_key)
+
             return message.to_response_message(result.value.message)
 
     return None
