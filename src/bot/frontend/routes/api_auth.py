@@ -58,6 +58,7 @@ async def auth_twitch() -> RedirectResponse:
         "response_type": "code",
         "scope": " ".join([s.value for s in TWITCH_SCOPES]),
         "state": state,
+        "force_verify": "true",
     }
     url = f"https://id.twitch.tv/oauth2/authorize?{urlencode(params)}"
     response = RedirectResponse(url, status_code=HTTPStatus.FOUND)
