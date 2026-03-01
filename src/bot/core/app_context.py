@@ -174,5 +174,5 @@ APP_CONTEXT = AppContext(
     twitch_live_message_cooldown_in_seconds=get_env_var_as_int_or_default(
         "TWITCH_LIVE_MESSAGE_COOLDOWN_IN_SECONDS", 7200
     ),
-    command_response_cooldown_in_seconds=get_env_var_as_int_or_default("COMMAND_RESPONSE_COOLDOWN_IN_SECONDS", 60),
+    command_response_cooldown_in_seconds=get_env_var_as_int_or_default("COMMAND_RESPONSE_COOLDOWN_IN_SECONDS", 15),
 )
