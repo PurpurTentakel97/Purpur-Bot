@@ -56,6 +56,8 @@ def _result_lookup(state: ResultState) -> str:
             return "the identifier is still in use."
         case ResultState.NO_DATA:
             return "unknown identifier."
+        case ResultState.RESERVED_NAME:
+            return "the identifier is reserved."
         case _:
             return "internal error"
 
@@ -66,6 +68,10 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
         log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
         return None
 
+    # permission level admin
+    # currently there are no admin level commands
+
+    # permission level moderator
     if message.sender_permission_level.is_permitted(PermissionLevel.MODERATOR):
         match parts:
             # twitch-specific commands
@@ -117,6 +123,12 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
 
                 return await PROGRAMM_PARTS.twitch.send_change_tags(message, broadcaster_id, tags)
 
+            case _:
+                pass
+
+    # permission level special user
+    if message.sender_permission_level.is_permitted(PermissionLevel.SPECIAL_USER):
+        match parts:
             # command
             case ["!com", "add", command_name, *msg]:
                 command_message = " ".join(msg)
@@ -306,6 +318,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
             case _:
                 pass
 
+    # permission level user
     match parts:
         case ["!coms", *_]:
             result = get_commands_by_bot_id_core(message.bot_id)

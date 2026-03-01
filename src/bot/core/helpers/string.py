@@ -1,3 +1,4 @@
+from bot.core.reserved_names import RESERVED_NAMES
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 
@@ -25,6 +26,9 @@ def check_identifier(name: str) -> Result[str]:
 
     if has_whitespace(name_id):
         return Result(ResultState.WHITESPACE_ERROR, None)
+
+    if name_id in RESERVED_NAMES:
+        return Result(ResultState.RESERVED_NAME, None)
 
     return Result(ResultState.SUCCESS, name_id)
 

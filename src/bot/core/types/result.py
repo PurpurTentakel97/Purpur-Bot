@@ -21,6 +21,7 @@ class ResultState(Enum):
     CHANNEL_DISABLED = auto()
     COMMAND_DISABLED = auto()
     ALIAS_DISABLED = auto()
+    RESERVED_NAME = auto()
 
     @property
     def success(self) -> bool:
