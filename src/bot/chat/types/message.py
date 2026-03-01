@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Optional
 from typing import final
 
 from attr import dataclass
@@ -33,3 +34,27 @@ class ChatMessage:
     @property
     def has_discord_message(self) -> bool:
         return self.sender_chat.is_discord
+
+    def try_get_twitch_broadcaster_id(self) -> Optional[str]:
+        if not isinstance(self.original_message, TwitchChatMessage):
+            return None
+
+        if self.original_message.room is None:
+            return None
+
+        return self.original_message.room.room_id
+
+    def try_get_discord_server_id(self) -> Optional[int]:
+        if not isinstance(self.original_message, DiscordMessage):
+            return None
+
+        if self.original_message.guild is None:
+            return None
+
+        return self.original_message.guild.id
+
+    def try_get_discord_channel_id(self) -> Optional[int]:
+        if not isinstance(self.original_message, DiscordMessage):
+            return None
+
+        return self.original_message.channel.id

@@ -1,8 +1,5 @@
 from typing import Optional
 
-from discord import Message as DiscordMessage
-from twitchAPI.chat import ChatMessage as TwitchChatMessage
-
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
 from bot.core.alias_dict import add_alias as add_alias_core
@@ -69,29 +66,6 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
         log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
         return None
 
-    def get_broadcaster_id() -> Optional[str]:
-        if isinstance(message.original_message, TwitchChatMessage):
-            if message.original_message.room is not None:
-                return message.original_message.room.room_id
-        return None
-
-    def get_command_response_cooldown_key() -> Optional[CommandCooldownKey]:
-        twitch_broadcaster_id = ""
-        discord_server_id = 0
-        discord_channel_id = 0
-
-        if message.has_twitch_message:
-            twitch_broadcaster_id = get_broadcaster_id()
-            if twitch_broadcaster_id is None:
-                return None
-        elif message.has_discord_message:
-            if isinstance(message.original_message, DiscordMessage):
-                if message.original_message.guild is not None:
-                    discord_server_id = message.original_message.guild.id
-                discord_channel_id = message.original_message.channel.id
-
-        return CommandCooldownKey(parts[0], twitch_broadcaster_id, discord_server_id, discord_channel_id)
-
     if message.sender_permission_level.is_permitted(PermissionLevel.MODERATOR):
         match parts:
             # twitch-specific commands
@@ -101,7 +75,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
                 if PROGRAMM_PARTS.twitch is None:
                     return message.to_response_message("Twitch bot is not running.")
 
-                broadcaster_id = get_broadcaster_id()
+                broadcaster_id = message.try_get_twitch_broadcaster_id()
                 if broadcaster_id is None:
                     return message.to_response_message("Failed to get broadcaster ID.")
 
@@ -117,7 +91,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
                 if PROGRAMM_PARTS.twitch is None:
                     return message.to_response_message("Twitch bot is not running.")
 
-                broadcaster_id = get_broadcaster_id()
+                broadcaster_id = message.try_get_twitch_broadcaster_id()
                 if not broadcaster_id:
                     return message.to_response_message("Failed to get broadcaster ID.")
 
@@ -134,7 +108,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
                 if PROGRAMM_PARTS.twitch is None:
                     return message.to_response_message("Twitch bot is not running.")
 
-                broadcaster_id = get_broadcaster_id()
+                broadcaster_id = message.try_get_twitch_broadcaster_id()
                 if not broadcaster_id:
                     return message.to_response_message("Failed to get broadcaster ID.")
 
@@ -352,18 +326,16 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
     if feature_flags.can_commands:
         result = get_command_core(message.bot_id, parts[0].lstrip("!"))
         if result.state.success and result.value is not None:
-            cooldown_key = get_command_response_cooldown_key()
-            if cooldown_key is None:
-                log_default(
-                    LogLevel.ERROR,
-                    f"Failed to get cooldown key for command '{parts[0]}'. "
-                    + "| ignoring cooldown feature. | message: '{message}'",
-                )
-            else:
-                if PROGRAMM_PARTS.cooldowns.command_response_cooldown.is_in_cooldown(cooldown_key):
-                    log_default(LogLevel.DEBUG, f"command in Cooldown | message: '{message}'")
-                    return None
-                PROGRAMM_PARTS.cooldowns.command_response_cooldown.add(cooldown_key)
+            cooldown_key = CommandCooldownKey(
+                parts[0],
+                message.try_get_twitch_broadcaster_id() or "",
+                message.try_get_discord_server_id() or 0,
+                message.try_get_discord_channel_id() or 0,
+            )
+            if PROGRAMM_PARTS.cooldowns.command_response_cooldown.is_in_cooldown(cooldown_key):
+                log_default(LogLevel.DEBUG, f"command in Cooldown | message: '{message}'")
+                return None
+            PROGRAMM_PARTS.cooldowns.command_response_cooldown.add(cooldown_key)
 
             return message.to_response_message(result.value.message)
 
