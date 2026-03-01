@@ -56,6 +56,8 @@ def _result_lookup(state: ResultState) -> str:
             return "the identifier is still in use."
         case ResultState.NO_DATA:
             return "unknown identifier."
+        case ResultState.RESERVED_NAME:
+            return "the identifier is reserved."
         case _:
             return "internal error"
 
