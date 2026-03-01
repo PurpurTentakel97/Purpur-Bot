@@ -250,6 +250,11 @@
         font-size: 0.95rem;
     }
 
+    .auth-note-label {
+        color: #e91916;
+        font-weight: 700;
+    }
+
     .auth-help-text {
         color: #adadb8;
         font-size: 0.85rem;
@@ -320,9 +325,9 @@
                 This is required for features like <strong>!title</strong>, <strong>!tags</strong>, and <strong>!game</strong> to function correctly.
             </p>
             <p class="auth-help-text" style="font-size: 0.8rem; margin-top: -1rem;">
-                <strong>Note:</strong> To use a different account than your current browser session,
-                you can click <em>"Not you? Log out"</em> on the Twitch authorization screen or
-                <a href="https://www.twitch.tv/logout" target="_blank" style="color: #9146ff; text-decoration: underline;">logout of Twitch first</a>.
+                <span class="auth-note-label">Note:</span> This authorization is for the account the bot joins.
+                To use a different account than your current browser session,
+                you can click <em>"Not you? Log out"</em> on the Twitch authorization screen.
             </p>
             <div class="auth-status">
                 <div class="status-indicator {% if is_broadcast_authorized %}status-available{% else %}status-unavailable{% endif %}"></div>
