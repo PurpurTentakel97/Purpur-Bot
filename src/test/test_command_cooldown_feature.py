@@ -45,11 +45,9 @@ def mock_twitch_message() -> MagicMock:
     message.has_twitch_message = True
     message.has_discord_message = False
 
-    # Mock TwitchChatMessage
-    original = MagicMock(spec=TwitchChatMessage)
-    original.room = MagicMock()
-    original.room.room_id = "12345"
-    message.original_message = original
+    message.try_get_twitch_broadcaster_id = MagicMock(return_value="12345")
+    message.try_get_discord_server_id = MagicMock(return_value=0)
+    message.try_get_discord_channel_id = MagicMock(return_value=0)
 
     # Mock Chat
     message.sender_chat = MagicMock()
@@ -70,11 +68,9 @@ def mock_discord_message() -> MagicMock:
     message.has_twitch_message = False
     message.has_discord_message = True
 
-    # Mock DiscordMessage
-    original = MagicMock()
-    original.guild.id = 67890
-    original.channel.id = 54321
-    message.original_message = original
+    message.try_get_twitch_broadcaster_id = MagicMock(return_value="")
+    message.try_get_discord_server_id = MagicMock(return_value=67890)
+    message.try_get_discord_channel_id = MagicMock(return_value=54321)
 
     # Mock Chat
     message.sender_chat = MagicMock()
@@ -116,10 +112,7 @@ async def test_discord_command_cooldown(mock_discord_message: MagicMock, mock_fe
     )
 
     # We need to mock DiscordMessage class for isinstance check
-    with (
-        patch("bot.chat.handle_commands.DiscordMessage", MagicMock),
-        patch("bot.chat.handle_commands.get_command_core", return_value=command_result),
-    ):
+    with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
         # First call - should succeed
         response1 = await handle_command(mock_discord_message, mock_feature_flags)
         assert response1 == "Hi there!"
@@ -141,17 +134,17 @@ async def test_cooldown_is_channel_specific(mock_twitch_message: MagicMock, mock
 
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
         # First call from channel 1
-        mock_twitch_message.original_message.room.room_id = "channel1"
+        mock_twitch_message.try_get_twitch_broadcaster_id.return_value = "channel1"
         response1 = await handle_command(mock_twitch_message, mock_feature_flags)
         assert response1 == "Hi there!"
 
         # Call from channel 2 - should also succeed
-        mock_twitch_message.original_message.room.room_id = "channel2"
+        mock_twitch_message.try_get_twitch_broadcaster_id.return_value = "channel2"
         response2 = await handle_command(mock_twitch_message, mock_feature_flags)
         assert response2 == "Hi there!"
 
         # Call from channel 1 again - should be in cooldown
-        mock_twitch_message.original_message.room.room_id = "channel1"
+        mock_twitch_message.try_get_twitch_broadcaster_id.return_value = "channel1"
         response3 = await handle_command(mock_twitch_message, mock_feature_flags)
         assert response3 is None
 
@@ -179,8 +172,11 @@ async def test_cooldown_is_command_specific(mock_feature_flags: FeatureFlagsDB) 
         original_message=original,
         meta_data=None,
     )
-    # Patch to_response_message for easier testing
+    # Patch to_response_message and id getters for easier testing
     msg.to_response_message = lambda x: x  # type: ignore[assignment]
+    msg.try_get_twitch_broadcaster_id = MagicMock(return_value="12345")
+    msg.try_get_discord_server_id = MagicMock(return_value=0)
+    msg.try_get_discord_channel_id = MagicMock(return_value=0)
 
     def mock_get_command(bot_id: int, name: str) -> Result[BasicCommandDB]:
         if name == "hello":
