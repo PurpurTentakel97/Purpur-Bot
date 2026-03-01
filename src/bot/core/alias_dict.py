@@ -1,6 +1,8 @@
 from bot.core.helpers.string import check_identifier
 from bot.core.helpers.string import check_text
 from bot.core.helpers.string import identifier_for_db
+from bot.core.types.cooldown import AliasCooldownKey
+from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.alias_dict import delete_dict_entry as delete_dict_entry_db
@@ -14,6 +16,8 @@ from bot.database.types.alias_dict_entry import AliasDictEntry
 from bot.database.types.fields import FIELD_ALIAS_EXPLANATION
 from bot.database.types.fields import FIELD_ALIAS_NAME
 from bot.database.types.fields import FIELD_ENABLED
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
 
 
 def select_dict_from_bot(bot_id: int) -> Result[list[AliasDictEntry]]:
@@ -24,7 +28,13 @@ def get_alias_by_id(entry_id: int) -> Result[AliasDictEntry]:
     return select_dict_entry_by_id_db(entry_id)
 
 
-def alias_lookup(bot_id: int, message: str) -> Result[list[str]]:
+def alias_lookup(
+    bot_id: int,
+    message: str,
+    twitch_broadcaster_id: str,
+    discord_server_id: int,
+    discord_channel_id: int,
+) -> Result[list[str]]:
     alias_dict = select_dict_from_bot_db(bot_id)
 
     if alias_dict.state.fail or alias_dict.value is None or len(alias_dict.value) == 0:
@@ -39,7 +49,20 @@ def alias_lookup(bot_id: int, message: str) -> Result[list[str]]:
             continue
 
         if entry.alias in split_message:
+            cooldown_key = AliasCooldownKey(
+                bot_id,
+                entry.alias,
+                twitch_broadcaster_id,
+                discord_server_id,
+                discord_channel_id,
+            )
+
+            if PROGRAMM_PARTS.cooldowns.alias_response_cooldown.is_in_cooldown(cooldown_key):
+                log_default(LogLevel.DEBUG, f"alias in Cooldown | alias: '{entry.alias}' | message: '{message}'")
+                continue
+
             lookups.append(f"{entry.alias}: {entry.explanation}")
+            PROGRAMM_PARTS.cooldowns.alias_response_cooldown.add(cooldown_key)
 
     return Result(ResultState.SUCCESS, lookups)
 

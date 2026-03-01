@@ -28,6 +28,15 @@ class CommandCooldownKey(CooldownKey):
     discord_channel_id: int
 
 
+@dataclass(frozen=True)
+class AliasCooldownKey(CooldownKey):
+    bot_id: int
+    alias: str
+    twitch_channel_id: str
+    discord_server_id: int
+    discord_channel_id: int
+
+
 class Cooldown[T: CooldownKey]:
     def __init__(self, cooldown_in_seconds: int) -> None:
         self._cooldown_in_seconds = cooldown_in_seconds
@@ -66,3 +75,4 @@ class CooldownsWrapper:
         APP_CONTEXT.twitch_live_message_cooldown_in_seconds.value()
     )
     command_response_cooldown = Cooldown[CommandCooldownKey](APP_CONTEXT.command_response_cooldown_in_seconds.value())
+    alias_response_cooldown = Cooldown[AliasCooldownKey](APP_CONTEXT.alias_response_cooldown_in_seconds.value())

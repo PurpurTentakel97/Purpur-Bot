@@ -182,7 +182,8 @@ def test_app_context_update_twitch_tokens(tmp_path: Path) -> None:
             twitch_eventsub_secret="e",
             twitch_eventsub_port=8080,
             twitch_live_message_cooldown_in_seconds=7200,
-            command_response_cooldown_in_seconds=60,
+            command_response_cooldown_in_seconds=15,
+            alias_response_cooldown_in_seconds=15,
         )
 
         ctx.update_twitch_tokens("new_access", "new_refresh")
