@@ -15,7 +15,6 @@ from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
 from starlette.responses import RedirectResponse
 from twitchAPI.helper import first
 from twitchAPI.oauth import UserAuthenticator
@@ -145,7 +144,7 @@ async def authorize_twitch_delete(
 
 
 @router.get("/authorize/twitch/callback")
-async def authorize_twitch_callback(request: Request, code: Optional[str], state: Optional[str]) -> HTMLResponse:
+async def authorize_twitch_callback(request: Request, code: Optional[str], state: Optional[str]) -> RedirectResponse:
     expected_state: Final = request.cookies.get(TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY)
     bot_id_str: Final = request.cookies.get("TWITCH_BROADCAST_BOT_ID")
     channel_name: Final = request.cookies.get("TWITCH_BROADCAST_CHANNEL_NAME")
@@ -218,64 +217,10 @@ async def authorize_twitch_callback(request: Request, code: Optional[str], state
 
         await _do_authorize()
 
-        html_content = """
-    <html>
-        <head>
-            <title>Authorization Successful</title>
-            <style>
-                body {
-                    background-color: #18181b;
-                    color: #efeff1;
-                    font-family: sans-serif;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    height: 100vh;
-                    margin: 0;
-                }
-                .container {
-                    text-align: center;
-                    background-color: #26262c;
-                    padding: 2rem;
-                    border-radius: 8px;
-                    border: 1px solid #3a3a3a;
-                }
-                h1 { color: #00f593; }
-                p { color: #adadb8; }
-                button {
-                    background-color: #9146ff;
-                    color: white;
-                    border: none;
-                    padding: 0.75rem 1.5rem;
-                    border-radius: 4px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    margin-top: 1rem;
-                }
-                button:hover { background-color: #772ce8; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Authorization Successful</h1>
-                <p>You have successfully authorized broadcast rights.</p>
-                <p>This window will close automatically.</p>
-                <button onclick="window.close()">Close Window</button>
-            </div>
-            <script>
-                // Notify parent window to refresh
-                if (window.opener) {
-                    window.opener.location.reload();
-                }
-                setTimeout(() => {
-                    window.close();
-                }, 3000);
-            </script>
-        </body>
-    </html>
-    """
-        response = HTMLResponse(content=html_content, status_code=HTTPStatus.OK)
+        response = RedirectResponse(
+            url=f"/dashboard/twitch/{bot_id}/channel/{channel_name}?success_message=Broadcast authorization successful",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
         response.delete_cookie(TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY, path="/auth")
         response.delete_cookie("TWITCH_BROADCAST_BOT_ID", path="/auth")
         response.delete_cookie("TWITCH_BROADCAST_CHANNEL_NAME", path="/auth")
