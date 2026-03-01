@@ -15,6 +15,7 @@ from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
 from starlette.requests import Request
+from starlette.responses import HTMLResponse
 from starlette.responses import RedirectResponse
 from twitchAPI.helper import first
 from twitchAPI.oauth import UserAuthenticator
@@ -33,6 +34,7 @@ from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.auth_constents import DISCORD_SCOPES
 from bot.frontend.helpers.auth_constents import JWT_ALG
 from bot.frontend.helpers.auth_constents import JWT_EXPIRY_DAYS
+from bot.frontend.helpers.auth_constents import TWITCH_BROADCAST_SCOPES
 from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
 from bot.frontend.types.discord_session_cookie_jwt import DiscordSessionCookie
 from bot.frontend.types.discord_user_info import DiscordUserInfo
@@ -45,6 +47,7 @@ from bot.helpers.log import log_exception
 
 router: Final = APIRouter(prefix="/auth")
 TWITCH_OAUTH_STATE_COOKIE_KEY: Final = "TWITCH_OAUTH_STATE_COOKIE"
+TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY: Final = "TWITCH_BROADCAST_OAUTH_STATE_COOKIE"
 DISCORD_OAUTH_STATE_COOKIE_KEY: Final = "DISCORD_OAUTH_STATE_COOKIE"
 
 
@@ -71,6 +74,100 @@ async def auth_twitch() -> RedirectResponse:
         samesite="lax",
         path="/auth",
     )
+    return response
+
+
+@router.get("/authorize/twitch")
+async def authorize_twitch() -> RedirectResponse:
+    state = secrets.token_urlsafe(32)
+
+    params = {
+        "client_id": APP_CONTEXT.twitch_client_id.value_or_rise(),
+        "redirect_uri": APP_CONTEXT.twitch_authorize_redirect_uri.value(),
+        "response_type": "code",
+        "scope": " ".join([s.value for s in TWITCH_BROADCAST_SCOPES]),
+        "state": state,
+        "force_verify": "true",
+        "prompt": "login",
+    }
+    url = f"https://id.twitch.tv/oauth2/authorize?{urlencode(params)}"
+    response = RedirectResponse(url, status_code=HTTPStatus.FOUND)
+    response.set_cookie(
+        key=TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY,
+        value=state,
+        max_age=600,
+        httponly=True,
+        secure=APP_CONTEXT.environment_state.value().is_production(),
+        samesite="lax",
+        path="/auth",
+    )
+    return response
+
+
+@router.get("/authorize/twitch/callback")
+async def authorize_twitch_callback(request: Request, code: Optional[str], state: Optional[str]) -> HTMLResponse:
+    expected_state: Final = request.cookies.get(TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY)
+    if expected_state is None or state is None or code is None or expected_state != state:
+        log_default(LogLevel.ERROR, f"Twitch Broadcast OAuth state mismatch. Expected: {expected_state}, Got: {state}")
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="OAuth state mismatch or missing code")
+
+    # This is a frontend only task for now, we don't store tokens yet.
+    # Just show a success message that can close the popup.
+    html_content = """
+    <html>
+        <head>
+            <title>Authorization Successful</title>
+            <style>
+                body {
+                    background-color: #18181b;
+                    color: #efeff1;
+                    font-family: sans-serif;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    margin: 0;
+                }
+                .container {
+                    text-align: center;
+                    background-color: #26262c;
+                    padding: 2rem;
+                    border-radius: 8px;
+                    border: 1px solid #3a3a3a;
+                }
+                h1 { color: #00f593; }
+                p { color: #adadb8; }
+                button {
+                    background-color: #9146ff;
+                    color: white;
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    margin-top: 1rem;
+                }
+                button:hover { background-color: #772ce8; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Authorization Successful</h1>
+                <p>You have successfully authorized broadcast rights.</p>
+                <p>This window will close automatically.</p>
+                <button onclick="window.close()">Close Window</button>
+            </div>
+            <script>
+                setTimeout(() => {
+                    window.close();
+                }, 3000);
+            </script>
+        </body>
+    </html>
+    """
+    response = HTMLResponse(content=html_content, status_code=HTTPStatus.OK)
+    response.delete_cookie(TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY, path="/auth")
     return response
 
 

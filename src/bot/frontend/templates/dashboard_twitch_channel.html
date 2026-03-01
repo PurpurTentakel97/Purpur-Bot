@@ -319,17 +319,37 @@
                 Authorizing broadcast rights allows the bot to manage your stream details.
                 This is required for features like <strong>!title</strong>, <strong>!tags</strong>, and <strong>!game</strong> to function correctly.
             </p>
+            <p class="auth-help-text" style="font-size: 0.8rem; margin-top: -1rem;">
+                <strong>Note:</strong> To use a different account than your current browser session,
+                you can click <em>"Not you? Log out"</em> on the Twitch authorization screen or
+                <a href="https://www.twitch.tv/logout" target="_blank" style="color: #9146ff; text-decoration: underline;">logout of Twitch first</a>.
+            </p>
             <div class="auth-status">
                 <div class="status-indicator status-unavailable"></div>
                 <span class="auth-label">Broadcast Rights: Unauthorized</span>
             </div>
-            <div style="display: flex; justify-content: flex-start;">
-                <a href="/auth/login/twitch" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="display: flex; justify-content: flex-start; align-items: center; gap: 1rem;">
+                <button onclick="openTwitchAuth()" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
                     Authorize Broadcast Rights
-                </a>
+                </button>
             </div>
         </div>
     </div>
+
+    <script>
+        function openTwitchAuth() {
+            const width = 600;
+            const height = 700;
+            const left = (window.innerWidth / 2) - (width / 2) + window.screenX;
+            const top = (window.innerHeight / 2) - (height / 2) + window.screenY;
+
+            window.open(
+                '/auth/authorize/twitch',
+                'Twitch Authorization',
+                `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
+            );
+        }
+    </script>
 
     <div class="twitch-section broadcast-section">
         <h2>{{ name }} - Broadcast Messages</h2>
