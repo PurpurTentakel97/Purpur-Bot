@@ -74,6 +74,7 @@ class AppContext:
         twitch_eventsub_secret: Optional[str],
         twitch_eventsub_port: int,
         twitch_live_message_cooldown_in_seconds: int,
+        command_response_cooldown_in_seconds: int,
     ) -> None:
         self.discord_token: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_token)
         self.discord_client_id: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_client_id)
@@ -92,6 +93,9 @@ class AppContext:
         self.twitch_eventsub_port: AppContextEntry[int] = AppContextEntry(twitch_eventsub_port)
         self.twitch_live_message_cooldown_in_seconds: AppContextEntry[int] = AppContextEntry(
             twitch_live_message_cooldown_in_seconds
+        )
+        self.command_response_cooldown_in_seconds: AppContextEntry[int] = AppContextEntry(
+            command_response_cooldown_in_seconds
         )
 
     def update_twitch_tokens(self, new_access_token: str, new_refresh_token: str) -> None:
@@ -170,4 +174,5 @@ APP_CONTEXT = AppContext(
     twitch_live_message_cooldown_in_seconds=get_env_var_as_int_or_default(
         "TWITCH_LIVE_MESSAGE_COOLDOWN_IN_SECONDS", 7200
     ),
+    command_response_cooldown_in_seconds=get_env_var_as_int_or_default("COMMAND_RESPONSE_COOLDOWN_IN_SECONDS", 60),
 )

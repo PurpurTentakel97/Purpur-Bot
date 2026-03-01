@@ -19,6 +19,14 @@ class SubscriptionCooldownKey(CooldownKey):
     broadcast_id: str
 
 
+@dataclass(frozen=True)
+class CommandCooldownKey(CooldownKey):
+    command: str
+    twitch_channel_id: str
+    discord_server_id: int
+    discord_channel_id: int
+
+
 class Cooldown[T: CooldownKey]:
     def __init__(self, cooldown_in_seconds: int) -> None:
         self._cooldown_in_seconds = cooldown_in_seconds
@@ -56,3 +64,4 @@ class CooldownsWrapper:
     twitch_live_subscription = Cooldown[SubscriptionCooldownKey](
         APP_CONTEXT.twitch_live_message_cooldown_in_seconds.value()
     )
+    command_response_cooldown = Cooldown[CommandCooldownKey](APP_CONTEXT.command_response_cooldown_in_seconds.value())

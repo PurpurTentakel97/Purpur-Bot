@@ -1,5 +1,6 @@
 from typing import Optional
 
+from discord import Message as DiscordMessage
 from twitchAPI.chat import ChatMessage as TwitchChatMessage
 
 from bot.chat.types.message import ChatMessage
@@ -28,10 +29,13 @@ from bot.core.counter import increment_counter as increment_counter_core
 from bot.core.counter import increment_counter_by as increment_counter_by_core
 from bot.core.counter import reset_counter as reset_counter_core
 from bot.core.counter import save_counter as save_counter_core
+from bot.core.types.cooldown import CommandCooldownKey
 from bot.core.types.permission_level import PermissionLevel
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import ResultState
 from bot.database.types.feature_flags import FeatureFlagsDB
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
 
 
 def _to_int(value: str) -> Optional[int]:
@@ -61,12 +65,32 @@ def _result_lookup(state: ResultState) -> str:
 
 async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
     parts = message.text.strip().split(" ")
+    if len(parts) == 0:
+        log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
+        return None
 
     def get_broadcaster_id() -> Optional[str]:
         if isinstance(message.original_message, TwitchChatMessage):
             if message.original_message.room is not None:
                 return message.original_message.room.room_id
         return None
+
+    def get_command_response_cooldown_key() -> Optional[CommandCooldownKey]:
+        twitch_broadcaster_id = ""
+        discord_server_id = 0
+        discord_channel_id = 0
+
+        if message.has_twitch_message:
+            twitch_broadcaster_id = get_broadcaster_id()
+            if twitch_broadcaster_id is None:
+                return None
+        elif message.has_discord_message:
+            if isinstance(message.original_message, DiscordMessage):
+                if message.original_message.guild is not None:
+                    discord_server_id = message.original_message.guild.id
+                discord_channel_id = message.original_message.channel.id
+
+        return CommandCooldownKey(parts[0], twitch_broadcaster_id, discord_server_id, discord_channel_id)
 
     if message.sender_permission_level.is_permitted(PermissionLevel.MODERATOR):
         match parts:
@@ -325,12 +349,21 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
         case _:
             pass
 
-    if len(parts) < 1:
-        return None
-
     if feature_flags.can_commands:
         result = get_command_core(message.bot_id, parts[0].lstrip("!"))
         if result.state.success and result.value is not None:
+            cooldown_key = get_command_response_cooldown_key()
+            if cooldown_key is None:
+                log_default(
+                    LogLevel.ERROR,
+                    f"Failed to get cooldown key for command '{parts[0]}'. "
+                    + "| ignoring cooldown feature. | message: '{message}'",
+                )
+            else:
+                if PROGRAMM_PARTS.cooldowns.command_response_cooldown.is_in_cooldown(cooldown_key):
+                    return None
+                PROGRAMM_PARTS.cooldowns.command_response_cooldown.add(cooldown_key)
+
             return message.to_response_message(result.value.message)
 
     return None
