@@ -85,6 +85,8 @@ async def send_test_twitch_event_hub_entry(id_: int) -> Result[None]:
     if not channel_name:
         return Result(ResultState.ERROR, None)
 
+    profile_picture_url = channel_name.profile_image_url
+
     message = TwitchOnlineMessage(
         id=hub_entry.value.id,
         discord_server_id=hub_entry.value.server_id,
@@ -95,6 +97,7 @@ async def send_test_twitch_event_hub_entry(id_: int) -> Result[None]:
         stream_title="Stream Title | Product Placement (Kappa) | Obviously no real stream title",
         category_name="Category Name",
         channel_url=f"https://twitch.tv/{channel_name.display_name.lower()}",
+        profile_picture_url=profile_picture_url,
     )
 
     await PROGRAMM_PARTS.discord.send_twitch_live_message(message)
