@@ -8,6 +8,7 @@ class TwitchOnlineMessageLight:
     channel_url: str
     stream_title: str
     category_name: str
+    profile_picture_url: str
 
     def advance(self, id_: int, discord_server_id: int, discord_channel_id: int, message: str) -> "TwitchOnlineMessage":
         return TwitchOnlineMessage(
@@ -20,6 +21,7 @@ class TwitchOnlineMessageLight:
             channel_url=self.channel_url,
             stream_title=self.stream_title,
             category_name=self.category_name,
+            profile_picture_url=self.profile_picture_url,
         )
 
 
