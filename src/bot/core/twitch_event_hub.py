@@ -191,6 +191,7 @@ class TwitchEventHub:
 
         stream_title = "No Title"
         category_name = "No Category"
+        profile_picture_url = ""
 
         try:
             if PROGRAMM_PARTS.twitch:
@@ -199,6 +200,13 @@ class TwitchEventHub:
                     channel_info = channel_infos[0]
                     stream_title = channel_info.title
                     category_name = channel_info.game_name
+
+                users = PROGRAMM_PARTS.twitch.client.get_users(user_ids=[broadcaster_id])
+                user = await first(users)
+                if user:
+                    profile_picture_url = str(user.profile_image_url)
+                else:
+                    log_twitch(LogLevel.ERROR, f"Failed to fetch profile picture for {broadcaster_name}")
         except Exception as e:
             log_exception(e, LogProgram.Twitch, f"Failed to fetch channel info for {broadcaster_id}")
 
@@ -208,6 +216,7 @@ class TwitchEventHub:
             channel_url=f"https://twitch.tv/{event.event.broadcaster_user_login}",
             stream_title=stream_title,
             category_name=category_name,
+            profile_picture_url=profile_picture_url,
         )
 
         log_twitch(LogLevel.INFO, f"Received stream online event for {broadcaster_id}. | {message_light}")
