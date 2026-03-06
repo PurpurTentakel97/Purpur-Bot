@@ -270,7 +270,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
                 )
 
             # dict
-            case ["!dict", "add", alias, *msg]:
+            case ["!alias", "add", alias, *msg]:
                 command_message = " ".join(msg)
                 result = add_alias_core(message.bot_id, alias, command_message)
                 if result.state.success and result.value is not None:
@@ -279,40 +279,40 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
                     )
                 return message.to_response_message(f"Failed to add alias: {_result_lookup(result.state)}")
 
-            case ["!dict", "edit_name", old_alias, new_alias, *_]:
+            case ["!alias", "edit_name", old_alias, new_alias, *_]:
                 result = edit_dict_alias_core(message.bot_id, old_alias, new_alias)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Alias '{old_alias}' updated to '{new_alias}'.")
                 return message.to_response_message(f"Failed to edit alias: {_result_lookup(result.state)}")
 
-            case ["!dict", "edit_message", alias, *msg]:
+            case ["!alias", "edit_message", alias, *msg]:
                 command_message = " ".join(msg)
                 result = edit_dict_explanation_core(message.bot_id, alias, command_message)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Alias '{alias}' updated to explanation '{command_message}'.")
                 return message.to_response_message(f"Failed to edit alias explanation: {_result_lookup(result.state)}")
 
-            case ["!dict", "enable", alias, *_]:
+            case ["!alias", "enable", alias, *_]:
                 result = enable_alias_by_bot_id_core(message.bot_id, alias)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Alias '{alias}' enabled successfully.")
                 return message.to_response_message(f"Failed to enable alias: {_result_lookup(result.state)}")
 
-            case ["!dict", "disable", alias, *_]:
+            case ["!alias", "disable", alias, *_]:
                 result = disable_alias_by_bot_id_core(message.bot_id, alias)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Alias '{alias}' disabled successfully.")
                 return message.to_response_message(f"Failed to disable alias: {_result_lookup(result.state)}")
 
-            case ["!dict", "remove", alias, *_]:
+            case ["!alias", "remove", alias, *_]:
                 result = delete_alias_core(message.bot_id, alias)
                 if result.state.success:
                     return message.to_response_message(f"Alias '{alias}' deleted successfully.")
                 return message.to_response_message(f"Failed to delete alias: {_result_lookup(result.state)}")
 
-            case ["!dict", *_]:
+            case ["!alias", *_]:
                 return message.to_response_message(
-                    "Invalid command format. Use '!dict add|edit_name|edit_message|remove <alias> <new_value>'"
+                    "Invalid command format. Use '!alias add|edit_name|edit_message|remove <alias> <new_value>'"
                 )
 
             case _:
