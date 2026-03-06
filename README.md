@@ -98,6 +98,12 @@ The bot has cooldowns for commands, aliases and online messages.
 All cooldowns are in seconds and global.
 You can change it in the .env file.
 
+### Online Messages:
+The bot can send a message to a specific Discord channel when a twitch channel goes online.
+Use '@' to mention a role; e.g. `@live`. The bot will try to resolve the role id from the role name.
+Note: This is case-sensitive. ``@everyone`` and ``@here`` gets ignored by the bot since this triggers within discord
+without the id.   
+
 ## Permission Levels:
 
 ### general Permission Levels:

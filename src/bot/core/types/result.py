@@ -22,6 +22,7 @@ class ResultState(Enum):
     COMMAND_DISABLED = auto()
     ALIAS_DISABLED = auto()
     RESERVED_NAME = auto()
+    UNABLE_TO_EXTRACT_ROLE = auto()
 
     @property
     def success(self) -> bool:

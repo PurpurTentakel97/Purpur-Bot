@@ -1,6 +1,7 @@
 from twitchAPI.helper import first
 
 from bot.core.discord_feature_flags import select_discord_feature_flags_by_server_id
+from bot.core.helpers.discord_role import replace_role_mentions
 from bot.core.types.cooldown import SubscriptionCooldownKey
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
@@ -55,6 +56,10 @@ async def add_twitch_event_hub_entry(
     broadcaster_id: str,
     message: str,
 ) -> Result[int]:
+    replacement_result = replace_role_mentions(server_id, message)
+    if replacement_result.value:
+        message = replacement_result.value
+
     data = {
         FIELD_BOT_ID: bot_id,
         FIELD_DISCORD_SERVER_ID: server_id,
@@ -66,6 +71,9 @@ async def add_twitch_event_hub_entry(
     result = insert_twitch_event_hub_db(data)
 
     await _subscribe(broadcaster_id)
+
+    if replacement_result.state.fail:
+        result.state = replacement_result.state
 
     return result
 
@@ -147,6 +155,14 @@ async def send_twitch_event_hub_entry(broadcast_id: str, message: TwitchOnlineMe
 
 
 async def update_twitch_event_hub(id_: int, channel_id: int, message: str, enabled: bool) -> Result[None]:
+    hub_entry_result = select_twitch_event_hub_by_id_db(id_)
+    if hub_entry_result.state.fail or hub_entry_result.value is None:
+        return hub_entry_result.cast_to(type(None))
+
+    replacement_result = replace_role_mentions(hub_entry_result.value.server_id, message)
+    if replacement_result.value:
+        message = replacement_result.value
+
     result = update_twitch_event_hub_by_id_db(
         id_, {FIELD_DISCORD_CHANNEL_ID: channel_id, FIELD_TWITCH_LIVE_MESSAGE: message, FIELD_ENABLED: enabled}
     )
@@ -162,6 +178,9 @@ async def update_twitch_event_hub(id_: int, channel_id: int, message: str, enabl
         await _subscribe(hub_entry.value.broadcaster_id)
     else:
         await _unsubscribe(hub_entry.value.broadcaster_id)
+
+    if replacement_result.state.fail:
+        result.state = replacement_result.state
 
     return result
 
