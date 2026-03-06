@@ -152,13 +152,13 @@ You can change it in the .env file.
 | !counter decrement_by \<name\> \<value\> *     | Decrements a counter by a specified value                                                    | VIP                  |
 | !counter remove \<name\> *                     | Removes a counter if it is unused                                                            | VIP                  |
 | !counter *                                     | Prints a list of counter related commands                                                    | VIP                  |
-| !dict add \<alias\> \<message*\>               | Adds an alias                                                                                | VIP                  |
-| !dict edit_name \<old_alias\> \<new_alias\> *  | Edits an alias                                                                               | VIP                  |
-| !dict edit_message \<alias\> \<message*\>      | Edits an alias message                                                                       | VIP                  |
-| !dict enable \<alias\> *                       | Enables an alias                                                                             | VIP                  |
-| !dict disable \<alias\> *                      | Disables an alias                                                                            | VIP                  |
-| !dict remove \<alias\> *                       | Removes an alias                                                                             | VIP                  |
-| !dict *                                        | Prints a list of dictionary related commands                                                 | VIP                  |
+| !alias add \<alias\> \<message*\>              | Adds an alias                                                                                | VIP                  |
+| !alias edit_name \<old_alias\> \<new_alias\> * | Edits an alias                                                                               | VIP                  |
+| !alias edit_message \<alias\> \<message*\>     | Edits an alias message                                                                       | VIP                  |
+| !alias enable \<alias\> *                      | Enables an alias                                                                             | VIP                  |
+| !alias disable \<alias\> *                     | Disables an alias                                                                            | VIP                  |
+| !alias remove \<alias\> *                      | Removes an alias                                                                             | VIP                  |
+| !alias *                                       | Prints a list of dictionary related commands                                                 | VIP                  |
 | !coms *                                        | Prints a list of all commands                                                                | User                 |
 | !<name> *                                      | If no build in commands triggers, executes the custom command                                | User                 |
 
