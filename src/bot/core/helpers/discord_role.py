@@ -9,7 +9,8 @@ from bot.core.types.result import ResultState
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 
-ROLE_PATTERN = re.compile(r"@([^\s@]+)")
+ROLE_PATTERN = re.compile(r"@([^&\s@][^\s@]*)")
+IGNORE_LIST = ["everyone", "here"]
 
 
 def replace_role_mentions(server_id: int, text: str) -> Result[str]:
@@ -26,6 +27,9 @@ def replace_role_mentions(server_id: int, text: str) -> Result[str]:
 
     def replace(match: typing.Match[str]) -> str:
         role_name = match.group(1)
+        if role_name in IGNORE_LIST:
+            return match.group(0)
+
         role = discord.utils.get(guild.roles, name=role_name)
 
         if role:
