@@ -117,6 +117,9 @@ class DiscordClient(Client):
             timestamp=discord.utils.utcnow(),
             description=f"{message.stream_title}\n### Category: \n{message.category_name}",
         )
+        if message.profile_picture_url:
+            embed.set_thumbnail(url=message.profile_picture_url)
+
         embed.set_image(url=preview_url)
 
         # Buttons: View (Placeholder for later handling)
