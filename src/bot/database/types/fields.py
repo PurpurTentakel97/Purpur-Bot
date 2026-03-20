@@ -14,7 +14,7 @@ TABLE_TWITCH_AUTH_NAME: Final = "twitch_auth"
 TABLE_TWITCH_BROADCAST_AUTH_NAME: Final = "twitch_broadcast_auth"
 TABLE_TWITCH_FEATURE_FLAGS_NAME: Final = "twitch_feature_flags"
 TABLE_TWITCH_EVENT_HUB_NAME: Final = "twitch_event_hub"
-TABLE_QUOTE_NAME: Final = "quote"
+TABLE_QUOTE_NAME: Final = "quotes"
 
 # Specific Fields
 FIELD_ALIAS_NAME: Final = "alias"

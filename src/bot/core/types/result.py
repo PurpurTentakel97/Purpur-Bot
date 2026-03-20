@@ -23,6 +23,9 @@ class ResultState(Enum):
     ALIAS_DISABLED = auto()
     RESERVED_NAME = auto()
     UNABLE_TO_EXTRACT_ROLE = auto()
+    MISSING_DATA = auto()
+    USER_NOT_FOUND = auto()
+    NO_QUOTES_FOUND = auto()
 
     @property
     def success(self) -> bool:

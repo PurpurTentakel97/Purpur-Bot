@@ -19,6 +19,10 @@ def select_quote_by_id(quote_id: int) -> Result[Quote]:
     return PROGRAMM_PARTS.database.select_one(table_name=TABLE_QUOTE_NAME, where={FIELD_ID: quote_id}, type_=Quote)
 
 
+def select_quote_by_bot_id(bot_id: int) -> Result[list[Quote]]:
+    return PROGRAMM_PARTS.database.select_all(table_name=TABLE_QUOTE_NAME, where={FIELD_BOT_ID: bot_id}, type_=Quote)
+
+
 def select_quote_by_discord_id(*, bot_id: int, discord_id: int) -> Result[list[Quote]]:
     return PROGRAMM_PARTS.database.select_all(
         table_name=TABLE_QUOTE_NAME,
@@ -35,7 +39,7 @@ def select_quote_by_twitch_id(bot_id: int, twitch_id: str) -> Result[list[Quote]
     )
 
 
-def insert_quote(bot_id: int, discord_id: Optional[int], twitch_id: Optional[str], quote: str) -> Result[int]:
+def insert_quote(*, bot_id: int, discord_id: Optional[int], twitch_id: Optional[str], quote: str) -> Result[int]:
     timestamp: Final = datetime.now(UTC)
     return PROGRAMM_PARTS.database.insert(
         table_name=TABLE_QUOTE_NAME,
