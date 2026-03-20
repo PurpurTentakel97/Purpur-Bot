@@ -116,7 +116,7 @@ async def get_quote(text: str, message: ChatMessage) -> Result[str]:
                 name = user_res.value.display_name
 
         date_str = quote.timestamp.strftime("%d.%m.%Y")
-        return Result(ResultState.SUCCESS, f"{name} | {date_str}: \" {quote.quote} \"")
+        return Result(ResultState.SUCCESS, f'{name} | {date_str}: " {quote.quote} "')
 
     async def quote_lookup(text: str, message: ChatMessage) -> Result[str]:
         lookup_text = text.strip()
