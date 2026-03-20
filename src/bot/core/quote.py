@@ -13,10 +13,12 @@ from bot.chat.types.message import ChatMessage
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
+from bot.database.quote import delete_quote as delete_quote_db
 from bot.database.quote import insert_quote as insert_quote_db
 from bot.database.quote import select_quote_by_bot_id as select_quote_by_bot_id_db
 from bot.database.quote import select_quote_by_discord_id as select_quote_by_discord_id_db
 from bot.database.quote import select_quote_by_twitch_id as select_quote_by_twitch_id_db
+from bot.database.quote import update_quote as update_quote_db
 from bot.database.types.quote import Quote
 
 
@@ -88,6 +90,10 @@ async def save_quote_by_message(text: str, message: ChatMessage) -> Result[int]:
     return Result(ResultState.TYPE_MISSMATCH, None)
 
 
+async def get_quotes_by_bot_id(bot_id: int) -> Result[list[Quote]]:
+    return select_quote_by_bot_id_db(bot_id)
+
+
 async def get_quote(text: str, message: ChatMessage) -> Result[str]:
     async def get_random_quote() -> Result[str]:
         result = select_quote_by_bot_id_db(message.bot_id)
@@ -152,3 +158,11 @@ async def get_quote(text: str, message: ChatMessage) -> Result[str]:
         return await get_random_quote()
 
     return await quote_lookup(text, message)
+
+
+def edit_quote_by_id(quote_id: int, quote: str) -> Result[None]:
+    return update_quote_db(quote_id, quote)
+
+
+def delete_quote_by_id(quote_id: int) -> Result[None]:
+    return delete_quote_db(quote_id)

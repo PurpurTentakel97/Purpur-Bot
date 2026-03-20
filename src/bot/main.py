@@ -64,6 +64,7 @@ app.include_router(dashboard_discord_router)
 app.include_router(dashboard_commands_router)
 app.include_router(dashboard_alias_router)
 app.include_router(dashboard_counter_router)
+app.include_router(dashboard_commands_router)
 
 
 @app.exception_handler(HTTPException)
