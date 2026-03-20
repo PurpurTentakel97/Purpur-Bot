@@ -94,15 +94,17 @@ The bot can handle aliases.
 The bot will respond with an explanation when the registered word appears within a message.
 
 ### Cooldowns:
+
 The bot has cooldowns for commands, aliases and online messages.
 All cooldowns are in seconds and global.
 You can change it in the .env file.
 
 ### Online Messages:
+
 The bot can send a message to a specific Discord channel when a twitch channel goes online.
 Use '@' to mention a role; e.g. `@live`. The bot will try to resolve the role id from the role name.
 Note: This is case-sensitive. ``@everyone`` and ``@here`` gets ignored by the bot since this triggers within discord
-without the id.   
+without the id.
 
 ## Permission Levels:
 
@@ -165,6 +167,9 @@ without the id.
 | !alias disable \<alias\> *                     | Disables an alias                                                                            | VIP                  |
 | !alias remove \<alias\> *                      | Removes an alias                                                                             | VIP                  |
 | !alias *                                       | Prints a list of dictionary related commands                                                 | VIP                  |
+| !quote add \<mension user\> <\msg*\>           | Adds a new quote for the mensioned user. Note: The quote gets stored plattform specific      | User                 |
+| !quote <\mension user\> *                      | Prints a random quote from a specific user. Note: This is not working accross plattforms     | User                 |
+| !quote *                                       | Prints a random quote. Note: This is working accross platforms                               | User                 |
 | !coms *                                        | Prints a list of all commands                                                                | User                 |
 | !<name> *                                      | If no build in commands triggers, executes the custom command                                | User                 |
 

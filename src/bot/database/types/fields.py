@@ -14,6 +14,7 @@ TABLE_TWITCH_AUTH_NAME: Final = "twitch_auth"
 TABLE_TWITCH_BROADCAST_AUTH_NAME: Final = "twitch_broadcast_auth"
 TABLE_TWITCH_FEATURE_FLAGS_NAME: Final = "twitch_feature_flags"
 TABLE_TWITCH_EVENT_HUB_NAME: Final = "twitch_event_hub"
+TABLE_QUOTE_NAME: Final = "quotes"
 
 # Specific Fields
 FIELD_ALIAS_NAME: Final = "alias"
@@ -25,6 +26,7 @@ FIELD_BASIC_COMMAND_COMMAND: Final = "command"
 FIELD_BASIC_COMMAND_MESSAGE: Final = "message"
 FIELD_COUNTER_NAME: Final = "name"
 FIELD_COUNTER_COUNT: Final = "count"
+FIELD_QUOTE_MESSAGE: Final = "quote"
 
 # Generic Fields
 FIELD_ID: Final = "id"
@@ -36,6 +38,8 @@ FIELD_TWITCH_USER_ID: Final = "twitch_user_id"
 FIELD_TWITCH_BROADCASTER_ID: Final = "broadcaster_id"
 FIELD_TWITCH_LIVE_MESSAGE: Final = "message"
 FIELD_DISCORD_CHANNEL_ID: Final = "channel_id"
+FIELD_DISCORD_USER_ID: Final = "discord_user_id"
+FIELD_TIMESTAMP: Final = "timestamp"
 
 FIELD_ENABLED: Final = "enabled"
 FIELD_CAN_COMMANDS: Final = "can_commands"

@@ -19,11 +19,13 @@ from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.routes.api_auth import router as auth_router
 from bot.frontend.routes.api_icons import router as icon_router
+from bot.frontend.routes.api_names import router as frontend_api_router
 from bot.frontend.routes.dashboard_alias import router as dashboard_alias_router
 from bot.frontend.routes.dashboard_commands import router as dashboard_commands_router
 from bot.frontend.routes.dashboard_counter import router as dashboard_counter_router
 from bot.frontend.routes.dashboard_discord import router as dashboard_discord_router
 from bot.frontend.routes.dashboard_global import router as dashboard_main_router
+from bot.frontend.routes.dashboard_quotes import router as dashboard_quotes_router
 from bot.frontend.routes.dashboard_twitch import router as dashboard_twitch_router
 from bot.frontend.routes.home import router as home_router
 from bot.helpers.log import LogProgram
@@ -64,6 +66,8 @@ app.include_router(dashboard_discord_router)
 app.include_router(dashboard_commands_router)
 app.include_router(dashboard_alias_router)
 app.include_router(dashboard_counter_router)
+app.include_router(frontend_api_router)
+app.include_router(dashboard_quotes_router)
 
 
 @app.exception_handler(HTTPException)

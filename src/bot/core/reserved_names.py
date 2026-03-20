@@ -1,1 +1,1 @@
-RESERVED_NAMES = {"title", "game", "tags", "com", "counter", "alias", "coms"}
+RESERVED_NAMES = {"title", "game", "tags", "com", "counter", "alias", "coms", "quote"}

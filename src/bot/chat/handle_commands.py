@@ -26,6 +26,8 @@ from bot.core.counter import increment_counter as increment_counter_core
 from bot.core.counter import increment_counter_by as increment_counter_by_core
 from bot.core.counter import reset_counter as reset_counter_core
 from bot.core.counter import save_counter as save_counter_core
+from bot.core.quote import get_quote
+from bot.core.quote import save_quote_by_message
 from bot.core.types.cooldown import CommandCooldownKey
 from bot.core.types.permission_level import PermissionLevel
 from bot.core.types.programm_parts import PROGRAMM_PARTS
@@ -58,6 +60,10 @@ def _result_lookup(state: ResultState) -> str:
             return "unknown identifier."
         case ResultState.RESERVED_NAME:
             return "the identifier is reserved."
+        case ResultState.USER_NOT_FOUND:
+            return "user not found."
+        case ResultState.NO_QUOTES_FOUND:
+            return "this user does not have any Quotes."
         case _:
             return "internal error"
 
@@ -320,6 +326,26 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
 
     # permission level user
     match parts:
+        # quote
+        case ["!quote", "add", *quote]:
+            quote_text = " ".join(quote)
+            result = await save_quote_by_message(quote_text, message)
+            if result.state.success:
+                return message.to_response_message("New Quote saved successfully.")
+            return message.to_response_message(f"Failed to save quote: {_result_lookup(result.state)}")
+
+        case ["!quote", name, *_]:
+            result = await get_quote(name, message)
+            if result.state.success and result.value is not None:
+                return message.to_response_message(result.value)
+            return message.to_response_message(f"Failed to get quote: {_result_lookup(result.state)}")
+
+        case ["!quote", *_]:
+            result = await get_quote("", message)
+            if result.state.success and result.value is not None:
+                return message.to_response_message(result.value)
+            return message.to_response_message("No quotes found.")
+
         case ["!coms", *_]:
             result = get_commands_by_bot_id_core(message.bot_id)
 

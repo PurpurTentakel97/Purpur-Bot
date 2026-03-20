@@ -111,6 +111,12 @@
                         Aliases
                     </a>
                 </li>
+                <li>
+                    <a href="/dashboard/quotes/{{ bot.id }}"
+                       class="{{ 'active' if request.url.path.startswith('/dashboard/quotes/' ~ bot.id) else '' }}">
+                        Quotes
+                    </a>
+                </li>
             </ul>
         </nav>
     </aside>
