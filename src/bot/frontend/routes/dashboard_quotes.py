@@ -1,9 +1,11 @@
 from http import HTTPStatus
 from typing import Annotated
 from typing import Final
+from typing import Optional
 
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import Form
 from fastapi.responses import HTMLResponse
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
@@ -14,8 +16,10 @@ from bot.core.quote import edit_quote_by_id
 from bot.core.quote import get_quotes_by_bot_id
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
+from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.route_utils import get_valid_bot
+from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
 router: Final = APIRouter(prefix="/dashboard/quotes", dependencies=[Depends(get_authenticated_twitch_user)])
@@ -26,16 +30,19 @@ async def dashboard_main(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
 ) -> HTMLResponse:
-    quotes: Final = get_quotes_by_bot_id(bot.id)
+    result: Final = await get_quotes_by_bot_id(bot.id)
+    quotes = result.value if result.state.success and result.value is not None else []
     return template.TemplateResponse(
         request=request,
-        name="dashboard/quotes.html",
+        name="dashboard_quotes.html",
         context={
             "bot": bot,
             "quotes": quotes,
             "twitch_user": twitch_user,
+            "discord_user": discord_user,
         },
     )
 
@@ -45,7 +52,7 @@ async def edit(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     quote_id: int,
-    quote: str,
+    quote: Annotated[str, Form()],
 ) -> RedirectResponse:
     result: Final = edit_quote_by_id(quote_id, quote)
 

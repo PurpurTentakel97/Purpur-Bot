@@ -24,6 +24,7 @@ from bot.frontend.routes.dashboard_commands import router as dashboard_commands_
 from bot.frontend.routes.dashboard_counter import router as dashboard_counter_router
 from bot.frontend.routes.dashboard_discord import router as dashboard_discord_router
 from bot.frontend.routes.dashboard_global import router as dashboard_main_router
+from bot.frontend.routes.dashboard_quotes import router as dashboard_quotes_router
 from bot.frontend.routes.dashboard_twitch import router as dashboard_twitch_router
 from bot.frontend.routes.home import router as home_router
 from bot.helpers.log import LogProgram
@@ -64,7 +65,7 @@ app.include_router(dashboard_discord_router)
 app.include_router(dashboard_commands_router)
 app.include_router(dashboard_alias_router)
 app.include_router(dashboard_counter_router)
-app.include_router(dashboard_commands_router)
+app.include_router(dashboard_quotes_router)
 
 
 @app.exception_handler(HTTPException)
