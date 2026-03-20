@@ -17,6 +17,7 @@ from bot.core.terminate import terminate_programm
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
+from bot.frontend.routes.api_names import router as frontend_api_router
 from bot.frontend.routes.api_auth import router as auth_router
 from bot.frontend.routes.api_icons import router as icon_router
 from bot.frontend.routes.dashboard_alias import router as dashboard_alias_router
@@ -65,6 +66,7 @@ app.include_router(dashboard_discord_router)
 app.include_router(dashboard_commands_router)
 app.include_router(dashboard_alias_router)
 app.include_router(dashboard_counter_router)
+app.include_router(frontend_api_router)
 app.include_router(dashboard_quotes_router)
 
 

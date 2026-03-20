@@ -119,9 +119,9 @@
             <tr>
                 <td class="user-id">
                     {% if quote.twitch_user_id %}
-                        Twitch: {{ quote.twitch_user_id }}
+                        Twitch: <span class="twitch-name" data-user-id="{{ quote.twitch_user_id }}">{{ quote.twitch_user_id }}</span>
                     {% elif quote.discord_user_id %}
-                        Discord: {{ quote.discord_user_id }}
+                        Discord: <span class="discord-name" data-user-id="{{ quote.discord_user_id }}">{{ quote.discord_user_id }}</span>
                     {% else %}
                         Unknown
                     {% endif %}
@@ -148,4 +148,41 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const twitchSpans = document.querySelectorAll('.twitch-name');
+            const discordSpans = document.querySelectorAll('.discord-name');
+
+            twitchSpans.forEach(async (span) => {
+                const userId = span.getAttribute('data-user-id');
+                try {
+                    const response = await fetch(`/api/twitch/name/${userId}`);
+                    if (response.ok) {
+                        const name = await response.json();
+                        if (name) {
+                            span.textContent = name;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching twitch name:', error);
+                }
+            });
+
+            discordSpans.forEach(async (span) => {
+                const userId = span.getAttribute('data-user-id');
+                try {
+                    const response = await fetch(`/api/discord/name/${userId}`);
+                    if (response.ok) {
+                        const name = await response.json();
+                        if (name) {
+                            span.textContent = name;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching discord name:', error);
+                }
+            });
+        });
+    </script>
 {% endblock %}
