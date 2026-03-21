@@ -2,9 +2,79 @@
 
 {% block title %}Aliases - {{ bot.name }}{% endblock %}
 
+{% block extra_view_styles %}
+<style>
+    .aliases-table {
+        margin: 2rem auto;
+        max-width: 1000px;
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #2a2a2a;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .aliases-table th, .aliases-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #444;
+    }
+
+    .aliases-table th {
+        background-color: #333;
+        color: #aaa;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+    }
+
+    .aliases-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .aliases-table tr:hover {
+        background-color: #333;
+    }
+
+    .alias-name {
+        color: #9146ff;
+        font-weight: bold;
+    }
+
+</style>
+{% endblock %}
+
 {% block view_content %}
 <div style="text-align: center;">
     <h2>Aliases</h2>
     <p>List of available aliases for {{ bot.name }}.</p>
+</div>
+
+<table class="aliases-table">
+    <thead>
+        <tr>
+            <th>Alias</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for alias in aliases %}
+        {% if alias.enabled %}
+        <tr>
+            <td class="alias-name">{{ alias.alias }}</td>
+            <td>{{ alias.explanation }}</td>
+        </tr>
+        {% endif %}
+        {% else %}
+        <tr>
+            <td colspan="2" style="text-align: center;">No active aliases found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="text-align: center;">
+    <p>An alias is sent within a chat when a word is exactly matching an alias.</p>
 </div>
 {% endblock %}
