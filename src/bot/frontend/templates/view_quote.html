@@ -60,7 +60,7 @@
         {% for quote in quotes|reverse %}
         <tr>
             <td class="quote-date">{{ quote.timestamp.strftime('%d.%m.%Y') }}</td>
-            <td>" {{ quote.quote }} "</td>
+            <td>"{{ quote.quote }}"</td>
         </tr>
         {% else %}
         <tr>
