@@ -2,9 +2,83 @@
 
 {% block title %}Commands - {{ bot.name }}{% endblock %}
 
+{% block extra_view_styles %}
+<style>
+    .commands-table {
+        margin: 2rem auto;
+        max-width: 1000px;
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #2a2a2a;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .commands-table th, .commands-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #444;
+    }
+
+    .commands-table th {
+        background-color: #333;
+        color: #aaa;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+    }
+
+    .commands-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .commands-table tr:hover {
+        background-color: #333;
+    }
+
+    .command-name {
+        color: #9146ff;
+        font-weight: bold;
+    }
+
+</style>
+{% endblock %}
+
 {% block view_content %}
 <div style="text-align: center;">
     <h2>Commands</h2>
     <p>List of available commands for {{ bot.name }}.</p>
 </div>
+
+<table class="commands-table">
+    <thead>
+        <tr>
+            <th>Command</th>
+            <th>Response</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for command in commands %}
+        {% if command.enabled %}
+        <tr>
+            <td class="command-name">!{{ command.command }}</td>
+            <td>{{ command.message }}</td>
+        </tr>
+        {% endif %}
+        {% else %}
+        <tr>
+            <td colspan="2" style="text-align: center;">No active commands found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="text-align: center;">
+    <p>Please note that entries in <code>{curly brackets}</code> indicate a counter.
+       The current value of these counters can be viewed on the
+       <a href="/view/{{ bot.id }}/counter" style="color: #9146ff; text-decoration: none; font-weight: bold;">counter subpage</a>.
+    </p>
+</div>
+
 {% endblock %}

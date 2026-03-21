@@ -43,12 +43,12 @@ async def view_commands(
     twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
     discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
 ) -> Response:
-    commands: Final = get_commands_by_bot_id_core(bot.id)
+    commands_result: Final = get_commands_by_bot_id_core(bot.id)
     return template.TemplateResponse(
         request=request,
         name="view_commands.html",
         context={
-            "commands": commands,
+            "commands": commands_result.value or [],
             "bot": bot,
             "twitch_user": twitch_user,
             "discord_user": discord_user,
@@ -64,12 +64,12 @@ async def view_counter(
     twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
     discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
 ) -> Response:
-    counter: Final = get_counters_by_bot_id_core(bot.id)
+    counter_result: Final = get_counters_by_bot_id_core(bot.id)
     return template.TemplateResponse(
         request=request,
         name="view_counter.html",
         context={
-            "counter": counter,
+            "counter": counter_result.value or [],
             "bot": bot,
             "twitch_user": twitch_user,
             "discord_user": discord_user,
@@ -85,12 +85,12 @@ async def view_alias(
     twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
     discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
 ) -> Response:
-    aliases: Final = get_alias_dict_from_bot_core(bot.id)
+    aliases_result: Final = get_alias_dict_from_bot_core(bot.id)
     return template.TemplateResponse(
         request=request,
         name="view_alias.html",
         context={
-            "aliases": aliases,
+            "aliases": aliases_result.value or [],
             "bot": bot,
             "twitch_user": twitch_user,
             "discord_user": discord_user,
@@ -106,12 +106,12 @@ async def view_quote(
     twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
     discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
 ) -> Response:
-    quotes: Final = get_quotes_by_bot_id_core(bot.id)
+    quotes_result: Final = await get_quotes_by_bot_id_core(bot.id)
     return template.TemplateResponse(
         request=request,
         name="view_quote.html",
         context={
-            "quotes": quotes,
+            "quotes": quotes_result.value or [],
             "bot": bot,
             "twitch_user": twitch_user,
             "discord_user": discord_user,
