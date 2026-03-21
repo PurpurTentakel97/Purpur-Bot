@@ -28,6 +28,7 @@ from bot.frontend.routes.dashboard_global import router as dashboard_main_router
 from bot.frontend.routes.dashboard_quotes import router as dashboard_quotes_router
 from bot.frontend.routes.dashboard_twitch import router as dashboard_twitch_router
 from bot.frontend.routes.home import router as home_router
+from bot.frontend.routes.views import router as view_router
 from bot.helpers.log import LogProgram
 from bot.helpers.log import log_exception
 
@@ -68,6 +69,7 @@ app.include_router(dashboard_alias_router)
 app.include_router(dashboard_counter_router)
 app.include_router(frontend_api_router)
 app.include_router(dashboard_quotes_router)
+app.include_router(view_router)
 
 
 @app.exception_handler(HTTPException)
