@@ -32,7 +32,15 @@ def setup_programm_parts() -> Generator[None, None, None]:
 
 @pytest.fixture
 def mock_feature_flags() -> FeatureFlagsDB:
-    return FeatureFlagsDB(id=1, bot_id=1, can_commands=True, can_alias=True, can_broadcast=True, can_twitch_live=True)
+    return FeatureFlagsDB(
+        id=1,
+        bot_id=1,
+        can_commands=True,
+        can_alias=True,
+        can_broadcast=True,
+        can_twitch_live=True,
+        can_quotes=True,
+    )
 
 
 @pytest.fixture
