@@ -12,7 +12,6 @@ from bot.core.commands import delete_command as delete_command_core
 from bot.core.commands import disable_command_by_bot_id as disable_command_by_bot_id_core
 from bot.core.commands import enable_command_by_bot_id as enable_command_by_bot_id_core
 from bot.core.commands import get_command_with_counter as get_command_core
-from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_core
 from bot.core.commands import save_command as save_command_core
 from bot.core.commands import update_command_message as update_command_message_core
 from bot.core.commands import update_command_name as update_command_name_core
@@ -347,18 +346,14 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
             return message.to_response_message("No quotes found.")
 
         case ["!coms", *_]:
-            result = get_commands_by_bot_id_core(message.bot_id)
+            url = f"https://purpur-bot.coder2k.net/view/{message.bot_id}"
+            return message.to_response_message(f"You can view all commands, counters, aliases and quotes here: {url}")
 
-            if result.state.success and result.value is not None:
-                commands = (
-                    ", ".join([message.command for message in result.value])
-                    if len(result.value) > 0
-                    else "(no commands)"
-                )
-                return message.to_response_message(f"Commands: {commands}")
-
-            return message.to_response_message("No commands found.")
-
+        case ["!help", *_]:
+            url = "https://github.com/PurpurTentakel97/Purpur-Bot"
+            return message.to_response_message(
+                f"Help for Purpur Bot: {url} or enter !coms to view all commands from this bot."
+            )
         case _:
             pass
 
