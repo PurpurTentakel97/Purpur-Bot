@@ -2,61 +2,77 @@
 
 {% block title %}Quotes - {{ bot.name }}{% endblock %}
 
-{% block view_content %}
-<div style="text-align: center;">
-    <h2>Quotes</h2>
-
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Quote</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for quote in quotes|reverse %}
-                <tr>
-                    <td>{{ quote.timestamp.strftime('%d.%m.%Y') }}</td>
-                    <td>" {{ quote.quote }} "</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div style="margin-top: 20px;">
-        <p>
-            Please note that user names are not displayed here for privacy reasons.
-        </p>
-    </div>
-</div>
-
+{% block extra_view_styles %}
 <style>
-    .table-container {
-        margin: 20px auto;
-        max-width: 800px;
-        overflow-x: auto;
-    }
-    table {
+    .quotes-table {
+        margin: 2rem auto;
+        max-width: 1000px;
         width: 100%;
         border-collapse: collapse;
-        background-color: #2c2f33;
-        color: white;
+        background-color: #2a2a2a;
         border-radius: 8px;
         overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
-    th, td {
-        padding: 12px 15px;
+
+    .quotes-table th, .quotes-table td {
+        padding: 1rem;
         text-align: left;
         border-bottom: 1px solid #444;
     }
-    th {
-        background-color: #23272a;
+
+    .quotes-table th {
+        background-color: #333;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+    }
+
+    .quotes-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .quotes-table tr:hover {
+        background-color: #333;
+    }
+
+    .quote-date {
+        color: #9146ff;
         font-weight: bold;
     }
-    tr:hover {
-        background-color: #32353b;
-    }
+
 </style>
+{% endblock %}
+
+{% block view_content %}
+<div style="text-align: center;">
+    <h2>Quotes</h2>
+</div>
+
+<table class="quotes-table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Quote</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for quote in quotes|reverse %}
+        <tr>
+            <td class="quote-date">{{ quote.timestamp.strftime('%d.%m.%Y') }}</td>
+            <td>" {{ quote.quote }} "</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="2" style="text-align: center;">No recorded quotes found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="text-align: center; margin-top: 20px;">
+    <p>
+        Please note that user names are not displayed here for privacy reasons.
+    </p>
+</div>
 {% endblock %}
