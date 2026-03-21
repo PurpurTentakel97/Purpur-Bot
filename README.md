@@ -170,7 +170,8 @@ without the id.
 | !quote add \<mension user\> <\msg*\>           | Adds a new quote for the mensioned user. Note: The quote gets stored plattform specific      | User                 |
 | !quote <\mension user\> *                      | Prints a random quote from a specific user. Note: This is not working accross plattforms     | User                 |
 | !quote *                                       | Prints a random quote. Note: This is working accross platforms                               | User                 |
-| !coms *                                        | Prints a list of all commands                                                                | User                 |
+| !coms *                                        | Displayes a Link, where all commands etc. gets displayed                                     | User                 |
+| !help *                                        | Displayes a Link, where the bot gets explained                                               | User                 |
 | !<name> *                                      | If no build in commands triggers, executes the custom command                                | User                 |
 
 ## Counter
