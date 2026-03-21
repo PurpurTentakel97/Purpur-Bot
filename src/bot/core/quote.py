@@ -147,7 +147,7 @@ async def get_quote(text: str, message: ChatMessage) -> Result[str]:
                 name = user_res.value.display_name
 
         date_str = quote.timestamp.strftime("%d.%m.%Y")
-        quote_str = f' {quote.quote} ' if message.has_twitch_message else quote.quote
+        quote_str = f" {quote.quote} " if message.has_twitch_message else quote.quote
         return Result(ResultState.SUCCESS, f'{name} | {date_str}: "{quote_str}"')
 
     async def quote_lookup(text: str, message: ChatMessage) -> Result[str]:
