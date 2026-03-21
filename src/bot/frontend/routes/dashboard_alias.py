@@ -14,7 +14,7 @@ from starlette.templating import Jinja2Templates
 from bot.core.alias_dict import add_alias as add_alias_core
 from bot.core.alias_dict import delete_alias_by_id as delete_alias_by_id_core
 from bot.core.alias_dict import get_alias_by_id as get_alias_by_id_core
-from bot.core.alias_dict import select_dict_from_bot as select_dict_from_bot_core
+from bot.core.alias_dict import get_alias_dict_from_bot as select_dict_from_bot_core
 from bot.core.alias_dict import update_alias_by_id as update_alias_by_id_core
 from bot.core.types.result import Result
 from bot.database.types.alias_dict_entry import AliasDictEntry

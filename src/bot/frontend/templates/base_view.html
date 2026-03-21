@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Bot View{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .view-container {
+        display: flex;
+        flex: 1;
+    }
+
+    .view-sidebar {
+        width: 200px;
+        background-color: #222;
+        border-right: 1px solid #444;
+        padding: 1rem 0;
+    }
+
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar-menu li a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        color: #ccc;
+        text-decoration: none;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .sidebar-menu li a:hover {
+        background-color: #333;
+        color: white;
+    }
+
+    .sidebar-menu li a.active {
+        background-color: #333;
+        color: #9146ff;
+        border-left: 3px solid #9146ff;
+        padding-left: calc(1.5rem - 3px);
+    }
+
+    .view-content {
+        flex: 1;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .view-content h1 {
+        text-align: center;
+    }
+
+    .view-content table, .view-content table th, .view-content table td {
+        color: white;
+    }
+</style>
+{% block extra_view_styles %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="view-container">
+    <aside class="view-sidebar">
+        <nav>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="/"
+                       class="{{ 'active' if request.url.path == '/' else '' }}">
+                        < Back
+                    </a>
+                </li>
+                <li>
+                    <a href="/view/{{ bot.id }}/"
+                       class="{{ 'active' if request.url.path == '/view/' ~ bot.id ~ '/' else '' }}">
+                        Main
+                    </a>
+                </li>
+                <li>
+                    <a href="/view/{{ bot.id }}/commands"
+                       class="{{ 'active' if request.url.path.startswith('/view/' ~ bot.id ~ '/commands') else '' }}">
+                        Commands
+                    </a>
+                </li>
+                <li>
+                    <a href="/view/{{ bot.id }}/counter"
+                       class="{{ 'active' if request.url.path.startswith('/view/' ~ bot.id ~ '/counter') else '' }}">
+                        Counters
+                    </a>
+                </li>
+                <li>
+                    <a href="/view/{{ bot.id }}/alias"
+                       class="{{ 'active' if request.url.path.startswith('/view/' ~ bot.id ~ '/alias') else '' }}">
+                        Aliases
+                    </a>
+                </li>
+                <li>
+                    <a href="/view/{{ bot.id }}/quote"
+                       class="{{ 'active' if request.url.path.startswith('/view/' ~ bot.id ~ '/quote') else '' }}">
+                        Quotes
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    <section class="view-content">
+        <h1>{{ bot.name }} - View</h1>
+        {% block view_content %}{% endblock %}
+    </section>
+</div>
+{% endblock %}

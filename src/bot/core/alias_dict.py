@@ -20,7 +20,7 @@ from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 
 
-def select_dict_from_bot(bot_id: int) -> Result[list[AliasDictEntry]]:
+def get_alias_dict_from_bot(bot_id: int) -> Result[list[AliasDictEntry]]:
     return select_dict_from_bot_db(bot_id)
 
 
