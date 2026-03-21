@@ -177,7 +177,11 @@ async def dashboard_twitch_feature_flag_update(
     can_quote: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
     result = update_twitch_feature_flags_by_id_core(
-        feature_flag_id, can_commands, can_alias, can_broadcast, can_quote
+        feature_flag_id,
+        can_commands,
+        can_alias,
+        can_broadcast,
+        can_quote,
     )
 
     if result.state.fail:

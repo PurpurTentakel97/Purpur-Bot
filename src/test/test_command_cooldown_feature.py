@@ -39,7 +39,7 @@ def mock_feature_flags() -> FeatureFlagsDB:
         can_alias=True,
         can_broadcast=True,
         can_twitch_live=True,
-        can_quotes=True,
+        can_quote=True,
     )
 
 

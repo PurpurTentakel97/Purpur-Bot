@@ -63,6 +63,8 @@ def _result_lookup(state: ResultState) -> str:
             return "user not found."
         case ResultState.NO_QUOTES_FOUND:
             return "this user does not have any Quotes."
+        case ResultState.INACTIVE_FEATURE:
+            return "this feature is not enabled."
         case _:
             return "internal error"
 
@@ -343,7 +345,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
             result = await get_quote("", message)
             if result.state.success and result.value is not None:
                 return message.to_response_message(result.value)
-            return message.to_response_message("No quotes found.")
+            return message.to_response_message(f"Failed to get quote: {_result_lookup(result.state)}")
 
         case ["!coms", *_]:
             url = f"https://purpur-bot.coder2k.net/view/{message.bot_id}"

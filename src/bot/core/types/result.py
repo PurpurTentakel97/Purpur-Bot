@@ -26,6 +26,7 @@ class ResultState(Enum):
     MISSING_DATA = auto()
     USER_NOT_FOUND = auto()
     NO_QUOTES_FOUND = auto()
+    INACTIVE_FEATURE = auto()
 
     @property
     def success(self) -> bool:
