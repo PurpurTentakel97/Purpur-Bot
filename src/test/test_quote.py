@@ -16,6 +16,7 @@ from bot.core.quote import save_quote_by_message
 from bot.core.quote import save_twitch_quote_by_message
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
+from bot.database.types.feature_flags import FeatureFlagsDB
 from bot.database.types.quote import Quote
 
 
@@ -47,14 +48,54 @@ def mock_discord_message() -> MagicMock:
 
 
 @pytest.fixture
-def chat_message_twitch(mock_twitch_message: MagicMock) -> ChatMessage:
-    chat = MagicMock()
+def mock_feature_flags() -> Generator[tuple[MagicMock, MagicMock], None, None]:
+    with (
+        patch("bot.core.quote.select_twitch_feature_flags_by_channel_name") as mock_twitch_flags,
+        patch("bot.core.quote.select_discord_feature_flags_by_server_id") as mock_discord_flags,
+    ):
+        # Default to enabled
+        flags = FeatureFlagsDB(
+            id=1,
+            bot_id=1,
+            can_commands=True,
+            can_alias=True,
+            can_broadcast=True,
+            can_twitch_live=True,
+            can_quote=True,
+        )
+        mock_twitch_flags.return_value = Result(ResultState.SUCCESS, flags)
+        mock_discord_flags.return_value = Result(ResultState.SUCCESS, flags)
+
+        yield (mock_twitch_flags, mock_discord_flags)
+
+
+@pytest.fixture
+def mock_twitch_chat() -> MagicMock:
+    from bot.chat.twitch_chat import TwitchChat
+
+    chat = MagicMock(spec=TwitchChat)
     chat.is_twitch = True
     chat.is_discord = False
+    chat.channel_name = "test_channel"
+    return chat
+
+
+@pytest.fixture
+def mock_discord_chat() -> MagicMock:
+    chat = MagicMock()
+    chat.is_twitch = False
+    chat.is_discord = True
+    return chat
+
+
+@pytest.fixture
+def chat_message_twitch(mock_twitch_message: MagicMock, mock_twitch_chat: MagicMock) -> ChatMessage:
+    mock_twitch_message.room = MagicMock()
+    mock_twitch_message.room.room_id = "123"
     return ChatMessage(
         bot_id=1,
         text="@target hello",
-        sender_chat=chat,
+        sender_chat=mock_twitch_chat,
         sender_permission_level=MagicMock(),
         original_message=mock_twitch_message,
         meta_data=None,
@@ -62,14 +103,13 @@ def chat_message_twitch(mock_twitch_message: MagicMock) -> ChatMessage:
 
 
 @pytest.fixture
-def chat_message_discord(mock_discord_message: MagicMock) -> ChatMessage:
-    chat = MagicMock()
-    chat.is_twitch = False
-    chat.is_discord = True
+def chat_message_discord(mock_discord_message: MagicMock, mock_discord_chat: MagicMock) -> ChatMessage:
+    mock_discord_message.guild = MagicMock()
+    mock_discord_message.guild.id = 789
     return ChatMessage(
         bot_id=1,
         text="<@123> hello",
-        sender_chat=chat,
+        sender_chat=mock_discord_chat,
         sender_permission_level=MagicMock(),
         original_message=mock_discord_message,
         meta_data=None,
@@ -77,7 +117,9 @@ def chat_message_discord(mock_discord_message: MagicMock) -> ChatMessage:
 
 
 @pytest.mark.asyncio
-async def test_save_twitch_quote_success(mock_programm_parts: MagicMock, chat_message_twitch: ChatMessage) -> None:
+async def test_save_twitch_quote_success(
+    mock_programm_parts: MagicMock, chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     chat_message_twitch.text = "@target hello world"
 
     # Mock Twitch API user lookup
@@ -99,20 +141,24 @@ async def test_save_twitch_quote_success(mock_programm_parts: MagicMock, chat_me
 
 
 @pytest.mark.asyncio
-async def test_save_twitch_quote_no_at(chat_message_twitch: ChatMessage) -> None:
+async def test_save_twitch_quote_no_at(
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     result = await save_twitch_quote_by_message("no_at hello", chat_message_twitch)
     assert result.state == ResultState.MISSING_DATA
 
 
 @pytest.mark.asyncio
-async def test_save_twitch_quote_no_quote(chat_message_twitch: ChatMessage) -> None:
+async def test_save_twitch_quote_no_quote(
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     result = await save_twitch_quote_by_message("@target", chat_message_twitch)
     assert result.state == ResultState.MISSING_DATA
 
 
 @pytest.mark.asyncio
 async def test_save_twitch_quote_user_not_found(
-    mock_programm_parts: MagicMock, chat_message_twitch: ChatMessage
+    mock_programm_parts: MagicMock, chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
 ) -> None:
     chat_message_twitch.text = "@unknown hello"
 
@@ -125,7 +171,9 @@ async def test_save_twitch_quote_user_not_found(
 
 
 @pytest.mark.asyncio
-async def test_save_discord_quote_success(chat_message_discord: ChatMessage) -> None:
+async def test_save_discord_quote_success(
+    chat_message_discord: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock], mock_programm_parts: MagicMock
+) -> None:
     chat_message_discord.text = "<@123> discord quote"
     mention = MagicMock()
     mention.id = 123
@@ -141,19 +189,25 @@ async def test_save_discord_quote_success(chat_message_discord: ChatMessage) -> 
 
 
 @pytest.mark.asyncio
-async def test_save_discord_quote_no_mention_prefix(chat_message_discord: ChatMessage) -> None:
+async def test_save_discord_quote_no_mention_prefix(
+    chat_message_discord: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     result = await save_discord_quote_by_message("not a mention", chat_message_discord)
     assert result.state == ResultState.MISSING_DATA
 
 
 @pytest.mark.asyncio
-async def test_save_discord_quote_no_quote(chat_message_discord: ChatMessage) -> None:
+async def test_save_discord_quote_no_quote(
+    chat_message_discord: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     result = await save_discord_quote_by_message("<@123>", chat_message_discord)
     assert result.state == ResultState.MISSING_DATA
 
 
 @pytest.mark.asyncio
-async def test_save_discord_quote_no_mentions_in_obj(chat_message_discord: ChatMessage) -> None:
+async def test_save_discord_quote_no_mentions_in_obj(
+    chat_message_discord: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock], mock_programm_parts: MagicMock
+) -> None:
     chat_message_discord.text = "<@123> hello"
     with patch.object(chat_message_discord.original_message, "mentions", []):
         result = await save_discord_quote_by_message("<@123> hello", chat_message_discord)
@@ -161,7 +215,9 @@ async def test_save_discord_quote_no_mentions_in_obj(chat_message_discord: ChatM
 
 
 @pytest.mark.asyncio
-async def test_get_quote_random(chat_message_twitch: ChatMessage) -> None:
+async def test_get_quote_random(
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     mock_quote = Quote(
         id=1, bot_id=1, discord_user_id=None, twitch_user_id="123", timestamp=datetime.now(UTC), quote="Random Quote"
     )
@@ -183,7 +239,9 @@ async def test_get_quote_random(chat_message_twitch: ChatMessage) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_quote_twitch_lookup_success(chat_message_twitch: ChatMessage) -> None:
+async def test_get_quote_twitch_lookup_success(
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     mock_quote = Quote(
         id=1,
         bot_id=1,
@@ -213,7 +271,9 @@ async def test_get_quote_twitch_lookup_success(chat_message_twitch: ChatMessage)
 
 
 @pytest.mark.asyncio
-async def test_get_quote_discord_lookup_mention(chat_message_discord: ChatMessage) -> None:
+async def test_get_quote_discord_lookup_mention(
+    chat_message_discord: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock], mock_programm_parts: MagicMock
+) -> None:
     mock_quote = Quote(
         id=1, bot_id=1, discord_user_id=123, twitch_user_id=None, timestamp=datetime.now(UTC), quote="Discord Quote"
     )
@@ -235,7 +295,9 @@ async def test_get_quote_discord_lookup_mention(chat_message_discord: ChatMessag
 
 
 @pytest.mark.asyncio
-async def test_get_quote_no_quotes_found(chat_message_twitch: ChatMessage) -> None:
+async def test_get_quote_no_quotes_found(
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     with patch("bot.core.quote.get_twitch_user_by_name", new_callable=AsyncMock) as mock_get_user:
         mock_user = MagicMock()
         mock_user.id = "some_id"
@@ -249,7 +311,9 @@ async def test_get_quote_no_quotes_found(chat_message_twitch: ChatMessage) -> No
 
 
 @pytest.mark.asyncio
-async def test_save_quote_by_message_twitch(chat_message_twitch: ChatMessage) -> None:
+async def test_save_quote_by_message_twitch(
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     with patch("bot.core.quote.save_twitch_quote_by_message", new_callable=AsyncMock) as mock_save:
         mock_save.return_value = Result(ResultState.SUCCESS, 1)
         result = await save_quote_by_message("hello", chat_message_twitch)
@@ -258,7 +322,9 @@ async def test_save_quote_by_message_twitch(chat_message_twitch: ChatMessage) ->
 
 
 @pytest.mark.asyncio
-async def test_save_quote_by_message_discord(chat_message_discord: ChatMessage) -> None:
+async def test_save_quote_by_message_discord(
+    chat_message_discord: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     with patch("bot.core.quote.save_discord_quote_by_message", new_callable=AsyncMock) as mock_save:
         mock_save.return_value = Result(ResultState.SUCCESS, 2)
         result = await save_quote_by_message("hello", chat_message_discord)
@@ -267,8 +333,54 @@ async def test_save_quote_by_message_discord(chat_message_discord: ChatMessage) 
 
 
 @pytest.mark.asyncio
-async def test_get_quote_no_data(chat_message_twitch: ChatMessage) -> None:
+async def test_get_quote_no_data(
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
     with patch("bot.core.quote.select_quote_by_bot_id_db") as mock_select:
         mock_select.return_value = Result(ResultState.NO_DATA, None)
         result = await get_quote("", chat_message_twitch)
         assert result.state == ResultState.NO_DATA
+
+
+@pytest.mark.asyncio
+async def test_quote_disabled_twitch(
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
+    mock_twitch_flags, _ = mock_feature_flags
+    mock_twitch_flags.return_value = Result(
+        ResultState.SUCCESS,
+        FeatureFlagsDB(
+            id=1,
+            bot_id=1,
+            can_commands=True,
+            can_alias=True,
+            can_broadcast=True,
+            can_twitch_live=True,
+            can_quote=False,
+        ),
+    )
+
+    result = await save_quote_by_message("hello", chat_message_twitch)
+    assert result.state == ResultState.INACTIVE_FEATURE
+
+
+@pytest.mark.asyncio
+async def test_quote_disabled_discord(
+    chat_message_discord: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
+    _, mock_discord_flags = mock_feature_flags
+    mock_discord_flags.return_value = Result(
+        ResultState.SUCCESS,
+        FeatureFlagsDB(
+            id=1,
+            bot_id=1,
+            can_commands=True,
+            can_alias=True,
+            can_broadcast=True,
+            can_twitch_live=True,
+            can_quote=False,
+        ),
+    )
+
+    result = await save_quote_by_message("hello", chat_message_discord)
+    assert result.state == ResultState.INACTIVE_FEATURE
