@@ -106,6 +106,12 @@ Use '@' to mention a role; e.g. `@live`. The bot will try to resolve the role id
 Note: This is case-sensitive. ``@everyone`` and ``@here`` gets ignored by the bot since this triggers within discord
 without the id.
 
+### Quotes:
+Users can add quotes.
+Note: The quotes are stored plattform specific.
+The bot displays quotes across all platforms, but platform-specific features, like emotes, are not supported within the message.
+When you tag a user to get a specific quote, this will still be plattform specific.
+
 ## Permission Levels:
 
 ### general Permission Levels:
