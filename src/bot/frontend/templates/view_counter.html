@@ -2,9 +2,80 @@
 
 {% block title %}Counters - {{ bot.name }}{% endblock %}
 
+{% block extra_view_styles %}
+<style>
+    .counter-table {
+        margin: 2rem auto;
+        max-width: 800px;
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #2a2a2a;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .counter-table th, .counter-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #444;
+    }
+
+    .counter-table th {
+        background-color: #333;
+        color: #aaa;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+    }
+
+    .counter-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .counter-table tr:hover {
+        background-color: #333;
+    }
+
+    .counter-name {
+        color: #9146ff;
+        font-weight: bold;
+    }
+
+</style>
+{% endblock %}
+
 {% block view_content %}
 <div style="text-align: center;">
     <h2>Counters</h2>
     <p>List of available counters for {{ bot.name }}.</p>
+</div>
+
+<table class="counter-table">
+    <thead>
+        <tr>
+            <th>Counter Name</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in counter %}
+        <tr>
+            <td class="counter-name">{{ c.name }}</td>
+            <td>{{ c.count }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="2" style="text-align: center;">No active counters found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="text-align: center;">
+    <p>Please note that counters can be used in commands by using <code>{counter_name}</code>.
+       For more information about commands, please visit the
+       <a href="/view/{{ bot.id }}/commands" style="color: #9146ff; text-decoration: none; font-weight: bold;">commands subpage</a>.
+    </p>
 </div>
 {% endblock %}
