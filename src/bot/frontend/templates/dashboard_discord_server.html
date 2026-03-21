@@ -264,6 +264,16 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+
+                <div class="feature-card">
+                    <div class="feature-info">
+                        <h3>Quotes</h3>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="can_quote" value="True" {% if feature_flags.can_quote %}checked{% endif %} onchange="this.form.submit()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
         </form>
     </div>

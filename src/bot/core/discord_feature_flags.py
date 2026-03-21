@@ -11,6 +11,7 @@ from bot.database.discord_feature_flags import (
 from bot.database.types.feature_flags import DiscordFeatureFlagsDB
 from bot.database.types.fields import FIELD_CAN_ALIAS
 from bot.database.types.fields import FIELD_CAN_COMMANDS
+from bot.database.types.fields import FIELD_CAN_QUOTE
 from bot.database.types.fields import FIELD_CAN_TWITCH_LIVE
 
 
@@ -23,7 +24,7 @@ def select_discord_feature_flags_by_server_id(bot_id: int, server_id: int) -> Re
 
 
 def update_discord_feature_flags_by_id(
-    feature_flag_id: int, can_commands: bool, can_alias: bool, can_twitch_live: bool
+    feature_flag_id: int, can_commands: bool, can_alias: bool, can_twitch_live: bool, can_quote: bool
 ) -> Result[None]:
     return update_discord_feature_flags_by_id_db(
         feature_flag_id,
@@ -31,5 +32,6 @@ def update_discord_feature_flags_by_id(
             FIELD_CAN_COMMANDS: can_commands,
             FIELD_CAN_ALIAS: can_alias,
             FIELD_CAN_TWITCH_LIVE: can_twitch_live,
+            FIELD_CAN_QUOTE: can_quote,
         },
     )

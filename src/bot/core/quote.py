@@ -9,7 +9,10 @@ from bot.chat.helper.discord import get_user_by_id as get_discord_user_by_id
 from bot.chat.helper.discord import get_user_by_name as get_discord_user_by_name
 from bot.chat.helper.twitch import get_user_by_id as get_twitch_user_by_id
 from bot.chat.helper.twitch import get_user_by_name as get_twitch_user_by_name
+from bot.chat.twitch_chat import TwitchChat
 from bot.chat.types.message import ChatMessage
+from bot.core.discord_feature_flags import select_discord_feature_flags_by_server_id
+from bot.core.twitch_feature_flags import select_twitch_feature_flags_by_channel_name
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
@@ -22,7 +25,26 @@ from bot.database.quote import update_quote as update_quote_db
 from bot.database.types.quote import Quote
 
 
+def is_active_quote(message: ChatMessage) -> bool:
+    if message.has_twitch_message:
+        if not isinstance(message.sender_chat, TwitchChat):
+            return False
+        flags = select_twitch_feature_flags_by_channel_name(message.bot_id, message.sender_chat.channel_name)
+        if flags.state.success and flags.value:
+            return flags.value.can_quote
+    elif message.has_discord_message:
+        server_id = message.try_get_discord_server_id()
+        if server_id:
+            flags = select_discord_feature_flags_by_server_id(message.bot_id, server_id)
+            if flags.state.success and flags.value:
+                return flags.value.can_quote
+    return False
+
+
 async def save_twitch_quote_by_message(text: str, message: ChatMessage) -> Result[int]:
+    if not is_active_quote(message):
+        return Result(ResultState.INACTIVE_FEATURE, None)
+
     if not isinstance(message.original_message, TwitchMessage):
         return Result(ResultState.TYPE_MISSMATCH, None)
 
@@ -53,6 +75,9 @@ async def save_twitch_quote_by_message(text: str, message: ChatMessage) -> Resul
 
 
 async def save_discord_quote_by_message(text: str, message: ChatMessage) -> Result[int]:
+    if not is_active_quote(message):
+        return Result(ResultState.INACTIVE_FEATURE, None)
+
     if not isinstance(message.original_message, DiscordMessage):
         return Result(ResultState.TYPE_MISSMATCH, None)
 
@@ -78,6 +103,9 @@ async def save_discord_quote_by_message(text: str, message: ChatMessage) -> Resu
 
 
 async def save_quote_by_message(text: str, message: ChatMessage) -> Result[int]:
+    if not is_active_quote(message):
+        return Result(ResultState.INACTIVE_FEATURE, None)
+
     if not message.original_message:
         return Result(ResultState.TYPE_MISSMATCH, None)
 
@@ -95,6 +123,9 @@ async def get_quotes_by_bot_id(bot_id: int) -> Result[list[Quote]]:
 
 
 async def get_quote(text: str, message: ChatMessage) -> Result[str]:
+    if not is_active_quote(message):
+        return Result(ResultState.INACTIVE_FEATURE, None)
+
     async def get_random_quote() -> Result[str]:
         result = select_quote_by_bot_id_db(message.bot_id)
         if result.state.fail or result.value is None or not result.value:
