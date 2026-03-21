@@ -21,16 +21,16 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.add_column(
         "discord_feature_flags",
-        sa.Column("can_quotes", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("can_quote", sa.Boolean(), nullable=False, server_default=sa.text("1")),
     )
     (
         op.add_column(
             "twitch_feature_flags",
-            sa.Column("can_quotes", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+            sa.Column("can_quote", sa.Boolean(), nullable=False, server_default=sa.text("1")),
         )
     )
 
 
 def downgrade() -> None:
-    op.drop_column("discord_feature_flags", "can_quotes")
-    op.drop_column("twitch_feature_flags", "can_quotes")
+    op.drop_column("discord_feature_flag", "can_quotes")
+    op.drop_column("twitch_feature_flag", "can_quotes")
