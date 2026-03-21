@@ -5,6 +5,59 @@
 {% block view_content %}
 <div style="text-align: center;">
     <h2>Quotes</h2>
-    <p>List of available quotes for {{ bot.name }}.</p>
+    <p>All recorded quotes for {{ bot.name }}.</p>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Quote</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for quote in quotes|reverse %}
+                <tr>
+                    <td>{{ quote.timestamp.strftime('%d.%m.%Y') }}</td>
+                    <td>" {{ quote.quote }} "</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <p>
+            Please note that user names are not displayed here for privacy reasons.
+        </p>
+    </div>
 </div>
+
+<style>
+    .table-container {
+        margin: 20px auto;
+        max-width: 800px;
+        overflow-x: auto;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #2c2f33;
+        color: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #444;
+    }
+    th {
+        background-color: #23272a;
+        font-weight: bold;
+    }
+    tr:hover {
+        background-color: #32353b;
+    }
+</style>
 {% endblock %}
