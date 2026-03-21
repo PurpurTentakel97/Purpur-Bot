@@ -1,21 +1,27 @@
-from typing import Final, Annotated, Optional
+from typing import Annotated
+from typing import Final
+from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
+from fastapi import Depends
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 from bot.core.alias_dict import get_alias_dict_from_bot as get_alias_dict_from_bot_core
+from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_core
 from bot.core.counter import get_counters_by_bot_id as get_counters_by_bot_id_core
 from bot.core.quote import get_quotes_by_bot_id as get_quotes_by_bot_id_core
 from bot.database.types.bot_config import BotConfigDB
-from bot.frontend.helpers.auth import get_twitch_user, get_discord_user
-from bot.frontend.helpers.route_utils import get_valid_bot, get_templates
+from bot.frontend.helpers.auth import get_discord_user
+from bot.frontend.helpers.auth import get_twitch_user
+from bot.frontend.helpers.route_utils import get_templates
+from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
-from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_core
 
 router: Final = APIRouter(prefix="/view/{bot_id:int}")
+
 
 @router.get("/")
 async def view_main(
@@ -34,6 +40,7 @@ async def view_main(
             "discord_user": discord_user,
         },
     )
+
 
 @router.get("/commands")
 async def view_commands(
