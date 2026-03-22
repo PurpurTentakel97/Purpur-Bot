@@ -185,6 +185,11 @@
             {% endif %}
         </div>
     {% else %}
-        <p class="login-message">Please log in with Twitch to manage your bots.</p>
+        <div class="login-message">
+            <p>Please log in with Twitch to manage your bots.</p>
+            <div style="margin-top: 2rem;">
+                <a href="/auth/login/twitch" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.2rem;">Login with Twitch</a>
+            </div>
+        </div>
     {% endif %}
 {% endblock %}
