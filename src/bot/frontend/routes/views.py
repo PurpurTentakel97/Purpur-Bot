@@ -9,6 +9,7 @@ from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 from bot.core.alias_dict import get_alias_dict_from_bot as get_alias_dict_from_bot_core
+from bot.core.bot import get_all_active_bots as get_all_active_bots_core
 from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_core
 from bot.core.counter import get_counters_by_bot_id as get_counters_by_bot_id_core
 from bot.core.quote import get_quotes_by_bot_id as get_quotes_by_bot_id_core
@@ -20,10 +21,32 @@ from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
-router: Final = APIRouter(prefix="/view/{bot_id:int}")
+router: Final = APIRouter(prefix="/view")
 
 
 @router.get("/")
+async def view(
+    request: Request,
+    template: Annotated[Jinja2Templates, Depends(get_templates)],
+    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+) -> Response:
+    bots_result: Final = get_all_active_bots_core()
+    bots = bots_result.value if bots_result.state.success and bots_result.value else []
+    bots.sort(key=lambda b: b.name.lower())
+
+    return template.TemplateResponse(
+        request=request,
+        name="view.html",
+        context={
+            "bots": bots,
+            "twitch_user": twitch_user,
+            "discord_user": discord_user,
+        },
+    )
+
+
+@router.get("/{bot_id:int}/")
 async def view_main(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -42,7 +65,7 @@ async def view_main(
     )
 
 
-@router.get("/commands")
+@router.get("/{bot_id:int}/commands")
 async def view_commands(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -63,7 +86,7 @@ async def view_commands(
     )
 
 
-@router.get("/counter")
+@router.get("/{bot_id:int}/counter")
 async def view_counter(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -84,7 +107,7 @@ async def view_counter(
     )
 
 
-@router.get("/alias")
+@router.get("/{bot_id:int}/alias")
 async def view_alias(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -105,7 +128,7 @@ async def view_alias(
     )
 
 
-@router.get("/quote")
+@router.get("/{bot_id:int}/quote")
 async def view_quote(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],

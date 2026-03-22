@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Bot Selection{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .bot-selection-container {
+        padding: 3rem 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .bot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .bot-card {
+        background-color: #2a2a2a;
+        padding: 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        color: white;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+        border: 1px solid #444;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 60px;
+    }
+
+    .bot-card:hover {
+        background-color: #333;
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        border-color: #9146ff;
+        color: #9146ff;
+    }
+
+    .bot-selection-title {
+        margin-bottom: 1rem;
+        font-size: 2rem;
+    }
+
+    .bot-selection-subtitle {
+        color: #ccc;
+        margin-bottom: 2.5rem;
+    }
+
+    .search-container {
+        margin-bottom: 2rem;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #botSearch {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #444;
+        background-color: #2a2a2a;
+        color: white;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #botSearch:focus {
+        border-color: #9146ff;
+        box-shadow: 0 0 0 2px rgba(145, 70, 255, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bot-selection-container">
+    <h1 class="bot-selection-title">Select a Bot</h1>
+    <p class="bot-selection-subtitle">Choose which bot's dashboard you want to view</p>
+
+    <div class="search-container">
+        <input type="text" id="botSearch" placeholder="Search bots..." autocomplete="off">
+    </div>
+
+    <div class="bot-grid" id="botGrid">
+        {% for bot in bots %}
+        <a href="/view/{{ bot.id }}/" class="bot-card">
+            {{ bot.name }}
+        </a>
+        {% else %}
+        <div style="grid-column: 1 / -1; padding: 3rem;">
+            <p style="color: #ccc; font-style: italic;">No active bots found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('botSearch');
+        const botCards = document.querySelectorAll('.bot-card');
+        const noBotsFound = document.createElement('div');
+        noBotsFound.style.gridColumn = '1 / -1';
+        noBotsFound.style.padding = '3rem';
+        noBotsFound.style.display = 'none';
+        noBotsFound.innerHTML = '<p style="color: #ccc; font-style: italic;">No matching bots found.</p>';
+
+        const botGrid = document.getElementById('botGrid');
+        if (botGrid) {
+            botGrid.appendChild(noBotsFound);
+        }
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let hasVisibleBots = false;
+
+            botCards.forEach(card => {
+                const botName = card.textContent.toLowerCase();
+                if (botName.includes(searchTerm)) {
+                    card.style.display = 'flex';
+                    hasVisibleBots = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (!hasVisibleBots && searchTerm !== '') {
+                noBotsFound.style.display = 'block';
+            } else {
+                noBotsFound.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}
