@@ -53,6 +53,7 @@
     <thead>
         <tr>
             <th>Date</th>
+            <th>Platform</th>
             <th>Quote</th>
         </tr>
     </thead>
@@ -60,6 +61,13 @@
         {% for quote in quotes|reverse %}
         <tr>
             <td class="quote-date">{{ quote.timestamp.strftime('%d.%m.%Y') }}</td>
+            {% if quote.discord_user_id %}
+            <td>Discord</td>
+            {% elif quote.twitch_user_id %}
+            <td>Twitch</td>
+            {% else %}
+            <td>Unknown</td>
+            {% endif %}
             <td>"{{ quote.quote }}"</td>
         </tr>
         {% else %}
