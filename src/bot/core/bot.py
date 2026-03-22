@@ -5,8 +5,9 @@ from bot.chat.on_demand import stop_all_twitch_bots_from_bot
 from bot.core.helpers.string import name_for_db
 from bot.core.helpers.string import strip_for_db
 from bot.core.types.result import Result
-from bot.database.bot import delete_bot as delete_bot_db, select_all_active_bots as select_all_active_bots_db
+from bot.database.bot import delete_bot as delete_bot_db
 from bot.database.bot import insert_bot as insert_bot_db
+from bot.database.bot import select_all_active_bots as select_all_active_bots_db
 from bot.database.bot import select_bot as select_bot_db
 from bot.database.bot import select_bots_by_twitch_id as select_bots_by_twitch_id_db
 from bot.database.bot import update_bot as update_bot_db
