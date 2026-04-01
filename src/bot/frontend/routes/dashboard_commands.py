@@ -21,6 +21,9 @@ from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.auth import get_discord_user
+from bot.frontend.helpers.decorators import ResourceType
+from bot.frontend.helpers.decorators import bot_owner_required
+from bot.frontend.helpers.decorators import resource_owner_required
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
@@ -30,6 +33,7 @@ router = APIRouter(prefix="/dashboard/commands", dependencies=[Depends(get_authe
 
 
 @router.get("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_commands(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -54,8 +58,11 @@ async def dashboard_commands(
 
 
 @router.post("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_command_add(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: Annotated[str, Form()], message: Annotated[str, Form()]
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    name: Annotated[str, Form()],
+    message: Annotated[str, Form()],
 ) -> RedirectResponse:
     result = save_command_core(bot.id, name, message)
 
@@ -70,7 +77,8 @@ async def dashboard_command_add(
     )
 
 
-@router.post("/update/{command_id:int}")
+@router.post("/update/{resource_id:int}")
+@resource_owner_required(ResourceType.COMMAND)
 async def dashboard_command_update(
     command: Annotated[Result[BasicCommandDB], Depends(get_command_by_id_core)],
     name: Annotated[str, Form()],
@@ -95,7 +103,8 @@ async def dashboard_command_update(
     )
 
 
-@router.post("/delete/{command_id:int}")
+@router.post("/delete/{resource_id:int}")
+@resource_owner_required(ResourceType.COMMAND)
 async def dashboard_command_delete(
     command: Annotated[Result[BasicCommandDB], Depends(get_command_by_id_core)],
 ) -> RedirectResponse:

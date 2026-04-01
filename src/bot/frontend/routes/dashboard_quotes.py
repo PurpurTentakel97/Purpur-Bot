@@ -17,6 +17,9 @@ from bot.core.quote import get_quotes_by_bot_id
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.auth import get_discord_user
+from bot.frontend.helpers.decorators import ResourceType
+from bot.frontend.helpers.decorators import bot_owner_required
+from bot.frontend.helpers.decorators import resource_owner_required
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
@@ -26,6 +29,7 @@ router: Final = APIRouter(prefix="/dashboard/quotes", dependencies=[Depends(get_
 
 
 @router.get("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_main(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -47,14 +51,15 @@ async def dashboard_main(
     )
 
 
-@router.post("/{bot_id:int}/edit/{quote_id:int}")
+@router.post("/{bot_id:int}/edit/{resource_id:int}")
+@resource_owner_required(ResourceType.QUOTE)
 async def edit(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    quote_id: int,
+    resource_id: int,
     quote: Annotated[str, Form()],
 ) -> RedirectResponse:
-    result: Final = edit_quote_by_id(quote_id, quote)
+    result: Final = edit_quote_by_id(resource_id, quote)
 
     if result.state.fail:
         return RedirectResponse(
@@ -68,11 +73,14 @@ async def edit(
     )
 
 
-@router.post("/{bot_id:int}/delete/{quote_id:int}")
+@router.post("/{bot_id:int}/delete/{resource_id:int}")
+@resource_owner_required(ResourceType.QUOTE)
 async def delete(
-    request: Request, bot: Annotated[BotConfigDB, Depends(get_valid_bot)], quote_id: int
+    request: Request,
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    resource_id: int,
 ) -> RedirectResponse:
-    result: Final = delete_quote_by_id(quote_id)
+    result: Final = delete_quote_by_id(resource_id)
 
     if result.state.fail:
         return RedirectResponse(

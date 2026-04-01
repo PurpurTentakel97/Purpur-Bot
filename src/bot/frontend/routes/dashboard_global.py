@@ -16,6 +16,7 @@ from bot.core.bot import update_bot_enabled_by_id as update_bot_enabled_by_id_co
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.auth import get_discord_user
+from bot.frontend.helpers.decorators import bot_owner_required
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
@@ -25,6 +26,7 @@ router: Final = APIRouter(prefix="/dashboard/global", dependencies=[Depends(get_
 
 
 @router.get("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_main(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -44,6 +46,7 @@ async def dashboard_main(
 
 
 @router.post("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_main_edit(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     name: Annotated[str, Form()],

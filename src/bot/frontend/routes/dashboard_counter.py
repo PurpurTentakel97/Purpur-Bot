@@ -22,6 +22,9 @@ from bot.database.types.bot_config import BotConfigDB
 from bot.database.types.counter import CounterDB
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.auth import get_discord_user
+from bot.frontend.helpers.decorators import ResourceType
+from bot.frontend.helpers.decorators import bot_owner_required
+from bot.frontend.helpers.decorators import resource_owner_required
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
@@ -31,6 +34,7 @@ router = APIRouter(prefix="/dashboard/counter", dependencies=[Depends(get_authen
 
 
 @router.get("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_counter(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -55,6 +59,7 @@ async def dashboard_counter(
 
 
 @router.post("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_counter_add(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: Annotated[str, Form()]
 ) -> RedirectResponse:
@@ -71,7 +76,8 @@ async def dashboard_counter_add(
     )
 
 
-@router.post("/update/{counter_id:int}")
+@router.post("/update/{resource_id:int}")
+@resource_owner_required(ResourceType.COUNTER)
 async def dashboard_counter_update(
     counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)],
     name: Annotated[str, Form()],
@@ -95,7 +101,8 @@ async def dashboard_counter_update(
     )
 
 
-@router.post("/{counter_id:int}/reset")
+@router.post("/{resource_id:int}/reset")
+@resource_owner_required(ResourceType.COUNTER)
 async def dashboard_counter_reset(
     counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)],
 ) -> RedirectResponse:
@@ -117,7 +124,8 @@ async def dashboard_counter_reset(
     )
 
 
-@router.post("/{counter_id:int}/delete")
+@router.post("/{resource_id:int}/delete")
+@resource_owner_required(ResourceType.COUNTER)
 async def dashboard_counter_delete(
     counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)],
 ) -> RedirectResponse:

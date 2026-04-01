@@ -21,6 +21,9 @@ from bot.database.types.alias_dict_entry import AliasDictEntry
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.auth import get_discord_user
+from bot.frontend.helpers.decorators import ResourceType
+from bot.frontend.helpers.decorators import bot_owner_required
+from bot.frontend.helpers.decorators import resource_owner_required
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
@@ -30,6 +33,7 @@ router = APIRouter(prefix="/dashboard/alias", dependencies=[Depends(get_authenti
 
 
 @router.get("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_alias(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -54,6 +58,7 @@ async def dashboard_alias(
 
 
 @router.post("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_alias_add(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     alias: Annotated[str, Form()],
@@ -72,7 +77,8 @@ async def dashboard_alias_add(
     )
 
 
-@router.post("/update/{entry_id:int}")
+@router.post("/update/{resource_id:int}")
+@resource_owner_required(ResourceType.ALIAS)
 async def dashboard_alias_update(
     entry: Annotated[Result[AliasDictEntry], Depends(get_alias_by_id_core)],
     alias: Annotated[str, Form()],
@@ -97,7 +103,8 @@ async def dashboard_alias_update(
     )
 
 
-@router.post("/{entry_id:int}/delete")
+@router.post("/{resource_id:int}/delete")
+@resource_owner_required(ResourceType.ALIAS)
 async def dashboard_alias_delete(
     entry: Annotated[Result[AliasDictEntry], Depends(get_alias_by_id_core)],
 ) -> RedirectResponse:
