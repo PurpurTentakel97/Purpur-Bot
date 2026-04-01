@@ -33,6 +33,9 @@ from bot.database.twitch_event_hub import (
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_discord_user
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
+from bot.frontend.helpers.decorators import ResourceType
+from bot.frontend.helpers.decorators import bot_owner_required
+from bot.frontend.helpers.decorators import resource_owner_required
 from bot.frontend.helpers.discord import get_allowed_discord_servers
 from bot.frontend.helpers.discord import get_discord_channels
 from bot.frontend.helpers.route_utils import get_templates
@@ -47,6 +50,7 @@ router: Final = APIRouter(
 
 
 @router.get("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_discord(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -90,6 +94,7 @@ async def dashboard_discord(
 
 
 @router.post("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_discord_join(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     server_id: Annotated[int, Form()],
@@ -113,16 +118,17 @@ async def dashboard_discord_join(
     )
 
 
-@router.post("/delete/{bot_id:int}/{server_id:int}")
+@router.post("/delete/{bot_id:int}/{resource_id:int}")
+@resource_owner_required(ResourceType.DISCORD_SERVER)
 async def dashboard_discord_delete(
     request: Request,
     bot_id: int,
-    server_id: int,
+    resource_id: int,
 ) -> RedirectResponse:
-    result = await delete_discord_bot_core(bot_id, server_id)
+    result = await delete_discord_bot_core(bot_id, resource_id)
 
     referer = request.headers.get("referer")
-    if referer and f"/dashboard/discord/{bot_id}/server/{server_id}" in referer:
+    if referer and f"/dashboard/discord/{bot_id}/server/{resource_id}" in referer:
         url = f"/dashboard/discord/{bot_id}"
     else:
         url = referer or f"/dashboard/discord/{bot_id}"
@@ -141,15 +147,17 @@ async def dashboard_discord_delete(
     )
 
 
-@router.get("/{bot_id:int}/server/{server_id:int}")
+@router.get("/{bot_id:int}/server/{resource_id:int}")
+@resource_owner_required(ResourceType.DISCORD_SERVER)
 async def dashboard_discord_server(
     request: Request,
-    server_id: int,
+    resource_id: int,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     discord_user: Annotated[DiscordUserInfo, Depends(get_authenticated_discord_user)],
     twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
 ) -> Response:
+    server_id = resource_id
     server = get_discord_by_server_id_core(server_id)
     if server.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Discord Server not found")
@@ -198,19 +206,18 @@ async def dashboard_discord_server(
     )
 
 
-@router.post("/{bot_id:int}/{server_id:int}/feature_flags/{feature_flag_id:int}")
+@router.post("/{bot_id:int}/{server_id:int}/feature_flags/{resource_id:int}")
+@resource_owner_required(ResourceType.DISCORD_FEATURE_FLAGS)
 async def dashboard_discord_feature_flag_update(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     server_id: int,
-    feature_flag_id: int,
+    resource_id: int,
     can_commands: Annotated[bool, Form()] = False,
     can_alias: Annotated[bool, Form()] = False,
     can_twitch_live: Annotated[bool, Form()] = False,
     can_quote: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = update_discord_feature_flags_by_id_core(
-        feature_flag_id, can_commands, can_alias, can_twitch_live, can_quote
-    )
+    result = update_discord_feature_flags_by_id_core(resource_id, can_commands, can_alias, can_twitch_live, can_quote)
 
     if result.state.fail:
         return RedirectResponse(
@@ -226,15 +233,16 @@ async def dashboard_discord_feature_flag_update(
     )
 
 
-@router.post("/{bot_id:int}/{server_id:int}/server/update/{id:int}")
+@router.post("/{bot_id:int}/{server_id:int}/server/update/{resource_id:int}")
+@resource_owner_required(ResourceType.DISCORD_SERVER)
 async def dashboard_discord_server_update(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     server_id: int,
-    id: int,
+    resource_id: int,
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = await update_discord_enabled_by_id_core(id, enabled)
+    result = await update_discord_enabled_by_id_core(resource_id, enabled)
 
     referer = request.headers.get("referer")
     url = referer or f"/dashboard/discord/{bot.id}/server/{server_id}"
@@ -253,17 +261,18 @@ async def dashboard_discord_server_update(
     )
 
 
-@router.post("/{bot_id:int}/{server_id:int}/live_message/save")
+@router.post("/{bot_id:int}/{resource_id:int}/live_message/save")
+@resource_owner_required(ResourceType.DISCORD_SERVER)
 async def dashboard_discord_live_message_save(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    server_id: int,
+    resource_id: int,
     discord_channel_id: Annotated[int, Form()],
     broadcaster_id: Annotated[str, Form()],
     message: Annotated[str, Form()],
 ) -> RedirectResponse:
     result = await add_twitch_event_hub_entry_core(
         bot_id=bot.id,
-        server_id=server_id,
+        server_id=resource_id,
         channel_id=discord_channel_id,
         broadcaster_id=broadcaster_id,
         message=message,
@@ -271,27 +280,28 @@ async def dashboard_discord_live_message_save(
 
     if result.state.fail:
         return RedirectResponse(
-            url=f"/dashboard/discord/{bot.id}/server/{server_id}"
+            url=f"/dashboard/discord/{bot.id}/server/{resource_id}"
             + f"?error_message=Failed to save discord live message | reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
     return RedirectResponse(
-        url=f"/dashboard/discord/{bot.id}/server/{server_id}?success_message=Discord live message saved successfully",
+        url=f"/dashboard/discord/{bot.id}/server/{resource_id}?success_message=Discord live message saved successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
 
-@router.post("/{bot_id:int}/{server_id:int}/live_message/update/{id:int}")
+@router.post("/{bot_id:int}/{server_id:int}/live_message/update/{resource_id:int}")
+@resource_owner_required(ResourceType.LIVE_MESSAGE)
 async def dashboard_discord_live_message_update(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     server_id: int,
-    id: int,
+    resource_id: int,
     discord_channel_id: Annotated[int, Form()],
     message: Annotated[str, Form()],
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = await update_twitch_event_hub_core(id, discord_channel_id, message, enabled)
+    result = await update_twitch_event_hub_core(resource_id, discord_channel_id, message, enabled)
 
     if result.state.fail:
         return RedirectResponse(
@@ -306,13 +316,14 @@ async def dashboard_discord_live_message_update(
     )
 
 
-@router.post("/{bot_id:int}/{server_id:int}/live_message/delete/{id:int}")
+@router.post("/{bot_id:int}/{server_id:int}/live_message/delete/{resource_id:int}")
+@resource_owner_required(ResourceType.LIVE_MESSAGE)
 async def dashboard_discord_live_message_delete(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     server_id: int,
-    id: int,
+    resource_id: int,
 ) -> RedirectResponse:
-    result = await delete_twitch_event_hub_entry_core(id)
+    result = await delete_twitch_event_hub_entry_core(resource_id)
 
     if result.state.fail:
         return RedirectResponse(
@@ -327,13 +338,14 @@ async def dashboard_discord_live_message_delete(
     )
 
 
-@router.post("/{bot_id:int}/{server_id:int}/live_message/test/{id:int}")
+@router.post("/{bot_id:int}/{server_id:int}/live_message/test/{resource_id:int}")
+@resource_owner_required(ResourceType.LIVE_MESSAGE)
 async def dashboard_discord_live_message_test(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     server_id: int,
-    id: int,
+    resource_id: int,
 ) -> RedirectResponse:
-    result = await send_test_twitch_event_hub_entry_core(id)
+    result = await send_test_twitch_event_hub_entry_core(resource_id)
 
     if result.state.fail:
         return RedirectResponse(

@@ -31,6 +31,10 @@ from bot.core.twitch_feature_flags import update_twitch_feature_flags_by_id as u
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.auth import get_discord_user
+from bot.frontend.helpers.decorators import ResourceType
+from bot.frontend.helpers.decorators import bot_owner_required
+from bot.frontend.helpers.decorators import resource_owner_required
+from bot.frontend.helpers.decorators import twitch_channel_owner_required
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.helpers.twitch import get_allowed_twitch_channels
@@ -42,6 +46,7 @@ router: Final = APIRouter(prefix="/dashboard/twitch", dependencies=[Depends(get_
 
 # twitch global
 @router.get("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_twitch(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
@@ -73,8 +78,10 @@ async def dashboard_twitch(
 
 
 @router.post("/{bot_id:int}")
+@bot_owner_required()
 async def dashboard_twitch_join(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: Annotated[str, Form()]
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    name: Annotated[str, Form()],
 ) -> RedirectResponse:
     result = await add_twitch_channel_core(bot.id, name)
 
@@ -91,6 +98,7 @@ async def dashboard_twitch_join(
 
 
 @router.post("/delete/{bot_id:int}/{name:str}")
+@twitch_channel_owner_required()
 async def dashboard_twitch_delete(
     request: Request,
     bot_id: int,
@@ -126,6 +134,7 @@ async def get_broadcaster_id(channel_name: str) -> dict[str, Optional[str]]:
 
 # channel
 @router.get("/{bot_id:int}/channel/{name:str}")
+@twitch_channel_owner_required()
 async def dashboard_twitch_channel(
     request: Request,
     name: str,
@@ -166,18 +175,19 @@ async def dashboard_twitch_channel(
     )
 
 
-@router.post("/{bot_id:int}/{name:str}/feature_flags/{feature_flag_id:int}")
+@router.post("/{bot_id:int}/{name:str}/feature_flags/{resource_id:int}")
+@resource_owner_required(ResourceType.TWITCH_FEATURE_FLAG)
 async def dashboard_twitch_feature_flag_update(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     name: str,
-    feature_flag_id: int,
+    resource_id: int,
     can_commands: Annotated[bool, Form()] = False,
     can_alias: Annotated[bool, Form()] = False,
     can_broadcast: Annotated[bool, Form()] = False,
     can_quote: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
     result = update_twitch_feature_flags_by_id_core(
-        feature_flag_id,
+        resource_id,
         can_commands,
         can_alias,
         can_broadcast,
@@ -197,15 +207,16 @@ async def dashboard_twitch_feature_flag_update(
     )
 
 
-@router.post("/{bot_id:int}/{name:str}/channel/update/{channel_id:int}")
+@router.post("/{bot_id:int}/{name:str}/channel/update/{resource_id:int}")
+@resource_owner_required(ResourceType.TWITCH_CHANNEL)
 async def dashboard_twitch_channel_update(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     name: str,
-    channel_id: int,
+    resource_id: int,
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = await update_twitch_channel_enabled_by_id_core(channel_id, enabled)
+    result = await update_twitch_channel_enabled_by_id_core(resource_id, enabled)
 
     referer = request.headers.get("referer")
     url = referer or f"/dashboard/twitch/{bot.id}/channel/{name}"
@@ -226,6 +237,7 @@ async def dashboard_twitch_channel_update(
 
 # broadcast messages
 @router.post("/{bot_id:int}/{name:str}/broadcast_message/save")
+@twitch_channel_owner_required()
 async def dashboard_twitch_broadcast_message_save(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     name: str,
@@ -247,16 +259,17 @@ async def dashboard_twitch_broadcast_message_save(
     )
 
 
-@router.post("/{bot_id:int}/{name:str}/broadcast_message/update/{message_id:int}")
+@router.post("/{bot_id:int}/{name:str}/broadcast_message/update/{resource_id:int}")
+@resource_owner_required(ResourceType.BROADCAST_MESSAGE)
 def update_broadcast_message(
     bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
     name: str,
-    message_id: int,
+    resource_id: int,
     message: Annotated[str, Form()],
     interval: Annotated[int, Form()],
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = update_broadcast_message_by_id_core(message_id, message, interval, enabled)
+    result = update_broadcast_message_by_id_core(resource_id, message, interval, enabled)
 
     if result.state.fail:
         return RedirectResponse(
@@ -271,11 +284,14 @@ def update_broadcast_message(
     )
 
 
-@router.post("/{bot_id:int}/{name:str}/broadcast_message/delete/{message_id:int}")
+@router.post("/{bot_id:int}/{name:str}/broadcast_message/delete/{resource_id:int}")
+@resource_owner_required(ResourceType.BROADCAST_MESSAGE)
 def delete_broadcast_message(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: str, message_id: int
+    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    name: str,
+    resource_id: int,
 ) -> RedirectResponse:
-    result = delete_broadcast_message_by_id_core(message_id)
+    result = delete_broadcast_message_by_id_core(resource_id)
 
     if result.state.fail:
         return RedirectResponse(

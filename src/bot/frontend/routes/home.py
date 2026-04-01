@@ -22,6 +22,7 @@ from bot.core.types.result import ResultState
 from bot.frontend.helpers.auth import get_authenticated_twitch_user
 from bot.frontend.helpers.auth import get_discord_user
 from bot.frontend.helpers.auth import get_twitch_user
+from bot.frontend.helpers.decorators import bot_owner_required
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
@@ -68,6 +69,7 @@ async def bot_create(
 
 
 @router.post("/bot/update/{bot_id:int}")
+@bot_owner_required()
 async def bot_update(
     bot_id: int,
     name: Annotated[str, Form()],
@@ -91,6 +93,7 @@ async def bot_update(
 
 
 @router.post("/bot/delete/{bot_id:int}")
+@bot_owner_required()
 async def bot_delete(
     twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],  # twitch user for authentication
     bot_id: int,
