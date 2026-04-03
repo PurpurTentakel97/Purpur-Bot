@@ -1,11 +1,7 @@
-from typing import final
-
-from attr import dataclass
+from pydantic import BaseModel
 
 
-@final
-@dataclass
-class DiscordUserInfo:
+class DiscordUserInfo(BaseModel):
     id_: int
     username: str
     display_name: str

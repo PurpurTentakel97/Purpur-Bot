@@ -1,11 +1,7 @@
-from typing import final
-
-from attr import dataclass
+from pydantic import BaseModel
 
 
-@final
-@dataclass
-class TwitchUserInfo:
+class TwitchUserInfo(BaseModel):
     id_: str
     login: str
     display_name: str

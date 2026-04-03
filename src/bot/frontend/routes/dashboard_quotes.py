@@ -15,26 +15,24 @@ from bot.core.quote import delete_quote_by_id
 from bot.core.quote import edit_quote_by_id
 from bot.core.quote import get_quotes_by_bot_id
 from bot.database.types.bot_config import BotConfigDB
-from bot.frontend.helpers.auth import get_authenticated_twitch_user
-from bot.frontend.helpers.auth import get_discord_user
-from bot.frontend.helpers.decorators import ResourceType
-from bot.frontend.helpers.decorators import bot_owner_required
-from bot.frontend.helpers.decorators import resource_owner_required
+from bot.database.types.quote import Quote
+from bot.frontend.helpers.decorators import get_optional_owned_discord_user
+from bot.frontend.helpers.decorators import get_owned_bot
+from bot.frontend.helpers.decorators import get_owned_quote
+from bot.frontend.helpers.decorators import get_owned_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
-from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
-router: Final = APIRouter(prefix="/dashboard/quotes", dependencies=[Depends(get_authenticated_twitch_user)])
+router: Final = APIRouter(prefix="/dashboard/quotes/{bot_id:int}", dependencies=[Depends(get_owned_twitch_user)])
 
 
-@router.get("/{bot_id:int}")
-@bot_owner_required()
+@router.get("")
 async def dashboard_main(
     request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
 ) -> HTMLResponse:
     result: Final = await get_quotes_by_bot_id(bot.id)
@@ -51,15 +49,13 @@ async def dashboard_main(
     )
 
 
-@router.post("/{bot_id:int}/edit/{resource_id:int}")
-@resource_owner_required(ResourceType.QUOTE)
+@router.post("/edit/{quote_id:int}")
 async def edit(
-    request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    resource_id: int,
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    old_quote: Annotated[Quote, Depends(get_owned_quote)],
     quote: Annotated[str, Form()],
 ) -> RedirectResponse:
-    result: Final = edit_quote_by_id(resource_id, quote)
+    result: Final = edit_quote_by_id(old_quote.id, quote)
 
     if result.state.fail:
         return RedirectResponse(
@@ -73,14 +69,12 @@ async def edit(
     )
 
 
-@router.post("/{bot_id:int}/delete/{resource_id:int}")
-@resource_owner_required(ResourceType.QUOTE)
+@router.post("/delete/{quote_id:int}")
 async def delete(
-    request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    resource_id: int,
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    quote: Annotated[Quote, Depends(get_owned_quote)],
 ) -> RedirectResponse:
-    result: Final = delete_quote_by_id(resource_id)
+    result: Final = delete_quote_by_id(quote.id)
 
     if result.state.fail:
         return RedirectResponse(

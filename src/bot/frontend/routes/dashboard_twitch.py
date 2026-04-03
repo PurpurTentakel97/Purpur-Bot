@@ -29,29 +29,30 @@ from bot.core.twitch_feature_flags import (
 )
 from bot.core.twitch_feature_flags import update_twitch_feature_flags_by_id as update_twitch_feature_flags_by_id_core
 from bot.database.types.bot_config import BotConfigDB
-from bot.frontend.helpers.auth import get_authenticated_twitch_user
-from bot.frontend.helpers.auth import get_discord_user
-from bot.frontend.helpers.decorators import ResourceType
-from bot.frontend.helpers.decorators import bot_owner_required
-from bot.frontend.helpers.decorators import resource_owner_required
-from bot.frontend.helpers.decorators import twitch_channel_owner_required
+from bot.database.types.feature_flags import TwitchFeatureFlagsDB
+from bot.database.types.twitch_broadcast_message import TwitchBroadcastMessageDB
+from bot.database.types.twitch_channel import TwitchChannelDB
+from bot.frontend.helpers.decorators import get_optional_owned_discord_user
+from bot.frontend.helpers.decorators import get_owned_bot
+from bot.frontend.helpers.decorators import get_owned_broadcast_message
+from bot.frontend.helpers.decorators import get_owned_twitch_channel
+from bot.frontend.helpers.decorators import get_owned_twitch_feature_flags
+from bot.frontend.helpers.decorators import get_owned_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
-from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.helpers.twitch import get_allowed_twitch_channels
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
-router: Final = APIRouter(prefix="/dashboard/twitch", dependencies=[Depends(get_authenticated_twitch_user)])
+router: Final = APIRouter(prefix="/dashboard/twitch", dependencies=[Depends(get_owned_twitch_user)])
 
 
 # twitch global
 @router.get("/{bot_id:int}")
-@bot_owner_required()
 async def dashboard_twitch(
     request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
 ) -> Response:
     twitch_channels = get_twitch_channels_core(bot.id)
@@ -78,9 +79,8 @@ async def dashboard_twitch(
 
 
 @router.post("/{bot_id:int}")
-@bot_owner_required()
 async def dashboard_twitch_join(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
     name: Annotated[str, Form()],
 ) -> RedirectResponse:
     result = await add_twitch_channel_core(bot.id, name)
@@ -97,20 +97,19 @@ async def dashboard_twitch_join(
     )
 
 
-@router.post("/delete/{bot_id:int}/{name:str}")
-@twitch_channel_owner_required()
+@router.post("/delete/{bot_id:int}/{channel_name:str}")
 async def dashboard_twitch_delete(
     request: Request,
-    bot_id: int,
-    name: str,
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    channel: Annotated[TwitchChannelDB, Depends(get_owned_twitch_channel)],
 ) -> RedirectResponse:
-    result = await delete_twitch_channel_core(bot_id, name)
+    result = await delete_twitch_channel_core(bot.id, channel.channel_name)
 
     referer = request.headers.get("referer")
-    if referer and f"/dashboard/twitch/{bot_id}/channel/{name}" in referer:
-        url = f"/dashboard/twitch/{bot_id}"
+    if referer and f"/dashboard/twitch/{bot.id}/channel/{channel.channel_name}" in referer:
+        url = f"/dashboard/twitch/{bot.id}"
     else:
-        url = referer or f"/dashboard/twitch/{bot_id}"
+        url = referer or f"/dashboard/twitch/{bot.id}"
 
     if result.state.fail:
         separator = "&" if "?" in url else "?"
@@ -133,29 +132,28 @@ async def get_broadcaster_id(channel_name: str) -> dict[str, Optional[str]]:
 
 
 # channel
-@router.get("/{bot_id:int}/channel/{name:str}")
-@twitch_channel_owner_required()
+@router.get("/{bot_id:int}/channel/{channel_name:str}")
 async def dashboard_twitch_channel(
     request: Request,
-    name: str,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    channel: Annotated[TwitchChannelDB, Depends(get_owned_twitch_channel)],
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
 ) -> Response:
     twitch_channels = get_twitch_channels_core(bot.id)
     if twitch_channels.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Twitch Channels not found")
 
-    twitch_feature_flags = select_twitch_feature_flags_by_channel_name_core(bot.id, name)
+    twitch_feature_flags = select_twitch_feature_flags_by_channel_name_core(bot.id, channel.channel_name)
     if twitch_feature_flags.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Twitch Feature Flags not found")
 
-    broadcast_message = get_broadcast_message_by_channel_name_core(bot.id, name)
+    broadcast_message = get_broadcast_message_by_channel_name_core(bot.id, channel.channel_name)
     if broadcast_message.value is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Broadcast Message not found")
 
-    broadcast_auth = get_broadcast_tokens_core(bot.id, name)
+    broadcast_auth = get_broadcast_tokens_core(bot.id, channel.channel_name)
     is_broadcast_authorized = broadcast_auth.state.success and broadcast_auth.value is not None
 
     return template.TemplateResponse(
@@ -165,9 +163,9 @@ async def dashboard_twitch_channel(
             "bot": bot,
             "twitch_user": twitch_user,
             "discord_user": discord_user,
-            "name": name,
+            "name": channel.channel_name,
             "twitch_channels": twitch_channels.value,
-            "active_channel": name,
+            "active_channel": channel.channel_name,
             "feature_flags": twitch_feature_flags.value,
             "broadcast_message": broadcast_message.value,
             "is_broadcast_authorized": is_broadcast_authorized,
@@ -175,19 +173,18 @@ async def dashboard_twitch_channel(
     )
 
 
-@router.post("/{bot_id:int}/{name:str}/feature_flags/{resource_id:int}")
-@resource_owner_required(ResourceType.TWITCH_FEATURE_FLAG)
+@router.post("/{bot_id:int}/{channel_name:str}/feature_flags/{feature_flags_id:int}")
 async def dashboard_twitch_feature_flag_update(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    name: str,
-    resource_id: int,
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    channel: Annotated[TwitchChannelDB, Depends(get_owned_twitch_channel)],
+    feature_flags: Annotated[TwitchFeatureFlagsDB, Depends(get_owned_twitch_feature_flags)],
     can_commands: Annotated[bool, Form()] = False,
     can_alias: Annotated[bool, Form()] = False,
     can_broadcast: Annotated[bool, Form()] = False,
     can_quote: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
     result = update_twitch_feature_flags_by_id_core(
-        resource_id,
+        feature_flags.id,
         can_commands,
         can_alias,
         can_broadcast,
@@ -196,30 +193,30 @@ async def dashboard_twitch_feature_flag_update(
 
     if result.state.fail:
         return RedirectResponse(
-            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to update twitch feature flags "
+            url=f"/dashboard/twitch/{bot.id}/channel/{channel.channel_name}"
+            + "?error_message=Failed to update twitch feature flags "
             + f"| reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
     return RedirectResponse(
-        url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Twitch feature flags updated successfully",
+        url=f"/dashboard/twitch/{bot.id}/channel/{channel.channel_name}"
+        + "?success_message=Twitch feature flags updated successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
 
-@router.post("/{bot_id:int}/{name:str}/channel/update/{resource_id:int}")
-@resource_owner_required(ResourceType.TWITCH_CHANNEL)
+@router.post("/{bot_id:int}/{channel_name:str}/channel/update/{channel_id:int}")
 async def dashboard_twitch_channel_update(
     request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    name: str,
-    resource_id: int,
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    channel: Annotated[TwitchChannelDB, Depends(get_owned_twitch_channel)],
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = await update_twitch_channel_enabled_by_id_core(resource_id, enabled)
+    result = await update_twitch_channel_enabled_by_id_core(channel.id, enabled)
 
     referer = request.headers.get("referer")
-    url = referer or f"/dashboard/twitch/{bot.id}/channel/{name}"
+    url = referer or f"/dashboard/twitch/{bot.id}/channel/{channel.channel_name}"
 
     if result.state.fail:
         separator = "&" if "?" in url else "?"
@@ -236,71 +233,74 @@ async def dashboard_twitch_channel_update(
 
 
 # broadcast messages
-@router.post("/{bot_id:int}/{name:str}/broadcast_message/save")
-@twitch_channel_owner_required()
+@router.post("/{bot_id:int}/{channel_name:str}/broadcast_message/save")
 async def dashboard_twitch_broadcast_message_save(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    name: str,
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    channel: Annotated[TwitchChannelDB, Depends(get_owned_twitch_channel)],
     message: Annotated[str, Form()],
     interval: Annotated[int, Form()],
 ) -> RedirectResponse:
-    result = save_broadcast_message_core(bot.id, name, message, interval)
+    result = save_broadcast_message_core(bot.id, channel.channel_name, message, interval)
 
     if result.state.fail:
         return RedirectResponse(
-            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to save broadcast message "
+            url=f"/dashboard/twitch/{bot.id}/channel/{channel.channel_name}"
+            + "?error_message=Failed to save broadcast message "
             + f"| reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
     return RedirectResponse(
-        url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Broadcast message saved successfully",
+        url=f"/dashboard/twitch/{bot.id}/channel/{channel.channel_name}"
+        + "?success_message=Broadcast message saved successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
 
-@router.post("/{bot_id:int}/{name:str}/broadcast_message/update/{resource_id:int}")
-@resource_owner_required(ResourceType.BROADCAST_MESSAGE)
+@router.post("/{bot_id:int}/{channel_name:str}/broadcast_message/update/{broadcast_message_id:int}")
 def update_broadcast_message(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    name: str,
-    resource_id: int,
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    channel: Annotated[TwitchChannelDB, Depends(get_owned_twitch_channel)],
+    broadcast_message: Annotated[TwitchBroadcastMessageDB, Depends(get_owned_broadcast_message)],
     message: Annotated[str, Form()],
     interval: Annotated[int, Form()],
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
-    result = update_broadcast_message_by_id_core(resource_id, message, interval, enabled)
+    result = update_broadcast_message_by_id_core(broadcast_message.id, message, interval, enabled)
 
     if result.state.fail:
         return RedirectResponse(
-            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to update broadcast message "
+            url=f"/dashboard/twitch/{bot.id}/channel/{channel.channel_name}"
+            + "?error_message=Failed to update broadcast message "
             + f"| reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
     return RedirectResponse(
-        url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Broadcast message updated successfully",
+        url=f"/dashboard/twitch/{bot.id}/channel/{channel.channel_name}"
+        + "?success_message=Broadcast message updated successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
 
-@router.post("/{bot_id:int}/{name:str}/broadcast_message/delete/{resource_id:int}")
-@resource_owner_required(ResourceType.BROADCAST_MESSAGE)
+@router.post("/{bot_id:int}/{channel_name:str}/broadcast_message/delete/{broadcast_message_id:int}")
 def delete_broadcast_message(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    name: str,
-    resource_id: int,
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    channel: Annotated[TwitchChannelDB, Depends(get_owned_twitch_channel)],
+    broadcast_message: Annotated[TwitchBroadcastMessageDB, Depends(get_owned_broadcast_message)],
 ) -> RedirectResponse:
-    result = delete_broadcast_message_by_id_core(resource_id)
+    result = delete_broadcast_message_by_id_core(broadcast_message.id)
 
     if result.state.fail:
         return RedirectResponse(
-            url=f"/dashboard/twitch/{bot.id}/channel/{name}?error_message=Failed to delete broadcast message "
+            url=f"/dashboard/twitch/{bot.id}/channel/{channel.channel_name}"
+            + "?error_message=Failed to delete broadcast message "
             + f"| reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
     return RedirectResponse(
-        url=f"/dashboard/twitch/{bot.id}/channel/{name}?success_message=Broadcast message deleted successfully",
+        url=f"/dashboard/twitch/{bot.id}/channel/{channel.channel_name}"
+        + "?success_message=Broadcast message deleted successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )

@@ -6,9 +6,9 @@ from fastapi import Depends
 
 from bot.chat.helper.discord import get_user_by_id as get_discord_user_by_id
 from bot.chat.helper.twitch import get_user_by_id as get_twitch_user_by_id
-from bot.frontend.helpers.auth import get_authenticated_twitch_user
+from bot.frontend.helpers.decorators import get_owned_twitch_user
 
-router: Final = APIRouter(prefix="/api", dependencies=[Depends(get_authenticated_twitch_user)])
+router: Final = APIRouter(prefix="/api", dependencies=[Depends(get_owned_twitch_user)])
 
 
 @router.get("/twitch/name/{user_id}")

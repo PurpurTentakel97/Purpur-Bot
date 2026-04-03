@@ -12,35 +12,30 @@ from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 from bot.core.counter import delete_counter_by_id as delete_counter_by_id_core
-from bot.core.counter import get_counter_by_id as get_counter_by_id_core
 from bot.core.counter import get_counters_by_bot_id as get_counters_by_bot_id_core
 from bot.core.counter import reset_counter_by_id as reset_counter_by_id_core
 from bot.core.counter import save_counter as save_counter_core
 from bot.core.counter import update_counter_by_id as update_counter_by_id_core
-from bot.core.types.result import Result
 from bot.database.types.bot_config import BotConfigDB
 from bot.database.types.counter import CounterDB
-from bot.frontend.helpers.auth import get_authenticated_twitch_user
-from bot.frontend.helpers.auth import get_discord_user
-from bot.frontend.helpers.decorators import ResourceType
-from bot.frontend.helpers.decorators import bot_owner_required
-from bot.frontend.helpers.decorators import resource_owner_required
+from bot.frontend.helpers.decorators import get_optional_owned_discord_user
+from bot.frontend.helpers.decorators import get_owned_bot
+from bot.frontend.helpers.decorators import get_owned_counter
+from bot.frontend.helpers.decorators import get_owned_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
-from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
-router = APIRouter(prefix="/dashboard/counter", dependencies=[Depends(get_authenticated_twitch_user)])
+router = APIRouter(prefix="/dashboard/counter/{bot_id:int}", dependencies=[Depends(get_owned_twitch_user)])
 
 
-@router.get("/{bot_id:int}")
-@bot_owner_required()
+@router.get("")
 async def dashboard_counter(
     request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
-    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
 ) -> Response:
     counters = get_counters_by_bot_id_core(bot.id)
     if counters.value is None:
@@ -58,10 +53,10 @@ async def dashboard_counter(
     )
 
 
-@router.post("/{bot_id:int}")
-@bot_owner_required()
+@router.post("")
 async def dashboard_counter_add(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)], name: Annotated[str, Form()]
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    name: Annotated[str, Form()],
 ) -> RedirectResponse:
     result = save_counter_core(bot.id, name)
 
@@ -76,72 +71,60 @@ async def dashboard_counter_add(
     )
 
 
-@router.post("/update/{resource_id:int}")
-@resource_owner_required(ResourceType.COUNTER)
+@router.post("/update/{counter_id:int}")
 async def dashboard_counter_update(
-    counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)],
+    counter: Annotated[CounterDB, Depends(get_owned_counter)],
     name: Annotated[str, Form()],
     count: Annotated[int, Form()],
 ) -> RedirectResponse:
-    if counter.value is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Counter not found")
-
-    result = update_counter_by_id_core(counter.value.id, name, count)
+    result = update_counter_by_id_core(counter.id, name, count)
 
     if result.state.fail:
         return RedirectResponse(
-            url=f"/dashboard/counter/{counter.value.bot_id}?error_message=Failed to update counter "
+            url=f"/dashboard/counter/{counter.bot_id}?error_message=Failed to update counter "
             + f"| reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
     return RedirectResponse(
-        url=f"/dashboard/counter/{counter.value.bot_id}?success_message=Counter updated successfully",
+        url=f"/dashboard/counter/{counter.bot_id}?success_message=Counter updated successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
 
-@router.post("/{resource_id:int}/reset")
-@resource_owner_required(ResourceType.COUNTER)
+@router.post("/reset/{counter_id:int}")
 async def dashboard_counter_reset(
-    counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)],
+    counter: Annotated[CounterDB, Depends(get_owned_counter)],
 ) -> RedirectResponse:
-    if counter.value is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Counter not found")
-
-    result = reset_counter_by_id_core(counter.value.id)
+    result = reset_counter_by_id_core(counter.id)
 
     if result.state.fail:
         return RedirectResponse(
-            url=f"/dashboard/counter/{counter.value.bot_id}?error_message=Failed to reset counter "
+            url=f"/dashboard/counter/{counter.bot_id}?error_message=Failed to reset counter "
             + f"| reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
     return RedirectResponse(
-        url=f"/dashboard/counter/{counter.value.bot_id}?success_message=Counter reset successfully",
+        url=f"/dashboard/counter/{counter.bot_id}?success_message=Counter reset successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
 
-@router.post("/{resource_id:int}/delete")
-@resource_owner_required(ResourceType.COUNTER)
+@router.post("/delete/{counter_id:int}")
 async def dashboard_counter_delete(
-    counter: Annotated[Result[CounterDB], Depends(get_counter_by_id_core)],
+    counter: Annotated[CounterDB, Depends(get_owned_counter)],
 ) -> RedirectResponse:
-    if counter.value is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Counter not found")
-
-    result = delete_counter_by_id_core(counter.value.id)
+    result = delete_counter_by_id_core(counter.id)
 
     if result.state.fail:
         return RedirectResponse(
-            url=f"/dashboard/counter/{counter.value.bot_id}?error_message=Failed to delete counter "
+            url=f"/dashboard/counter/{counter.bot_id}?error_message=Failed to delete counter "
             + f"| reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
     return RedirectResponse(
-        url=f"/dashboard/counter/{counter.value.bot_id}?success_message=Counter deleted successfully",
+        url=f"/dashboard/counter/{counter.bot_id}?success_message=Counter deleted successfully",
         status_code=HTTPStatus.SEE_OTHER,
     )

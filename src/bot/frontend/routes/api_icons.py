@@ -13,8 +13,8 @@ from twitchAPI.helper import first
 from twitchAPI.twitch import Twitch
 
 from bot.core.app_context import APP_CONTEXT
-from bot.frontend.helpers.auth import get_discord_user
-from bot.frontend.helpers.auth import get_twitch_user
+from bot.frontend.helpers.decorators import get_owned_discord_user
+from bot.frontend.helpers.decorators import get_owned_twitch_user
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 from bot.helpers.log import LogProgram
@@ -41,7 +41,7 @@ TRANSPARENT_PIXEL: Final[bytes] = (
 
 @router.get("/twitch/profile_icon")
 async def get_twitch_icon(
-    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
+    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_owned_twitch_user)],
 ) -> Response:
     if twitch_user is None:
         return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
@@ -125,7 +125,9 @@ async def get_twitch_icon_by_login(login: str) -> Response:
 
 
 @router.get("/discord/profile_icon")
-async def get_discord_icon(discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)]) -> Response:
+async def get_discord_icon(
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_owned_discord_user)],
+) -> Response:
     if discord_user is None:
         return Response(content=TRANSPARENT_PIXEL, media_type="image/png")
 

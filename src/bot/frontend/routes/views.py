@@ -14,10 +14,12 @@ from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_c
 from bot.core.counter import get_counters_by_bot_id as get_counters_by_bot_id_core
 from bot.core.quote import get_quotes_by_bot_id as get_quotes_by_bot_id_core
 from bot.database.types.bot_config import BotConfigDB
-from bot.frontend.helpers.auth import get_discord_user
-from bot.frontend.helpers.auth import get_twitch_user
+from bot.frontend.helpers.decorators import get_bot
+from bot.frontend.helpers.decorators import get_optional_owned_discord_user
+from bot.frontend.helpers.decorators import get_optional_owned_twitch_user
+from bot.frontend.helpers.decorators import get_owned_discord_user
+from bot.frontend.helpers.decorators import get_owned_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
-from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
@@ -28,8 +30,8 @@ router: Final = APIRouter(prefix="/view")
 async def view(
     request: Request,
     template: Annotated[Jinja2Templates, Depends(get_templates)],
-    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_optional_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
 ) -> Response:
     bots_result: Final = get_all_active_bots_core()
     bots = bots_result.value if bots_result.state.success and bots_result.value else []
@@ -49,10 +51,10 @@ async def view(
 @router.get("/{bot_id:int}/")
 async def view_main(
     request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    bot: Annotated[BotConfigDB, Depends(get_bot)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
-    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_optional_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
 ) -> Response:
     return template.TemplateResponse(
         request=request,
@@ -68,10 +70,10 @@ async def view_main(
 @router.get("/{bot_id:int}/commands")
 async def view_commands(
     request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    bot: Annotated[BotConfigDB, Depends(get_bot)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
-    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_owned_discord_user)],
 ) -> Response:
     commands_result: Final = get_commands_by_bot_id_core(bot.id)
     return template.TemplateResponse(
@@ -89,10 +91,10 @@ async def view_commands(
 @router.get("/{bot_id:int}/counter")
 async def view_counter(
     request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    bot: Annotated[BotConfigDB, Depends(get_bot)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
-    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_owned_discord_user)],
 ) -> Response:
     counter_result: Final = get_counters_by_bot_id_core(bot.id)
     return template.TemplateResponse(
@@ -110,10 +112,10 @@ async def view_counter(
 @router.get("/{bot_id:int}/alias")
 async def view_alias(
     request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    bot: Annotated[BotConfigDB, Depends(get_bot)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
-    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_optional_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
 ) -> Response:
     aliases_result: Final = get_alias_dict_from_bot_core(bot.id)
     return template.TemplateResponse(
@@ -131,10 +133,10 @@ async def view_alias(
 @router.get("/{bot_id:int}/quote")
 async def view_quote(
     request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    bot: Annotated[BotConfigDB, Depends(get_bot)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
-    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_optional_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
 ) -> Response:
     quotes_result: Final = await get_quotes_by_bot_id_core(bot.id)
     return template.TemplateResponse(

@@ -159,7 +159,7 @@
             {% for counter in counters %}
             <tr>
                 <td class="counter-name">
-                    <form id="update-form-{{ counter.id }}" action="/dashboard/counter/update/{{ counter.id }}" method="post"></form>
+                    <form id="update-form-{{ counter.id }}" action="/dashboard/counter/{{ bot.id }}/update/{{ counter.id }}" method="post"></form>
                     <input form="update-form-{{ counter.id }}" type="text" name="name" value="{{ counter.name }}" required>
                 </td>
                 <td>
@@ -167,10 +167,10 @@
                 </td>
                 <td class="action-cell">
                     <button form="update-form-{{ counter.id }}" type="submit" class="btn btn-primary btn-small">Update</button>
-                    <form action="/dashboard/counter/{{ counter.id }}/reset" method="post" onsubmit="return confirm('Are you sure you want to reset this counter to 0?');">
+                    <form action="/dashboard/counter/{{ bot.id }}/reset/{{ counter.id }}" method="post" onsubmit="return confirm('Are you sure you want to reset this counter to 0?');">
                         <button type="submit" class="btn btn-warning btn-small">Reset</button>
                     </form>
-                    <form action="/dashboard/counter/{{ counter.id }}/delete" method="post" onsubmit="return confirm('Are you sure you want to delete this counter?');">
+                    <form action="/dashboard/counter/{{ bot.id }}/delete/{{ counter.id }}" method="post" onsubmit="return confirm('Are you sure you want to delete this counter?');">
                         <button type="submit" class="btn btn-danger btn-small">Delete</button>
                     </form>
                 </td>
