@@ -245,6 +245,7 @@ dependencies = [
     { name = "discord-py" },
     { name = "dotenv" },
     { name = "fastapi", extra = ["standard"] },
+    { name = "fastapi-decorators" },
     { name = "httpx" },
     { name = "jinja2" },
     { name = "pydantic" },
@@ -270,6 +271,7 @@ requires-dist = [
     { name = "discord-py", specifier = ">=2.6.4" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.128.0" },
+    { name = "fastapi-decorators", specifier = ">=1.0.20" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pydantic", specifier = ">=2.12.5" },
@@ -628,6 +630,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/11/15/6c3d85d63964340fde6f36cc80f3f365d35f371e6a918d68ff3a3d588ef2/fastapi_cloud_cli-0.11.0.tar.gz", hash = "sha256:ecc83a5db106be35af528eccb01aa9bced1d29783efd48c8c1c831cf111eea99", size = 36170, upload-time = "2026-01-15T09:51:33.681Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1a/07/60f79270a3320780be7e2ae8a1740cb98a692920b569ba420b97bcc6e175/fastapi_cloud_cli-0.11.0-py3-none-any.whl", hash = "sha256:76857b0f09d918acfcb50ade34682ba3b2079ca0c43fda10215de301f185a7f8", size = 26884, upload-time = "2026-01-15T09:51:34.471Z" },
+]
+
+[[package]]
+name = "fastapi-decorators"
+version = "1.0.20"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fastapi" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ac/d4/20eea5e54c2328b4f37e0bde81beefb70753bbd30b0c795a5740f05005cc/fastapi_decorators-1.0.20.tar.gz", hash = "sha256:a32c7fd6a3e933e797278a8dbd123d1c5791ed163452b805f2c862b0364537a7", size = 8567, upload-time = "2026-03-30T07:33:16.155Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/65/e5/609d8a8276461c49b74ff4418ea567f3f2544b62249f4ad3d5079e802f6d/fastapi_decorators-1.0.20-py3-none-any.whl", hash = "sha256:1c5e9b65e14ef7c9c6981cf90c6cc67e547e4b7f49d7f8f1c26a9c1a5bceca24", size = 8709, upload-time = "2026-03-30T07:33:15.113Z" },
 ]
 
 [[package]]

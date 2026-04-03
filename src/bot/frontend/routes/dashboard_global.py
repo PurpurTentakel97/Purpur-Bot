@@ -14,22 +14,22 @@ from starlette.templating import Jinja2Templates
 from bot.core.bot import update_bot as update_bot_core
 from bot.core.bot import update_bot_enabled_by_id as update_bot_enabled_by_id_core
 from bot.database.types.bot_config import BotConfigDB
-from bot.frontend.helpers.auth import get_authenticated_twitch_user
-from bot.frontend.helpers.auth import get_discord_user
+from bot.frontend.helpers.decorators import get_optional_owned_discord_user
+from bot.frontend.helpers.decorators import get_owned_bot
+from bot.frontend.helpers.decorators import get_owned_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
-from bot.frontend.helpers.route_utils import get_valid_bot
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
 
-router: Final = APIRouter(prefix="/dashboard/global", dependencies=[Depends(get_authenticated_twitch_user)])
+router: Final = APIRouter(prefix="/dashboard/global", dependencies=[Depends(get_owned_twitch_user)])
 
 
 @router.get("/{bot_id:int}")
 async def dashboard_main(
     request: Request,
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
-    twitch_user: Annotated[TwitchUserInfo, Depends(get_authenticated_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
+    twitch_user: Annotated[TwitchUserInfo, Depends(get_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
 ) -> Response:
     return template.TemplateResponse(
@@ -45,7 +45,7 @@ async def dashboard_main(
 
 @router.post("/{bot_id:int}")
 async def dashboard_main_edit(
-    bot: Annotated[BotConfigDB, Depends(get_valid_bot)],
+    bot: Annotated[BotConfigDB, Depends(get_owned_bot)],
     name: Annotated[str, Form()],
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:

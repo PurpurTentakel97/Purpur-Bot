@@ -30,13 +30,16 @@ from bot.core.twitch_auth import get_twitch_tokens as get_twitch_tokens_core
 from bot.core.twitch_auth import store_or_update_twitch_tokens as store_or_update_twitch_tokens_core
 from bot.core.twitch_broadcast_auth import delete_broadcast_tokens as delete_broadcast_tokens_core
 from bot.core.twitch_broadcast_auth import store_or_update_broadcast_tokens as store_or_update_broadcast_tokens_core
-from bot.frontend.helpers.auth import get_discord_user
-from bot.frontend.helpers.auth import get_twitch_user
+from bot.database.types.twitch_broadcast_auth import TwitchBroadcastAuthDB
 from bot.frontend.helpers.auth_constents import DISCORD_SCOPES
 from bot.frontend.helpers.auth_constents import JWT_ALG
 from bot.frontend.helpers.auth_constents import JWT_EXPIRY_DAYS
 from bot.frontend.helpers.auth_constents import TWITCH_BROADCAST_SCOPES
 from bot.frontend.helpers.auth_constents import TWITCH_SCOPES
+from bot.frontend.helpers.decorators import bot_owner_required
+from bot.frontend.helpers.decorators import get_optional_owned_discord_user
+from bot.frontend.helpers.decorators import get_optional_owned_twitch_user
+from bot.frontend.helpers.decorators import get_owned_twitch_channel_broadcast_authentication
 from bot.frontend.types.discord_session_cookie_jwt import DiscordSessionCookie
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_session_cookie_jwt import TwitchSessionCookie
@@ -79,7 +82,11 @@ async def auth_twitch() -> RedirectResponse:
 
 
 @router.get("/authorize/twitch")
-async def authorize_twitch(bot_id: int, channel_name: str) -> RedirectResponse:
+@bot_owner_required()
+async def authorize_twitch(
+    bot_id: int,
+    channel_name: str,
+) -> RedirectResponse:
     state = secrets.token_urlsafe(32)
 
     params = {
@@ -125,26 +132,31 @@ async def authorize_twitch(bot_id: int, channel_name: str) -> RedirectResponse:
 
 
 @router.post("/authorize/twitch/delete")
+@bot_owner_required()
 async def authorize_twitch_delete(
-    bot_id: int,
-    channel_name: str,
+    auth: Annotated[TwitchBroadcastAuthDB, Depends(get_owned_twitch_channel_broadcast_authentication)],
 ) -> RedirectResponse:
-    result = await delete_broadcast_tokens_core(bot_id, channel_name)
+    result = await delete_broadcast_tokens_core(auth.bot_id, auth.channel_name)
     if result.state.fail:
         return RedirectResponse(
-            url=f"/dashboard/twitch/{bot_id}/channel/{channel_name}"
+            url=f"/dashboard/twitch/{auth.bot_id}/channel/{auth.channel_name}"
             + "?error_message=Failed to delete broadcast authorization",
             status_code=HTTPStatus.SEE_OTHER,
         )
 
     return RedirectResponse(
-        url=f"/dashboard/twitch/{bot_id}/channel/{channel_name}?success_message=Broadcast authorization deleted",
+        url=f"/dashboard/twitch/{auth.bot_id}/channel/{auth.channel_name}"
+        + "?success_message=Broadcast authorization deleted",
         status_code=HTTPStatus.SEE_OTHER,
     )
 
 
 @router.get("/authorize/twitch/callback")
-async def authorize_twitch_callback(request: Request, code: Optional[str], state: Optional[str]) -> RedirectResponse:
+async def authorize_twitch_callback(
+    request: Request,
+    code: Optional[str],
+    state: Optional[str],
+) -> RedirectResponse:
     expected_state: Final = request.cookies.get(TWITCH_BROADCAST_OAUTH_STATE_COOKIE_KEY)
     bot_id_str: Final = request.cookies.get("TWITCH_BROADCAST_BOT_ID")
     channel_name: Final = request.cookies.get("TWITCH_BROADCAST_CHANNEL_NAME")
@@ -234,7 +246,11 @@ async def authorize_twitch_callback(request: Request, code: Optional[str], state
 
 
 @router.get("/login/twitch/callback")
-async def auth_twitch_callback(request: Request, code: Optional[str], state: Optional[str]) -> RedirectResponse:
+async def auth_twitch_callback(
+    request: Request,
+    code: Optional[str],
+    state: Optional[str],
+) -> RedirectResponse:
     expected_state: Final = request.cookies.get(TWITCH_OAUTH_STATE_COOKIE_KEY)
     if expected_state is None or state is None or code is None or expected_state != state:
         log_default(LogLevel.ERROR, f"Twitch OAuth state mismatch. Expected: {expected_state}, Got: {state}")
@@ -343,7 +359,9 @@ async def auth_discord() -> RedirectResponse:
 
 @router.get("/login/discord/callback")
 async def auth_discord_callback(
-    request: Request, code: Optional[str] = None, state: Optional[str] = None
+    request: Request,
+    code: Optional[str] = None,
+    state: Optional[str] = None,
 ) -> RedirectResponse:
     expected_state: Final = request.cookies.get(DISCORD_OAUTH_STATE_COOKIE_KEY)
     if expected_state is None or state is None or code is None or expected_state != state:
@@ -441,8 +459,8 @@ async def auth_discord_callback(
 
 @router.get("/logout")
 async def logout(
-    current_twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_twitch_user)],
-    current_discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_discord_user)],
+    current_twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_optional_owned_twitch_user)],
+    current_discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
 ) -> RedirectResponse:
     if current_twitch_user is not None:
         token_set = get_twitch_tokens_core(current_twitch_user.id_)

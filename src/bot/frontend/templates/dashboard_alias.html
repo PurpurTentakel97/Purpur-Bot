@@ -196,7 +196,7 @@
             {% for entry in aliases %}
             <tr>
                 <td class="alias-name">
-                    <form id="update-form-{{ entry.id }}" action="/dashboard/alias/update/{{ entry.id }}" method="post"></form>
+                    <form id="update-form-{{ entry.id }}" action="/dashboard/alias/{{ bot.id }}/update/{{ entry.id }}" method="post"></form>
                     <input form="update-form-{{ entry.id }}" type="text" name="alias" value="{{ entry.alias }}" required>
                 </td>
                 <td>
@@ -210,7 +210,7 @@
                 </td>
                 <td class="action-cell">
                     <button form="update-form-{{ entry.id }}" type="submit" class="btn btn-primary btn-small">Update</button>
-                    <form action="/dashboard/alias/{{ entry.id }}/delete" method="post" onsubmit="return confirm('Are you sure you want to delete this alias?');" style="display: inline;">
+                    <form action="/dashboard/alias/{{ bot.id }}/{{ entry.id }}/delete" method="post" onsubmit="return confirm('Are you sure you want to delete this alias?');" style="display: inline;">
                         <button type="submit" class="btn btn-danger btn-small">Delete</button>
                     </form>
                 </td>

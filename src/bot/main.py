@@ -14,8 +14,8 @@ from bot.chat.message_handler import handle_messages
 from bot.core.handle_broadcast_message import handle_broadcast_messages
 from bot.core.startup import startup_programm
 from bot.core.terminate import terminate_programm
-from bot.frontend.helpers.auth import get_discord_user
-from bot.frontend.helpers.auth import get_twitch_user
+from bot.frontend.helpers.decorators import get_optional_owned_discord_user
+from bot.frontend.helpers.decorators import get_optional_owned_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.routes.api_auth import router as auth_router
 from bot.frontend.routes.api_icons import router as icon_router
@@ -79,8 +79,8 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException) ->
 
     # robustly try to get the users for the header
     try:
-        twitch_user = get_twitch_user(request)
-        discord_user = get_discord_user(request)
+        twitch_user = get_optional_owned_twitch_user(request)
+        discord_user = get_optional_owned_discord_user(request)
     except Exception:
         twitch_user = None
         discord_user = None
@@ -105,8 +105,8 @@ async def general_exception_handler(request: Request, exc: Exception) -> Respons
 
     # robustly try to get the users for the header
     try:
-        twitch_user = get_twitch_user(request)
-        discord_user = get_discord_user(request)
+        twitch_user = get_optional_owned_twitch_user(request)
+        discord_user = get_optional_owned_discord_user(request)
     except Exception:
         twitch_user = None
         discord_user = None

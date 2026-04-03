@@ -20,6 +20,7 @@ from bot.database.quote import delete_quote as delete_quote_db
 from bot.database.quote import insert_quote as insert_quote_db
 from bot.database.quote import select_quote_by_bot_id as select_quote_by_bot_id_db
 from bot.database.quote import select_quote_by_discord_id as select_quote_by_discord_id_db
+from bot.database.quote import select_quote_by_id
 from bot.database.quote import select_quote_by_twitch_id as select_quote_by_twitch_id_db
 from bot.database.quote import update_quote as update_quote_db
 from bot.database.types.quote import Quote
@@ -190,6 +191,10 @@ async def get_quote(text: str, message: ChatMessage) -> Result[str]:
         return await get_random_quote()
 
     return await quote_lookup(text, message)
+
+
+def get_quote_by_id(resource_id: int) -> Result[Quote]:
+    return select_quote_by_id(resource_id)
 
 
 def edit_quote_by_id(quote_id: int, quote: str) -> Result[None]:

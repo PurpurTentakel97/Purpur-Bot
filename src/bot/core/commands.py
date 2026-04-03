@@ -79,8 +79,8 @@ def get_commands_by_bot_id(bot_id: int) -> Result[list[BasicCommandDB]]:
     return select_commands_by_bot_id_db(bot_id)
 
 
-def get_command_by_id(command_id: int) -> Result[BasicCommandDB]:
-    return select_command_by_id_core(command_id)
+def get_command_by_id(resource_id: int) -> Result[BasicCommandDB]:
+    return select_command_by_id_core(resource_id)
 
 
 def get_command(bot_id: int, name: str) -> Result[BasicCommandDB]:

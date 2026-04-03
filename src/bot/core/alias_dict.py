@@ -24,8 +24,8 @@ def get_alias_dict_from_bot(bot_id: int) -> Result[list[AliasDictEntry]]:
     return select_dict_from_bot_db(bot_id)
 
 
-def get_alias_by_id(entry_id: int) -> Result[AliasDictEntry]:
-    return select_dict_entry_by_id_db(entry_id)
+def get_alias_by_id(resource_id: int) -> Result[AliasDictEntry]:
+    return select_dict_entry_by_id_db(resource_id)
 
 
 def alias_lookup(

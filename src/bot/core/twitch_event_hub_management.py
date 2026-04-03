@@ -21,6 +21,7 @@ from bot.database.types.fields import FIELD_DISCORD_SERVER_ID
 from bot.database.types.fields import FIELD_ENABLED
 from bot.database.types.fields import FIELD_TWITCH_BROADCASTER_ID
 from bot.database.types.fields import FIELD_TWITCH_LIVE_MESSAGE
+from bot.database.types.twitch_event_hub import TwitchEventHubDB
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
 
@@ -152,6 +153,10 @@ async def send_twitch_event_hub_entry(broadcast_id: str, message: TwitchOnlineMe
         await PROGRAMM_PARTS.discord.send_twitch_live_message(full_message)
 
         PROGRAMM_PARTS.cooldowns.twitch_live_subscription.add(cooldown_key)
+
+
+def get_twitch_event_hub_by_id(id_: int) -> Result[TwitchEventHubDB]:
+    return select_twitch_event_hub_by_id_db(id_)
 
 
 async def update_twitch_event_hub(id_: int, channel_id: int, message: str, enabled: bool) -> Result[None]:

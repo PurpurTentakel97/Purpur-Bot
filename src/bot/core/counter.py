@@ -116,8 +116,8 @@ def get_counters_by_bot_id(bot_id: int) -> Result[list[CounterDB]]:
     return select_counter_by_bot_id_db(bot_id)
 
 
-def get_counter_by_id(counter_id: int) -> Result[CounterDB]:
-    return select_counter_by_id_db(counter_id)
+def get_counter_by_id(resource_id: int) -> Result[CounterDB]:
+    return select_counter_by_id_db(resource_id)
 
 
 def get_counter(bot_id: int, name: str) -> Result[CounterDB]:

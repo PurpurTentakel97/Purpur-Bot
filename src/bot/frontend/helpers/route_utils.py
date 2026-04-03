@@ -1,17 +1,13 @@
 from datetime import datetime
 from functools import lru_cache
-from http import HTTPStatus
 from pathlib import Path
 from typing import Final
 
 import jwt
-from fastapi import HTTPException
 from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 
 from bot.core.app_context import APP_CONTEXT
-from bot.core.bot import get_bot as get_bot_core
-from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.auth_constents import JWT_ALG
 from bot.frontend.types.discord_session_cookie_jwt import DiscordSessionCookie
 from bot.frontend.types.twitch_session_cookie_jwt import TwitchSessionCookie
@@ -67,12 +63,3 @@ def get_discord_session_cookie(request: Request) -> DiscordSessionCookie | None:
     except Exception as e:
         log_exception(e, LogProgram.Default, "Failed to decode Discord Session Cookie")
         return None
-
-
-def get_valid_bot(bot_id: int) -> BotConfigDB:
-    result = get_bot_core(bot_id)
-
-    if result.value is None:
-        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="Bot not found")
-
-    return result.value
