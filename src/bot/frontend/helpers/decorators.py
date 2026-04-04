@@ -22,6 +22,7 @@ from bot.core.discord_feature_flags import select_discord_feature_flags_by_id
 from bot.core.quote import get_quote_by_id
 from bot.core.twitch import get_twitch_channel_by_name
 from bot.core.twitch_broadcast_auth import get_broadcast_tokens
+from bot.core.twitch_event_hub_management import get_twitch_event_hub_by_id
 from bot.core.twitch_feature_flags import select_twitch_feature_flags_by_id
 from bot.core.types.result import Result
 from bot.database.types.alias_dict_entry import AliasDictEntry
@@ -35,6 +36,7 @@ from bot.database.types.quote import Quote
 from bot.database.types.twitch_broadcast_auth import TwitchBroadcastAuthDB
 from bot.database.types.twitch_broadcast_message import TwitchBroadcastMessageDB
 from bot.database.types.twitch_channel import TwitchChannelDB
+from bot.database.types.twitch_event_hub import TwitchEventHubDB
 from bot.frontend.helpers.route_utils import get_discord_session_cookie
 from bot.frontend.helpers.route_utils import get_twitch_session_cookie
 from bot.frontend.types.discord_user_info import DiscordUserInfo
@@ -169,8 +171,8 @@ def get_owned_twitch_feature_flags(
 
 def get_owned_live_message(
     live_message_id: int, bot: Annotated[BotConfigDB, Depends(get_owned_bot)]
-) -> TwitchBroadcastMessageDB:
-    return _get_owned_ressource(live_message_id, get_broadcast_message_by_id, bot)
+) -> TwitchEventHubDB:
+    return _get_owned_ressource(live_message_id, get_twitch_event_hub_by_id, bot)
 
 
 def get_owned_broadcast_message(
