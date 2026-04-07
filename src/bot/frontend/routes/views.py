@@ -17,8 +17,6 @@ from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.decorators import get_bot
 from bot.frontend.helpers.decorators import get_optional_owned_discord_user
 from bot.frontend.helpers.decorators import get_optional_owned_twitch_user
-from bot.frontend.helpers.decorators import get_owned_discord_user
-from bot.frontend.helpers.decorators import get_owned_twitch_user
 from bot.frontend.helpers.route_utils import get_templates
 from bot.frontend.types.discord_user_info import DiscordUserInfo
 from bot.frontend.types.twitch_user_info import TwitchUserInfo
@@ -72,8 +70,8 @@ async def view_commands(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_bot)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
-    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_owned_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_owned_discord_user)],
+    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_optional_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
 ) -> Response:
     commands_result: Final = get_commands_by_bot_id_core(bot.id)
     return template.TemplateResponse(
@@ -93,8 +91,8 @@ async def view_counter(
     request: Request,
     bot: Annotated[BotConfigDB, Depends(get_bot)],
     template: Annotated[Jinja2Templates, Depends(get_templates)],
-    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_owned_twitch_user)],
-    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_owned_discord_user)],
+    twitch_user: Annotated[Optional[TwitchUserInfo], Depends(get_optional_owned_twitch_user)],
+    discord_user: Annotated[Optional[DiscordUserInfo], Depends(get_optional_owned_discord_user)],
 ) -> Response:
     counter_result: Final = get_counters_by_bot_id_core(bot.id)
     return template.TemplateResponse(
