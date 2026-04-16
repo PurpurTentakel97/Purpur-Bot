@@ -60,7 +60,7 @@
         {% for command in commands %}
         {% if command.enabled %}
         <tr>
-            <td class="command-name">{{ command.command }}</td>
+            <td class="command-name">!{{ command.command }}</td>
             <td>{{ command.message }}</td>
         </tr>
         {% endif %}
