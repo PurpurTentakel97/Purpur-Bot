@@ -8,6 +8,7 @@ from discord import Message as DiscordMessage
 from twitchAPI.chat import ChatMessage as TwitchChatMessage
 
 from bot.chat.types.message_response import ChatMessageResponse
+from bot.chat.types.user_ref import UserRef
 from bot.core.types.permission_level import PermissionLevel
 
 if TYPE_CHECKING:
@@ -19,6 +20,9 @@ if TYPE_CHECKING:
 class ChatMessage:
     bot_id: int
     text: str
+    sender: UserRef
+    mentions: list[UserRef]
+    owner: UserRef
     sender_chat: "Chat"
     sender_permission_level: PermissionLevel
     original_message: DiscordMessage | TwitchChatMessage

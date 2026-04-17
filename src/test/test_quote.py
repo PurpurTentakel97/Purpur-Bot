@@ -10,6 +10,7 @@ from discord.message import Message as DiscordMessage
 from twitchAPI.chat import ChatMessage as TwitchMessage
 
 from bot.chat.types.message import ChatMessage
+from bot.chat.types.user_ref import TwitchUserRef
 from bot.core.quote import get_quote
 from bot.core.quote import save_discord_quote_by_message
 from bot.core.quote import save_quote_by_message
@@ -95,6 +96,9 @@ def chat_message_twitch(mock_twitch_message: MagicMock, mock_twitch_chat: MagicM
     return ChatMessage(
         bot_id=1,
         text="@target hello",
+        sender=TwitchUserRef(name="test_user"),
+        mentions=[],
+        owner=TwitchUserRef(name="test_owner"),
         sender_chat=mock_twitch_chat,
         sender_permission_level=MagicMock(),
         original_message=mock_twitch_message,
@@ -110,6 +114,9 @@ def chat_message_discord(mock_discord_message: MagicMock, mock_discord_chat: Mag
         bot_id=1,
         text="<@123> hello",
         sender_chat=mock_discord_chat,
+        sender=TwitchUserRef(name="test_user"),
+        mentions=[],
+        owner=TwitchUserRef(name="test_owner"),
         sender_permission_level=MagicMock(),
         original_message=mock_discord_message,
         meta_data=None,

@@ -7,6 +7,7 @@ from discord.message import Message as DiscordMessage
 from bot.chat.chat import Chat
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
+from bot.chat.types.user_ref import DiscordUserRef
 from bot.core.types.permission_level import PermissionLevel
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_discord
@@ -56,10 +57,17 @@ class DiscordServer(Chat):
         # the author is a member of the server by now since the client called this method.
         if not isinstance(message.author, DiscordMember):
             raise AssertionError("Expected author to be a Member")
+        if message.guild is None:
+            raise AssertionError("Expected message to be in a guild")
+        if message.guild.owner_id is None:
+            raise AssertionError("Expected message guild to have an owner_id")
 
         msg = ChatMessage(
             bot_id=self.bot_id,
             text=message.content,
+            sender=DiscordUserRef(discord_id=message.author.id),
+            mentions=[DiscordUserRef(discord_id=x.id) for x in message.mentions],
+            owner=DiscordUserRef(discord_id=message.guild.owner_id),
             sender_chat=self,
             sender_permission_level=_get_permission_level(message.author),
             original_message=message,

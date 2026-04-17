@@ -13,6 +13,8 @@ from bot.chat.chat import Chat
 from bot.chat.twitch_client import TwitchClient
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
+from bot.chat.types.user_ref import TwitchUserRef
+from bot.chat.types.user_ref import UserRef
 from bot.core.types.permission_level import PermissionLevel
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_twitch
@@ -92,10 +94,25 @@ class TwitchChat(Chat):
 
             return PermissionLevel.USER
 
+        def _get_mentions() -> list[UserRef]:
+            names: list[UserRef] = []
+
+            for word in message.text.split():
+                if word.startswith("@"):
+                    names.append(TwitchUserRef(name=word[1:]))
+
+            return names
+
+        if message.room is None:
+            raise AssertionError("Twitch Message room is None")
+
         msg = ChatMessage(
             bot_id=self.bot_id,
             text=message.text,
+            sender=TwitchUserRef(name=message.user.name),
             sender_chat=self,
+            mentions=_get_mentions(),
+            owner=TwitchUserRef(name=message.room.name),
             sender_permission_level=_get_user_permission_level(message.user),
             original_message=message,
             meta_data=None,

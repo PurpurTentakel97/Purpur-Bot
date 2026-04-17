@@ -7,6 +7,7 @@ from twitchAPI.chat import ChatMessage as TwitchChatMessage
 
 from bot.chat.handle_commands import handle_command
 from bot.chat.types.message import ChatMessage
+from bot.chat.types.user_ref import TwitchUserRef
 from bot.core.types.cooldown import CooldownsWrapper
 from bot.core.types.permission_level import PermissionLevel
 from bot.core.types.programm_parts import PROGRAMM_PARTS
@@ -175,6 +176,9 @@ async def test_cooldown_is_command_specific(mock_feature_flags: FeatureFlagsDB) 
     msg = ChatMessage(
         bot_id=bot_id,
         text="!hello",
+        sender=TwitchUserRef(name="test_user"),
+        mentions=[],
+        owner=TwitchUserRef(name="test_owner"),
         sender_chat=sender_chat,
         sender_permission_level=perm,
         original_message=original,

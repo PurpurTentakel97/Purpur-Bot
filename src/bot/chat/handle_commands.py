@@ -360,7 +360,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
             pass
 
     if feature_flags.can_commands:
-        result = get_command_core(message.bot_id, parts[0].lstrip("!"))
+        result = get_command_core(message, parts[0].lstrip("!"))
         if result.state.success and result.value is not None:
             cooldown_key = CommandCooldownKey(
                 message.bot_id,

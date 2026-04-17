@@ -1,3 +1,4 @@
+from bot.chat.types.message import ChatMessage
 from bot.core.counter import decrement_counter_by
 from bot.core.counter import delete_counter
 from bot.core.counter import get_counter
@@ -87,8 +88,8 @@ def get_command(bot_id: int, name: str) -> Result[BasicCommandDB]:
     return select_command_db(bot_id, identifier_for_db(name))
 
 
-def get_command_with_counter(bot_id: int, command_name: str) -> Result[BasicCommandDB]:
-    command_result = get_command(bot_id, command_name)
+def get_command_with_counter(message: ChatMessage, command_name: str) -> Result[BasicCommandDB]:
+    command_result = get_command(message.bot_id, command_name)
 
     if command_result.state.fail or command_result.value is None:
         return command_result
@@ -97,7 +98,7 @@ def get_command_with_counter(bot_id: int, command_name: str) -> Result[BasicComm
         return Result(ResultState.COMMAND_DISABLED, command_result.value)
 
     if has_counter(command_result.value.message):
-        command_result.value.message = _replace_counter_and_execute(bot_id, command_result.value.message)
+        command_result.value.message = _replace_counter_and_execute(message.bot_id, command_result.value.message)
 
     return command_result
 
