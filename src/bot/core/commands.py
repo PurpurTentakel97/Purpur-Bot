@@ -70,9 +70,9 @@ def _replace_counter_and_execute(bot_id: int, message: str) -> str:
     return message
 
 
-def _handle_new_counter(bot_id: int, message: str) -> bool:
+def _handle_new_counter(bot_id: int, message: str) -> Result[None]:
     if not has_counter(message):
-        return True
+        return Result(ResultState.SUCCESS, None)
 
     def handle_rollback(bot_id: int, new_counter_names: list[CounterDB]) -> None:
         for c in new_counter_names:
@@ -87,10 +87,10 @@ def _handle_new_counter(bot_id: int, message: str) -> bool:
             continue
         if counter_result.state.fail or counter_result.value is None:
             handle_rollback(bot_id, new_counter_names)
-            return False
+            return counter_result.cast_to(type(None), None)
         new_counter_names.append(counter_result.value)
 
-    return True
+    return Result(ResultState.SUCCESS, None)
 
 
 def get_commands_by_bot_id(bot_id: int) -> Result[list[BasicCommandDB]]:
@@ -132,8 +132,9 @@ def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]
     if message_db.state.fail or message_db.value is None:
         return message_db.cast_to(BasicCommandDB)
 
-    if not _handle_new_counter(bot_id, message_db.value):
-        return Result(ResultState.COUNTER_ERROR, None)
+    counter_result = _handle_new_counter(bot_id, message_db.value)
+    if counter_result.state.fail:
+        return counter_result.cast_to(BasicCommandDB, None)
 
     return insert_command_db(bot_id, name_db.value, message_db.value)
 
