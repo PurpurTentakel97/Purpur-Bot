@@ -1,7 +1,7 @@
 import re
 from typing import Optional
 
-from bot.core.helpers.string import check_identifier
+from bot.core.helpers.string import check_counter_identifier
 from bot.core.helpers.string import identifier_for_db
 from bot.core.types.counter_instructions import CounterInstructions
 from bot.core.types.counter_instructions import CounterOperation
@@ -125,7 +125,7 @@ def get_counter(bot_id: int, name: str) -> Result[CounterDB]:
 
 
 def save_counter(bot_id: int, name: str) -> Result[CounterDB]:
-    name_db = check_identifier(name)
+    name_db = check_counter_identifier(name)
 
     if name_db.state.fail or name_db.value is None:
         return name_db.cast_to(CounterDB)
@@ -134,7 +134,7 @@ def save_counter(bot_id: int, name: str) -> Result[CounterDB]:
 
 
 def edit_counter_name(bot_id: int, old_name: str, new_name: str) -> Result[CounterDB]:
-    new_name_res = check_identifier(new_name)
+    new_name_res = check_counter_identifier(new_name)
     old_name_db = identifier_for_db(old_name)
 
     def handle_rollback(bot_id: int, old_name_db: str, new_name_db: str) -> None:
@@ -161,7 +161,7 @@ def edit_counter_value_by_id(counter_id: int, value: int) -> Result[CounterDB]:
 
 
 def update_counter_by_id(counter_id: int, name: str, count: int) -> Result[CounterDB]:
-    name_res = check_identifier(name)
+    name_res = check_counter_identifier(name)
 
     if name_res.state.fail or name_res.value is None:
         return name_res.cast_to(CounterDB)
