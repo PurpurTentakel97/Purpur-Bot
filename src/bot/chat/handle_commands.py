@@ -360,20 +360,20 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
             pass
 
     if feature_flags.can_commands:
+        cooldown_key = CommandCooldownKey(
+            message.bot_id,
+            parts[0],
+            message.try_get_twitch_broadcaster_id() or "",
+            message.try_get_discord_server_id() or 0,
+            message.try_get_discord_channel_id() or 0,
+        )
+        if PROGRAMM_PARTS.cooldowns.command_response_cooldown.is_in_cooldown(cooldown_key):
+            log_default(LogLevel.DEBUG, f"command in Cooldown | message: '{message}'")
+            return None
+
         result = get_command_core(message, parts[0].lstrip("!"))
         if result.state.success and result.value is not None:
-            cooldown_key = CommandCooldownKey(
-                message.bot_id,
-                parts[0],
-                message.try_get_twitch_broadcaster_id() or "",
-                message.try_get_discord_server_id() or 0,
-                message.try_get_discord_channel_id() or 0,
-            )
-            if PROGRAMM_PARTS.cooldowns.command_response_cooldown.is_in_cooldown(cooldown_key):
-                log_default(LogLevel.DEBUG, f"command in Cooldown | message: '{message}'")
-                return None
             PROGRAMM_PARTS.cooldowns.command_response_cooldown.add(cooldown_key)
-
             return message.to_response_message(result.value.message)
 
     return None
