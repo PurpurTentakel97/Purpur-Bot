@@ -1,3 +1,6 @@
+from typing import Final
+
+from bot.chat.types.message import ChatMessage
 from bot.core.counter import decrement_counter_by
 from bot.core.counter import delete_counter
 from bot.core.counter import get_counter
@@ -5,7 +8,7 @@ from bot.core.counter import get_counter_instructions
 from bot.core.counter import has_counter
 from bot.core.counter import increment_counter_by
 from bot.core.counter import save_counter
-from bot.core.helpers.string import check_identifier
+from bot.core.helpers.string import check_command_identifier
 from bot.core.helpers.string import check_text
 from bot.core.helpers.string import identifier_for_db
 from bot.core.types.counter_instructions import CounterOperation
@@ -24,6 +27,21 @@ from bot.database.types.counter import CounterDB
 from bot.database.types.fields import FIELD_BASIC_COMMAND_COMMAND
 from bot.database.types.fields import FIELD_BASIC_COMMAND_MESSAGE
 from bot.database.types.fields import FIELD_ENABLED
+
+SENDER_MENTION: Final = "{@sender}"
+OWNER_MENTION: Final = "{@owner}"
+MENTION_MENTION: Final = "{@mention}"
+
+
+def _replace_user_mentions(message: str, msg: ChatMessage) -> str:
+    mentions_list: Final = [x.render_mention() for x in msg.mentions]
+    mentions_str: Final = " ".join(mentions_list) if mentions_list else "[no mentions found]"
+
+    message = message.replace(SENDER_MENTION, msg.sender.render_mention())
+    message = message.replace(OWNER_MENTION, msg.owner.render_mention())
+    message = message.replace(MENTION_MENTION, mentions_str)
+
+    return message
 
 
 def _replace_counter_and_execute(bot_id: int, message: str) -> str:
@@ -52,9 +70,9 @@ def _replace_counter_and_execute(bot_id: int, message: str) -> str:
     return message
 
 
-def _handle_new_counter(bot_id: int, message: str) -> bool:
+def _handle_new_counter(bot_id: int, message: str) -> Result[None]:
     if not has_counter(message):
-        return True
+        return Result(ResultState.SUCCESS, None)
 
     def handle_rollback(bot_id: int, new_counter_names: list[CounterDB]) -> None:
         for c in new_counter_names:
@@ -69,10 +87,10 @@ def _handle_new_counter(bot_id: int, message: str) -> bool:
             continue
         if counter_result.state.fail or counter_result.value is None:
             handle_rollback(bot_id, new_counter_names)
-            return False
+            return counter_result.cast_to(type(None), None)
         new_counter_names.append(counter_result.value)
 
-    return True
+    return Result(ResultState.SUCCESS, None)
 
 
 def get_commands_by_bot_id(bot_id: int) -> Result[list[BasicCommandDB]]:
@@ -87,8 +105,8 @@ def get_command(bot_id: int, name: str) -> Result[BasicCommandDB]:
     return select_command_db(bot_id, identifier_for_db(name))
 
 
-def get_command_with_counter(bot_id: int, command_name: str) -> Result[BasicCommandDB]:
-    command_result = get_command(bot_id, command_name)
+def get_command_with_counter(message: ChatMessage, command_name: str) -> Result[BasicCommandDB]:
+    command_result = get_command(message.bot_id, command_name)
 
     if command_result.state.fail or command_result.value is None:
         return command_result
@@ -96,14 +114,16 @@ def get_command_with_counter(bot_id: int, command_name: str) -> Result[BasicComm
     if not command_result.value.enabled:
         return Result(ResultState.COMMAND_DISABLED, command_result.value)
 
+    command_result.value.message = _replace_user_mentions(command_result.value.message, message)
+
     if has_counter(command_result.value.message):
-        command_result.value.message = _replace_counter_and_execute(bot_id, command_result.value.message)
+        command_result.value.message = _replace_counter_and_execute(message.bot_id, command_result.value.message)
 
     return command_result
 
 
 def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]:
-    name_db = check_identifier(name)
+    name_db = check_command_identifier(name)
     message_db = check_text(message)
 
     if name_db.state.fail or name_db.value is None:
@@ -112,8 +132,9 @@ def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]
     if message_db.state.fail or message_db.value is None:
         return message_db.cast_to(BasicCommandDB)
 
-    if not _handle_new_counter(bot_id, message_db.value):
-        return Result(ResultState.COUNTER_ERROR, None)
+    counter_result = _handle_new_counter(bot_id, message_db.value)
+    if counter_result.state.fail:
+        return counter_result.cast_to(BasicCommandDB, None)
 
     return insert_command_db(bot_id, name_db.value, message_db.value)
 
@@ -121,7 +142,7 @@ def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]
 def update_command_by_id(
     bot_id: int, command_id: int, name: str, message: str, enabled: bool
 ) -> Result[BasicCommandDB]:
-    name_db = check_identifier(name)
+    name_db = check_command_identifier(name)
     message_db = check_text(message)
 
     if name_db.state.fail or name_db.value is None:
@@ -156,7 +177,7 @@ def update_command_message(bot_id: int, name: str, message: str) -> Result[Basic
 
 
 def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[BasicCommandDB]:
-    new_name_db = check_identifier(new_name)
+    new_name_db = check_command_identifier(new_name)
     old_name_db = identifier_for_db(old_name)
 
     if new_name_db.state.fail or new_name_db.value is None:

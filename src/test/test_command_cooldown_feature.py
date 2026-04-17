@@ -7,6 +7,7 @@ from twitchAPI.chat import ChatMessage as TwitchChatMessage
 
 from bot.chat.handle_commands import handle_command
 from bot.chat.types.message import ChatMessage
+from bot.chat.types.user_ref import TwitchUserRef
 from bot.core.types.cooldown import CooldownsWrapper
 from bot.core.types.permission_level import PermissionLevel
 from bot.core.types.programm_parts import PROGRAMM_PARTS
@@ -175,6 +176,9 @@ async def test_cooldown_is_command_specific(mock_feature_flags: FeatureFlagsDB) 
     msg = ChatMessage(
         bot_id=bot_id,
         text="!hello",
+        sender=TwitchUserRef(name="test_user"),
+        mentions=[],
+        owner=TwitchUserRef(name="test_owner"),
         sender_chat=sender_chat,
         sender_permission_level=perm,
         original_message=original,
@@ -186,15 +190,16 @@ async def test_cooldown_is_command_specific(mock_feature_flags: FeatureFlagsDB) 
     msg.try_get_discord_server_id = MagicMock(return_value=0)
     msg.try_get_discord_channel_id = MagicMock(return_value=0)
 
-    def mock_get_command(bot_id: int, name: str) -> Result[BasicCommandDB]:
+    def mock_get_command(msg: ChatMessage, name: str) -> Result[BasicCommandDB]:
         if name == "hello":
             return Result(
-                ResultState.SUCCESS, BasicCommandDB(id=1, bot_id=bot_id, command="hello", message="Hi!", enabled=True)
+                ResultState.SUCCESS,
+                BasicCommandDB(id=1, bot_id=msg.bot_id, command="hello", message="Hi!", enabled=True),
             )
         if name == "bye":
             return Result(
                 ResultState.SUCCESS,
-                BasicCommandDB(id=2, bot_id=bot_id, command="bye", message="Goodbye!", enabled=True),
+                BasicCommandDB(id=2, bot_id=msg.bot_id, command="bye", message="Goodbye!", enabled=True),
             )
         return Result(ResultState.NO_DATA)
 
