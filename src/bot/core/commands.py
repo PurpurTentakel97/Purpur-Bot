@@ -8,7 +8,7 @@ from bot.core.counter import get_counter_instructions
 from bot.core.counter import has_counter
 from bot.core.counter import increment_counter_by
 from bot.core.counter import save_counter
-from bot.core.helpers.string import check_identifier
+from bot.core.helpers.string import check_command_identifier
 from bot.core.helpers.string import check_text
 from bot.core.helpers.string import identifier_for_db
 from bot.core.types.counter_instructions import CounterOperation
@@ -123,7 +123,7 @@ def get_command_with_counter(message: ChatMessage, command_name: str) -> Result[
 
 
 def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]:
-    name_db = check_identifier(name)
+    name_db = check_command_identifier(name)
     message_db = check_text(message)
 
     if name_db.state.fail or name_db.value is None:
@@ -141,7 +141,7 @@ def save_command(bot_id: int, name: str, message: str) -> Result[BasicCommandDB]
 def update_command_by_id(
     bot_id: int, command_id: int, name: str, message: str, enabled: bool
 ) -> Result[BasicCommandDB]:
-    name_db = check_identifier(name)
+    name_db = check_command_identifier(name)
     message_db = check_text(message)
 
     if name_db.state.fail or name_db.value is None:
@@ -176,7 +176,7 @@ def update_command_message(bot_id: int, name: str, message: str) -> Result[Basic
 
 
 def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[BasicCommandDB]:
-    new_name_db = check_identifier(new_name)
+    new_name_db = check_command_identifier(new_name)
     old_name_db = identifier_for_db(old_name)
 
     if new_name_db.state.fail or new_name_db.value is None:

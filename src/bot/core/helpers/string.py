@@ -45,6 +45,18 @@ def check_counter_identifier(name: str) -> Result[str]:
     return Result(ResultState.SUCCESS, result.value)
 
 
+def check_command_identifier(name: str) -> Result[str]:
+    result = check_identifier(name)
+
+    if result.state.fail or result.value is None:
+        return result
+
+    if result.value.startswith("!"):
+        result.value = result.value[1:]
+
+    return Result(ResultState.SUCCESS, result.value)
+
+
 def check_text(text: str) -> Result[str]:
     text_db = strip_for_db(text)
     if not text_db:
