@@ -190,15 +190,15 @@ async def test_cooldown_is_command_specific(mock_feature_flags: FeatureFlagsDB) 
     msg.try_get_discord_server_id = MagicMock(return_value=0)
     msg.try_get_discord_channel_id = MagicMock(return_value=0)
 
-    def mock_get_command(bot_id: int, name: str) -> Result[BasicCommandDB]:
+    def mock_get_command(msg: ChatMessage, name: str) -> Result[BasicCommandDB]:
         if name == "hello":
             return Result(
-                ResultState.SUCCESS, BasicCommandDB(id=1, bot_id=bot_id, command="hello", message="Hi!", enabled=True)
+                ResultState.SUCCESS, BasicCommandDB(id=1, bot_id=msg.bot_id, command="hello", message="Hi!", enabled=True)
             )
         if name == "bye":
             return Result(
                 ResultState.SUCCESS,
-                BasicCommandDB(id=2, bot_id=bot_id, command="bye", message="Goodbye!", enabled=True),
+                BasicCommandDB(id=2, bot_id=msg.bot_id, command="bye", message="Goodbye!", enabled=True),
             )
         return Result(ResultState.NO_DATA)
 

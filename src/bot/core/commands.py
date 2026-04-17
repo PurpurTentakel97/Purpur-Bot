@@ -1,3 +1,5 @@
+from typing import Final
+
 from bot.chat.types.message import ChatMessage
 from bot.core.counter import decrement_counter_by
 from bot.core.counter import delete_counter
@@ -25,6 +27,21 @@ from bot.database.types.counter import CounterDB
 from bot.database.types.fields import FIELD_BASIC_COMMAND_COMMAND
 from bot.database.types.fields import FIELD_BASIC_COMMAND_MESSAGE
 from bot.database.types.fields import FIELD_ENABLED
+
+SENDER_MENTION: Final = "{@sender}"
+OWNER_MENTION: Final = "{@owner}"
+MENTION_MENTION: Final = "{@mention}"
+
+
+def _replace_user_mentions(message: str, msg: ChatMessage) -> str:
+    mentions_list: Final = [x.render_mention() for x in msg.mentions]
+    mentions_str: Final = " ".join(mentions_list) if mentions_list else "[no mentions found]"
+
+    message = message.replace(SENDER_MENTION, msg.sender.render_mention())
+    message = message.replace(OWNER_MENTION, msg.owner.render_mention())
+    message = message.replace(MENTION_MENTION, mentions_str)
+
+    return message
 
 
 def _replace_counter_and_execute(bot_id: int, message: str) -> str:
@@ -96,6 +113,8 @@ def get_command_with_counter(message: ChatMessage, command_name: str) -> Result[
 
     if not command_result.value.enabled:
         return Result(ResultState.COMMAND_DISABLED, command_result.value)
+
+    command_result.value.message = _replace_user_mentions(command_result.value.message, message)
 
     if has_counter(command_result.value.message):
         command_result.value.message = _replace_counter_and_execute(message.bot_id, command_result.value.message)
