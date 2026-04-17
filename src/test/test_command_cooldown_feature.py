@@ -193,7 +193,8 @@ async def test_cooldown_is_command_specific(mock_feature_flags: FeatureFlagsDB) 
     def mock_get_command(msg: ChatMessage, name: str) -> Result[BasicCommandDB]:
         if name == "hello":
             return Result(
-                ResultState.SUCCESS, BasicCommandDB(id=1, bot_id=msg.bot_id, command="hello", message="Hi!", enabled=True)
+                ResultState.SUCCESS,
+                BasicCommandDB(id=1, bot_id=msg.bot_id, command="hello", message="Hi!", enabled=True),
             )
         if name == "bye":
             return Result(
