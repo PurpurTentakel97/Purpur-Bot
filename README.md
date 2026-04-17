@@ -107,9 +107,11 @@ Note: This is case-sensitive. ``@everyone`` and ``@here`` gets ignored by the bo
 without the id.
 
 ### Quotes:
+
 Users can add quotes.
 Note: The quotes are stored plattform specific.
-The bot displays quotes across all platforms, but platform-specific features, like emotes, are not supported within the message.
+The bot displays quotes across all platforms, but platform-specific features, like emotes, are not supported within the
+message.
 When you tag a user to get a specific quote, this will still be plattform specific.
 
 ## Permission Levels:
@@ -185,6 +187,7 @@ When you tag a user to get a specific quote, this will still be plattform specif
 Counter can be used within custom commands.
 Counters are integers that can be incremented, decremented or displayed.
 They can turn positive and negative.
+Counter cannot start with `@` since this is reserved for mentions.
 
 | Syntax                | Example                        | Description                                                    |
 |-----------------------|--------------------------------|----------------------------------------------------------------|
@@ -193,4 +196,20 @@ They can turn positive and negative.
 | {\<name\>-\<value\> } | Naye claped {counter-1} times. | Decrements a counter by a specified value before displaying it |
 
 Tipp:
-You can increment or decrement a counter by any value, so `{counter+4711}` is valid. 
+You can increment or decrement a counter by any value, so `{counter+4711}` is valid.
+
+## Mention Users
+
+You can mention a user within a custom command.
+This will tag the user in the message.
+There are three ways to mention a user:
+
+| Syntax     | Example                   | Description                                                                       |
+|------------|---------------------------|-----------------------------------------------------------------------------------|
+| {@sender}  | {@sender} is now lurking. | replaces {@sender} with the name of the person the message has sended             |
+| {@owner}   | {@owner} PING!            | replaces {@owner} with the name of the Twitch Broadcaster of Discord Server owner |
+| {@mention} | {@mention} was hugged     | replaces {@mention} with a list of people, that was mentioned within the message  |
+
+It is perfectly valid to combine these features.
+So this command is valid: `{@mention} was hugged by {@sender} in {@owner}s channel`
+If there were no user mentions, the bot will display an error string within the message.
