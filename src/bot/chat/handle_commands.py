@@ -69,7 +69,7 @@ def _result_lookup(state: ResultState) -> str:
             return "internal error"
 
 
-async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
+async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
     parts = message.text.strip().split(" ")
     if len(parts) == 0:
         log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
@@ -358,6 +358,15 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
             )
         case _:
             pass
+
+    return None
+
+
+async def handle_custom_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
+    parts = message.text.strip().split(" ")
+    if len(parts) == 0:
+        log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
+        return None
 
     if feature_flags.can_commands:
         cooldown_key = CommandCooldownKey(
