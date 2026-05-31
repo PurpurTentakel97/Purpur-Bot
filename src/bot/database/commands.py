@@ -4,8 +4,9 @@ from bot.core.types.permission_level import PermissionLevel
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.database.types.base_command import BasicCommandDB
-from bot.database.types.fields import FIELD_BASIC_COMMAND_COMMAND, FIELD_BASIC_COMMAND_PERMISSION_LEVEL
+from bot.database.types.fields import FIELD_BASIC_COMMAND_COMMAND
 from bot.database.types.fields import FIELD_BASIC_COMMAND_MESSAGE
+from bot.database.types.fields import FIELD_BASIC_COMMAND_PERMISSION_LEVEL
 from bot.database.types.fields import FIELD_BOT_ID
 from bot.database.types.fields import FIELD_ID
 from bot.database.types.fields import TABLE_BASIC_COMMANDS_NAME

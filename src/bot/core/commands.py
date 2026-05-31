@@ -188,7 +188,7 @@ def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[Bas
     return update_command_db(bot_id, old_name_db, {FIELD_BASIC_COMMAND_COMMAND: new_name_db.value})
 
 
-def update_command_permission_by_id(bot_id: int, command_id: int, permission_level: PermissionLevel)-> Result[None]:
+def update_command_permission_by_id(bot_id: int, command_id: int, permission_level: PermissionLevel) -> Result[None]:
     return update_command_permission_db(bot_id, command_id, permission_level)
 
 
