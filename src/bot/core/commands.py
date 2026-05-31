@@ -12,6 +12,7 @@ from bot.core.helpers.string import check_command_identifier
 from bot.core.helpers.string import check_text
 from bot.core.helpers.string import identifier_for_db
 from bot.core.types.counter_instructions import CounterOperation
+from bot.core.types.permission_level import PermissionLevel
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.commands import delete_command as delete_command_db
@@ -22,6 +23,7 @@ from bot.database.commands import select_command_by_id as select_command_by_id_c
 from bot.database.commands import select_commands_by_bot_id as select_commands_by_bot_id_db
 from bot.database.commands import update_command as update_command_db
 from bot.database.commands import update_command_by_id as update_command_by_id_db
+from bot.database.commands import update_command_permission as update_command_permission_db
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.counter import CounterDB
 from bot.database.types.fields import FIELD_BASIC_COMMAND_COMMAND
@@ -184,6 +186,10 @@ def update_command_name(bot_id: int, old_name: str, new_name: str) -> Result[Bas
         return new_name_db.cast_to(BasicCommandDB)
 
     return update_command_db(bot_id, old_name_db, {FIELD_BASIC_COMMAND_COMMAND: new_name_db.value})
+
+
+def update_command_permission_by_id(bot_id: int, command_id: int, permission_level: PermissionLevel)-> Result[None]:
+    return update_command_permission_db(bot_id, command_id, permission_level)
 
 
 def enable_command_by_bot_id(bot_id: int, name: str) -> Result[BasicCommandDB]:
