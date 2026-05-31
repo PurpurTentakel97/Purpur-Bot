@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 from twitchAPI.chat import ChatMessage as TwitchChatMessage
 
-from bot.chat.handle_commands import handle_command
+from bot.chat.handle_commands import handle_custom_command
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.user_ref import TwitchUserRef
 from bot.core.types.cooldown import CooldownsWrapper
@@ -107,11 +107,11 @@ async def test_twitch_command_cooldown(mock_twitch_message: MagicMock, mock_feat
 
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
         # First call - should succeed
-        response1 = await handle_command(mock_twitch_message, mock_feature_flags)
+        response1 = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response1 == "Hi there!"
 
         # Second call - should be in cooldown
-        response2 = await handle_command(mock_twitch_message, mock_feature_flags)
+        response2 = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response2 is None
 
 
@@ -135,11 +135,11 @@ async def test_discord_command_cooldown(mock_discord_message: MagicMock, mock_fe
     # We need to mock DiscordMessage class for isinstance check
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
         # First call - should succeed
-        response1 = await handle_command(mock_discord_message, mock_feature_flags)
+        response1 = await handle_custom_command(mock_discord_message, mock_feature_flags)
         assert response1 == "Hi there!"
 
         # Second call - should be in cooldown
-        response2 = await handle_command(mock_discord_message, mock_feature_flags)
+        response2 = await handle_custom_command(mock_discord_message, mock_feature_flags)
         assert response2 is None
 
 
@@ -163,17 +163,17 @@ async def test_cooldown_is_channel_specific(mock_twitch_message: MagicMock, mock
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
         # First call from channel 1
         mock_twitch_message.try_get_twitch_broadcaster_id.return_value = "channel1"
-        response1 = await handle_command(mock_twitch_message, mock_feature_flags)
+        response1 = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response1 == "Hi there!"
 
         # Call from channel 2 - should also succeed
         mock_twitch_message.try_get_twitch_broadcaster_id.return_value = "channel2"
-        response2 = await handle_command(mock_twitch_message, mock_feature_flags)
+        response2 = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response2 == "Hi there!"
 
         # Call from channel 1 again - should be in cooldown
         mock_twitch_message.try_get_twitch_broadcaster_id.return_value = "channel1"
-        response3 = await handle_command(mock_twitch_message, mock_feature_flags)
+        response3 = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response3 is None
 
 
@@ -239,17 +239,17 @@ async def test_cooldown_is_command_specific(mock_feature_flags: FeatureFlagsDB) 
     with patch("bot.chat.handle_commands.get_command_core", side_effect=mock_get_command):
         # Call !hello
         msg.text = "!hello"
-        response1 = await handle_command(msg, mock_feature_flags)
+        response1 = await handle_custom_command(msg, mock_feature_flags)
         assert response1 == "Hi!"
 
         # Call !bye - should succeed even if !hello is in cooldown
         msg.text = "!bye"
-        response2 = await handle_command(msg, mock_feature_flags)
+        response2 = await handle_custom_command(msg, mock_feature_flags)
         assert response2 == "Goodbye!"
 
         # Call !hello again - should be in cooldown
         msg.text = "!hello"
-        response3 = await handle_command(msg, mock_feature_flags)
+        response3 = await handle_custom_command(msg, mock_feature_flags)
         assert response3 is None
 
 
@@ -272,7 +272,7 @@ async def test_basic_command_permission_same_level_allowed(
     )
 
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
-        response = await handle_command(mock_twitch_message, mock_feature_flags)
+        response = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response == "Hi there!"
 
 
@@ -295,7 +295,7 @@ async def test_basic_command_permission_higher_level_allowed(
     )
 
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
-        response = await handle_command(mock_twitch_message, mock_feature_flags)
+        response = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response == "Hi there!"
 
 
@@ -318,5 +318,5 @@ async def test_basic_command_permission_lower_level_denied(
     )
 
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
-        response = await handle_command(mock_twitch_message, mock_feature_flags)
+        response = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response == "You are not allowed to use this command. " + "This command has MODERATOR permission level."
