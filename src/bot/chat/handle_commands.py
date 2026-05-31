@@ -69,7 +69,7 @@ def _result_lookup(state: ResultState) -> str:
             return "internal error"
 
 
-async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
+async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
     parts = message.text.strip().split(" ")
     if len(parts) == 0:
         log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
@@ -359,6 +359,15 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
         case _:
             pass
 
+    return None
+
+
+async def handle_custom_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
+    parts = message.text.strip().split(" ")
+    if len(parts) == 0:
+        log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
+        return None
+
     if feature_flags.can_commands:
         cooldown_key = CommandCooldownKey(
             message.bot_id,
@@ -373,6 +382,11 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
 
         result = get_command_core(message, parts[0].lstrip("!"))
         if result.state.success and result.value is not None:
+            if not message.sender_permission_level.is_permitted(result.value.permission_level):
+                return message.to_response_message(
+                    "You are not allowed to use this command. This command has "
+                    + f"{result.value.permission_level.name} permission level."
+                )
             PROGRAMM_PARTS.cooldowns.command_response_cooldown.add(cooldown_key)
             return message.to_response_message(result.value.message)
 

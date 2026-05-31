@@ -35,7 +35,6 @@ def mock_twitch_message() -> MagicMock:
     message.text = "hello world"
     message.bot_id = 1
     message.sender_permission_level = PermissionLevel.USER
-    message.sender_permission_level.is_permitted = MagicMock(return_value=False)
     message.has_twitch_message = True
     message.has_discord_message = False
 
@@ -58,7 +57,6 @@ def mock_discord_message() -> MagicMock:
     message.text = "hello world"
     message.bot_id = 1
     message.sender_permission_level = PermissionLevel.USER
-    message.sender_permission_level.is_permitted = MagicMock(return_value=False)
     message.has_twitch_message = False
     message.has_discord_message = True
 

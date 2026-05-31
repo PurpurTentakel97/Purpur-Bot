@@ -15,6 +15,8 @@ from bot.core.commands import delete_command_by_id as delete_command_by_id_core
 from bot.core.commands import get_commands_by_bot_id as get_commands_by_bot_id_core
 from bot.core.commands import save_command as save_command_core
 from bot.core.commands import update_command_by_id as update_command_by_id_core
+from bot.core.commands import update_command_permission_by_id as update_command_permission_by_id_core
+from bot.core.types.permission_level import PermissionLevel
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.bot_config import BotConfigDB
 from bot.frontend.helpers.decorators import get_optional_owned_discord_user
@@ -48,6 +50,7 @@ async def dashboard_commands(
             "twitch_user": twitch_user,
             "discord_user": discord_user,
             "commands": commands.value,
+            "permission_levels": PermissionLevel.get_all_dto(),
         },
     )
 
@@ -76,6 +79,7 @@ async def dashboard_command_update(
     command: Annotated[BasicCommandDB, Depends(get_owned_command)],
     name: Annotated[str, Form()],
     message: Annotated[str, Form()],
+    permission_level: Annotated[PermissionLevel, Form()] = PermissionLevel.USER,
     enabled: Annotated[bool, Form()] = False,
 ) -> RedirectResponse:
     result = update_command_by_id_core(command.bot_id, command.id, name, message, enabled)
@@ -83,6 +87,15 @@ async def dashboard_command_update(
     if result.state.fail:
         return RedirectResponse(
             url=f"/dashboard/commands/{command.bot_id}?error_message=Failed to update command name "
+            + f"| reason: {result.state.name}",
+            status_code=HTTPStatus.SEE_OTHER,
+        )
+
+    result = update_command_permission_by_id_core(command.bot_id, command.id, permission_level)
+
+    if result.state.fail:
+        return RedirectResponse(
+            url=f"/dashboard/commands/{command.bot_id}?error_message=Failed to update command permission level "
             + f"| reason: {result.state.name}",
             status_code=HTTPStatus.SEE_OTHER,
         )

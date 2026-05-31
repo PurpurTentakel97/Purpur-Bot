@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from bot.core.types.permission_level import PermissionLevel
+
 
 class BasicCommandDB(BaseModel):
     id: int
@@ -7,3 +9,4 @@ class BasicCommandDB(BaseModel):
     command: str
     message: str
     enabled: bool
+    permission_level: PermissionLevel

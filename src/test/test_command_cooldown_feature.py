@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 from twitchAPI.chat import ChatMessage as TwitchChatMessage
 
-from bot.chat.handle_commands import handle_command
+from bot.chat.handle_commands import handle_custom_command
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.user_ref import TwitchUserRef
 from bot.core.types.cooldown import CooldownsWrapper
@@ -50,7 +50,6 @@ def mock_twitch_message() -> MagicMock:
     message.text = "!hello"
     message.bot_id = 1
     message.sender_permission_level = PermissionLevel.USER
-    message.sender_permission_level.is_permitted = MagicMock(return_value=False)
     message.has_twitch_message = True
     message.has_discord_message = False
 
@@ -73,7 +72,6 @@ def mock_discord_message() -> MagicMock:
     message.text = "!hello"
     message.bot_id = 1
     message.sender_permission_level = PermissionLevel.USER
-    message.sender_permission_level.is_permitted = MagicMock(return_value=False)
     message.has_twitch_message = False
     message.has_discord_message = True
 
@@ -97,16 +95,23 @@ async def test_twitch_command_cooldown(mock_twitch_message: MagicMock, mock_feat
     bot_id = 1
     command_result = Result(
         ResultState.SUCCESS,
-        BasicCommandDB(id=1, bot_id=bot_id, command=command_name, message="Hi there!", enabled=True),
+        BasicCommandDB(
+            id=1,
+            bot_id=bot_id,
+            command=command_name,
+            message="Hi there!",
+            enabled=True,
+            permission_level=PermissionLevel.USER,
+        ),
     )
 
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
         # First call - should succeed
-        response1 = await handle_command(mock_twitch_message, mock_feature_flags)
+        response1 = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response1 == "Hi there!"
 
         # Second call - should be in cooldown
-        response2 = await handle_command(mock_twitch_message, mock_feature_flags)
+        response2 = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response2 is None
 
 
@@ -117,17 +122,24 @@ async def test_discord_command_cooldown(mock_discord_message: MagicMock, mock_fe
     bot_id = 1
     command_result = Result(
         ResultState.SUCCESS,
-        BasicCommandDB(id=1, bot_id=bot_id, command=command_name, message="Hi there!", enabled=True),
+        BasicCommandDB(
+            id=1,
+            bot_id=bot_id,
+            command=command_name,
+            message="Hi there!",
+            enabled=True,
+            permission_level=PermissionLevel.USER,
+        ),
     )
 
     # We need to mock DiscordMessage class for isinstance check
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
         # First call - should succeed
-        response1 = await handle_command(mock_discord_message, mock_feature_flags)
+        response1 = await handle_custom_command(mock_discord_message, mock_feature_flags)
         assert response1 == "Hi there!"
 
         # Second call - should be in cooldown
-        response2 = await handle_command(mock_discord_message, mock_feature_flags)
+        response2 = await handle_custom_command(mock_discord_message, mock_feature_flags)
         assert response2 is None
 
 
@@ -138,23 +150,30 @@ async def test_cooldown_is_channel_specific(mock_twitch_message: MagicMock, mock
     bot_id = 1
     command_result = Result(
         ResultState.SUCCESS,
-        BasicCommandDB(id=1, bot_id=bot_id, command=command_name, message="Hi there!", enabled=True),
+        BasicCommandDB(
+            id=1,
+            bot_id=bot_id,
+            command=command_name,
+            message="Hi there!",
+            enabled=True,
+            permission_level=PermissionLevel.USER,
+        ),
     )
 
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
         # First call from channel 1
         mock_twitch_message.try_get_twitch_broadcaster_id.return_value = "channel1"
-        response1 = await handle_command(mock_twitch_message, mock_feature_flags)
+        response1 = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response1 == "Hi there!"
 
         # Call from channel 2 - should also succeed
         mock_twitch_message.try_get_twitch_broadcaster_id.return_value = "channel2"
-        response2 = await handle_command(mock_twitch_message, mock_feature_flags)
+        response2 = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response2 == "Hi there!"
 
         # Call from channel 1 again - should be in cooldown
         mock_twitch_message.try_get_twitch_broadcaster_id.return_value = "channel1"
-        response3 = await handle_command(mock_twitch_message, mock_feature_flags)
+        response3 = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response3 is None
 
 
@@ -194,27 +213,110 @@ async def test_cooldown_is_command_specific(mock_feature_flags: FeatureFlagsDB) 
         if name == "hello":
             return Result(
                 ResultState.SUCCESS,
-                BasicCommandDB(id=1, bot_id=msg.bot_id, command="hello", message="Hi!", enabled=True),
+                BasicCommandDB(
+                    id=1,
+                    bot_id=msg.bot_id,
+                    command="hello",
+                    message="Hi!",
+                    enabled=True,
+                    permission_level=PermissionLevel.USER,
+                ),
             )
         if name == "bye":
             return Result(
                 ResultState.SUCCESS,
-                BasicCommandDB(id=2, bot_id=msg.bot_id, command="bye", message="Goodbye!", enabled=True),
+                BasicCommandDB(
+                    id=2,
+                    bot_id=msg.bot_id,
+                    command="bye",
+                    message="Goodbye!",
+                    enabled=True,
+                    permission_level=PermissionLevel.USER,
+                ),
             )
         return Result(ResultState.NO_DATA)
 
     with patch("bot.chat.handle_commands.get_command_core", side_effect=mock_get_command):
         # Call !hello
         msg.text = "!hello"
-        response1 = await handle_command(msg, mock_feature_flags)
+        response1 = await handle_custom_command(msg, mock_feature_flags)
         assert response1 == "Hi!"
 
         # Call !bye - should succeed even if !hello is in cooldown
         msg.text = "!bye"
-        response2 = await handle_command(msg, mock_feature_flags)
+        response2 = await handle_custom_command(msg, mock_feature_flags)
         assert response2 == "Goodbye!"
 
         # Call !hello again - should be in cooldown
         msg.text = "!hello"
-        response3 = await handle_command(msg, mock_feature_flags)
+        response3 = await handle_custom_command(msg, mock_feature_flags)
         assert response3 is None
+
+
+@pytest.mark.asyncio
+async def test_basic_command_permission_same_level_allowed(
+    mock_twitch_message: MagicMock, mock_feature_flags: FeatureFlagsDB
+) -> None:
+    mock_twitch_message.sender_permission_level = PermissionLevel.SPECIAL_USER
+
+    command_result = Result(
+        ResultState.SUCCESS,
+        BasicCommandDB(
+            id=1,
+            bot_id=mock_twitch_message.bot_id,
+            command="hello",
+            message="Hi there!",
+            enabled=True,
+            permission_level=PermissionLevel.SPECIAL_USER,
+        ),
+    )
+
+    with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
+        response = await handle_custom_command(mock_twitch_message, mock_feature_flags)
+        assert response == "Hi there!"
+
+
+@pytest.mark.asyncio
+async def test_basic_command_permission_higher_level_allowed(
+    mock_twitch_message: MagicMock, mock_feature_flags: FeatureFlagsDB
+) -> None:
+    mock_twitch_message.sender_permission_level = PermissionLevel.MODERATOR
+
+    command_result = Result(
+        ResultState.SUCCESS,
+        BasicCommandDB(
+            id=1,
+            bot_id=mock_twitch_message.bot_id,
+            command="hello",
+            message="Hi there!",
+            enabled=True,
+            permission_level=PermissionLevel.SPECIAL_USER,
+        ),
+    )
+
+    with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
+        response = await handle_custom_command(mock_twitch_message, mock_feature_flags)
+        assert response == "Hi there!"
+
+
+@pytest.mark.asyncio
+async def test_basic_command_permission_lower_level_denied(
+    mock_twitch_message: MagicMock, mock_feature_flags: FeatureFlagsDB
+) -> None:
+    mock_twitch_message.sender_permission_level = PermissionLevel.USER
+
+    command_result = Result(
+        ResultState.SUCCESS,
+        BasicCommandDB(
+            id=1,
+            bot_id=mock_twitch_message.bot_id,
+            command="hello",
+            message="Hi there!",
+            enabled=True,
+            permission_level=PermissionLevel.MODERATOR,
+        ),
+    )
+
+    with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
+        response = await handle_custom_command(mock_twitch_message, mock_feature_flags)
+        assert response == "You are not allowed to use this command. " + "This command has MODERATOR permission level."

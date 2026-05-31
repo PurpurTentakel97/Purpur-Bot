@@ -4,7 +4,8 @@ from typing import cast
 from bot.chat.alias_dict import lookup_aliases
 from bot.chat.chat import Chat
 from bot.chat.discord_server import DiscordServer
-from bot.chat.handle_commands import handle_command
+from bot.chat.handle_commands import handle_build_in_command
+from bot.chat.handle_commands import handle_custom_command
 from bot.chat.twitch_chat import TwitchChat
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.message_response import ChatMessageResponse
@@ -48,14 +49,21 @@ async def handle_single_message(message: ChatMessage) -> list[ChatMessageRespons
         log_default(LogLevel.ERROR, f"failed to get feature flags for chat {message.sender_chat}")
         return []
 
+    is_command: bool = message.text.strip().startswith("!")
+
+    if is_command:
+        command_response = await handle_build_in_command(message, feature_flags.value)
+        if command_response is not None:
+            return [command_response]
+
     response_messages: list[ChatMessageResponse] = []
 
     if feature_flags.value.can_alias:
         alias_response = lookup_aliases(message)
         response_messages.extend(alias_response)
 
-    if message.text.strip().startswith("!"):
-        command_response = await handle_command(message, feature_flags.value)
+    if is_command:
+        command_response = await handle_custom_command(message, feature_flags.value)
         if command_response is not None:
             response_messages.append(command_response)
 

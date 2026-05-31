@@ -129,6 +129,16 @@
         font-size: 0.9rem;
     }
 
+    .commands-table select {
+        width: 100%;
+        padding: 0.4rem;
+        background-color: #333;
+        border: 1px solid #444;
+        border-radius: 4px;
+        color: white;
+        font-size: 0.9rem;
+    }
+
     .commands-table input:focus {
         outline: none;
         border-color: #9146ff;
@@ -188,6 +198,7 @@
             <tr>
                 <th>Command</th>
                 <th>Message</th>
+                <th>Permission</th>
                 <th>Enabled</th>
                 <th>Actions</th>
             </tr>
@@ -201,6 +212,15 @@
                 </td>
                 <td>
                     <input form="update-form-{{ command.id }}" type="text" name="message" value="{{ command.message }}" required>
+                </td>
+                <td>
+                    <select form="update-form-{{ command.id }}" name="permission_level" required>
+                        {% for permission_level in permission_levels %}
+                            <option value="{{ permission_level.value }}" {% if command.permission_level.value == permission_level.value %}selected{% endif %}>
+                                {{ permission_level.display_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </td>
                 <td>
                     <label class="switch">
@@ -217,7 +237,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="4" style="text-align: center;">No commands found.</td>
+                <td colspan="5" style="text-align: center;">No commands found.</td>
             </tr>
             {% endfor %}
         </tbody>

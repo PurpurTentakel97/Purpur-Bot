@@ -1,10 +1,12 @@
 from typing import Any
 
+from bot.core.types.permission_level import PermissionLevel
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.database.types.base_command import BasicCommandDB
 from bot.database.types.fields import FIELD_BASIC_COMMAND_COMMAND
 from bot.database.types.fields import FIELD_BASIC_COMMAND_MESSAGE
+from bot.database.types.fields import FIELD_BASIC_COMMAND_PERMISSION_LEVEL
 from bot.database.types.fields import FIELD_BOT_ID
 from bot.database.types.fields import FIELD_ID
 from bot.database.types.fields import TABLE_BASIC_COMMANDS_NAME
@@ -71,6 +73,16 @@ def update_command(bot_id: int, command_name: str, data: dict[str, Any]) -> Resu
     if FIELD_BASIC_COMMAND_COMMAND in data:
         new_command_name = data[FIELD_BASIC_COMMAND_COMMAND]
     return select_command(bot_id, new_command_name)
+
+
+def update_command_permission(bot_id: int, command_id: int, permission_level: PermissionLevel) -> Result[None]:
+    result = PROGRAMM_PARTS.database.update(
+        table_name=TABLE_BASIC_COMMANDS_NAME,
+        where={FIELD_BOT_ID: bot_id, FIELD_ID: command_id},
+        data={FIELD_BASIC_COMMAND_PERMISSION_LEVEL: permission_level},
+    )
+
+    return result
 
 
 def delete_command_by_id(command_id: int) -> Result[None]:
