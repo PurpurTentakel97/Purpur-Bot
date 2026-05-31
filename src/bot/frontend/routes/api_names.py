@@ -6,7 +6,8 @@ from fastapi import Depends
 
 from bot.chat.helper.discord import get_user_by_id as get_discord_user_by_id
 from bot.chat.helper.twitch import get_user_by_id as get_twitch_user_by_id
-from bot.core.types.permission_level import PermissionLevel, PermissionLevelDTO
+from bot.core.types.permission_level import PermissionLevel
+from bot.core.types.permission_level import PermissionLevelDTO
 from bot.frontend.helpers.decorators import get_owned_twitch_user
 
 router: Final = APIRouter(prefix="/api", dependencies=[Depends(get_owned_twitch_user)])
@@ -30,4 +31,4 @@ async def get_discord_name(user_id: int) -> Optional[str]:
 
 @router.get("/permission_levels")
 async def get_permission_levels() -> list[PermissionLevelDTO]:
-    return  PermissionLevel.get_all_dto()
+    return PermissionLevel.get_all_dto()

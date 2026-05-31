@@ -319,6 +319,4 @@ async def test_basic_command_permission_lower_level_denied(
 
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
         response = await handle_command(mock_twitch_message, mock_feature_flags)
-        assert (
-            response == "You are not allowed to use this command. " + "This command has a MODERATOR permission level."
-        )
+        assert response == "You are not allowed to use this command. " + "This command has MODERATOR permission level."

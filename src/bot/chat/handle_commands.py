@@ -375,7 +375,7 @@ async def handle_command(message: ChatMessage, feature_flags: FeatureFlagsDB) ->
         if result.state.success and result.value is not None:
             if not message.sender_permission_level.is_permitted(result.value.permission_level):
                 return message.to_response_message(
-                    "You are not allowed to use this command. This command has a "
+                    "You are not allowed to use this command. This command has "
                     + f"{result.value.permission_level.name} permission level."
                 )
             PROGRAMM_PARTS.cooldowns.command_response_cooldown.add(cooldown_key)
