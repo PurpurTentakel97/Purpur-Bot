@@ -107,8 +107,22 @@ def get_command(bot_id: int, name: str) -> Result[BasicCommandDB]:
     return select_command_db(bot_id, identifier_for_db(name))
 
 
-def get_command_with_counter(message: ChatMessage, command_name: str) -> Result[BasicCommandDB]:
+def get_permitted_command(message: ChatMessage, command_name: str) -> Result[BasicCommandDB]:
     command_result = get_command(message.bot_id, command_name)
+    if command_result.state.fail or command_result.value is None:
+        return command_result
+
+    if not command_result.value.enabled:
+        return Result(ResultState.COMMAND_DISABLED, command_result.value)
+
+    if not message.sender_permission_level.is_permitted(command_result.value.permission_level):
+        return Result(ResultState.PERMISSION_DENIED, command_result.value)
+
+    return command_result
+
+
+def get_command_with_counter(message: ChatMessage, command_name: str) -> Result[BasicCommandDB]:
+    command_result = get_permitted_command(message, command_name)
 
     if command_result.state.fail or command_result.value is None:
         return command_result
