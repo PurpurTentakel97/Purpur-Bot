@@ -14,6 +14,7 @@ from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.types.base_command import BasicCommandDB
+from bot.database.types.counter import CounterDB
 from bot.database.types.feature_flags import FeatureFlagsDB
 
 
@@ -320,3 +321,38 @@ async def test_basic_command_permission_lower_level_denied(
     with patch("bot.chat.handle_commands.get_command_core", return_value=command_result):
         response = await handle_custom_command(mock_twitch_message, mock_feature_flags)
         assert response == "You are not allowed to use this command. " + "This command has MODERATOR permission level."
+
+
+@pytest.mark.asyncio
+async def test_counter_not_incremented_when_permission_denied(
+    mock_twitch_message: MagicMock, mock_feature_flags: FeatureFlagsDB
+) -> None:
+    mock_twitch_message.sender_permission_level = PermissionLevel.USER
+    mock_twitch_message.text = "!hello"
+    mock_twitch_message.sender.render_mention.return_value = "user"
+    mock_twitch_message.owner.render_mention.return_value = "owner"
+    mock_twitch_message.mentions = []
+
+    command_db = BasicCommandDB(
+        id=1,
+        bot_id=mock_twitch_message.bot_id,
+        command="hello",
+        message="You have been greeted {greet_count+1} times!",
+        enabled=True,
+        permission_level=PermissionLevel.MODERATOR,
+    )
+
+    db_result = Result(ResultState.SUCCESS, command_db)
+
+    counter_db = CounterDB(id=1, bot_id=mock_twitch_message.bot_id, name="greet_count", count=5)
+    counter_result = Result(ResultState.SUCCESS, counter_db)
+
+    with (
+        patch("bot.core.commands.increment_counter_by") as mock_increment,
+        patch("bot.core.commands.get_counter", return_value=counter_result),
+        patch("bot.core.commands.has_counter", return_value=True),
+        patch("bot.core.commands.get_command", return_value=db_result),
+    ):
+        response = await handle_custom_command(mock_twitch_message, mock_feature_flags)
+        assert response == "You are not allowed to use this command. " + "This command has MODERATOR permission level."
+        mock_increment.assert_not_called()
