@@ -1,3 +1,5 @@
+import string
+
 from bot.core.helpers.string import check_identifier
 from bot.core.helpers.string import check_text
 from bot.core.helpers.string import identifier_for_db
@@ -18,6 +20,10 @@ from bot.database.types.fields import FIELD_ALIAS_NAME
 from bot.database.types.fields import FIELD_ENABLED
 from bot.helpers.log import LogLevel
 from bot.helpers.log import log_default
+
+
+def _split_alias_message(message: str) -> set[str]:
+    return {word.strip(string.punctuation) for word in message.strip().lower().split()}
 
 
 def get_alias_dict_from_bot(bot_id: int) -> Result[list[AliasDictEntry]]:
@@ -42,7 +48,7 @@ def alias_lookup(
 
     lookups: list[str] = []
 
-    split_message = message.lower().split(" ")
+    split_message = _split_alias_message(message)
 
     for entry in alias_dict.value:
         if not entry.enabled:
@@ -76,7 +82,11 @@ def add_alias(bot_id: int, alias: str, explanation: str) -> Result[AliasDictEntr
     if explanation_res.state.fail or explanation_res.value is None:
         return explanation_res.cast_to(AliasDictEntry)
 
-    return insert_dict_entry_db(bot_id, alias_res.value, explanation_res.value)
+    split = _split_alias_message(alias_res.value)
+    if len(split) > 0:
+        return Result(ResultState.SPLITTABLE_ALIAS)
+
+    return insert_dict_entry_db(bot_id, list(split)[0], explanation_res.value)
 
 
 def edit_dict_alias(bot_id: int, old_alias: str, new_alias: str) -> Result[AliasDictEntry]:
@@ -86,7 +96,11 @@ def edit_dict_alias(bot_id: int, old_alias: str, new_alias: str) -> Result[Alias
     if new_alias_res.state.fail or new_alias_res.value is None:
         return new_alias_res.cast_to(AliasDictEntry)
 
-    return update_dict_entry_db(bot_id, old_alias_db, {FIELD_ALIAS_NAME: new_alias_res.value})
+    split = _split_alias_message(new_alias_res.value)
+    if len(split) > 0:
+        return Result(ResultState.SPLITTABLE_ALIAS)
+
+    return update_dict_entry_db(bot_id, old_alias_db, {FIELD_ALIAS_NAME: list(split)[0]})
 
 
 def edit_dict_explanation(bot_id: int, alias: str, explanation: str) -> Result[AliasDictEntry]:

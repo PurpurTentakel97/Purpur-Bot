@@ -65,6 +65,12 @@ def _result_lookup(state: ResultState) -> str:
             return "this user does not have any Quotes."
         case ResultState.INACTIVE_FEATURE:
             return "this feature is not enabled."
+        case ResultState.SPLITTABLE_ALIAS:
+            return (
+                "The alias itself can be split into several parts."
+                + "Use only aliases that consist of letters or numbers."
+            )
+
         case _:
             return "internal error"
 
