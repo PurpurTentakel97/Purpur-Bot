@@ -28,6 +28,7 @@ class ResultState(Enum):
     NO_QUOTES_FOUND = auto()
     INACTIVE_FEATURE = auto()
     PERMISSION_DENIED = auto()
+    SPLITTABLE_ALIAS = auto()
 
     @property
     def success(self) -> bool:
