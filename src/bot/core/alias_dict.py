@@ -83,7 +83,7 @@ def add_alias(bot_id: int, alias: str, explanation: str) -> Result[AliasDictEntr
         return explanation_res.cast_to(AliasDictEntry)
 
     split = _split_alias_message(alias_res.value)
-    if len(split) > 0:
+    if len(split) > 1:
         return Result(ResultState.SPLITTABLE_ALIAS)
 
     return insert_dict_entry_db(bot_id, list(split)[0], explanation_res.value)
@@ -97,7 +97,7 @@ def edit_dict_alias(bot_id: int, old_alias: str, new_alias: str) -> Result[Alias
         return new_alias_res.cast_to(AliasDictEntry)
 
     split = _split_alias_message(new_alias_res.value)
-    if len(split) > 0:
+    if len(split) > 1:
         return Result(ResultState.SPLITTABLE_ALIAS)
 
     return update_dict_entry_db(bot_id, old_alias_db, {FIELD_ALIAS_NAME: list(split)[0]})
