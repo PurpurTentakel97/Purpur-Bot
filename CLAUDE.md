@@ -11,3 +11,6 @@
    - `uv run poe fix`
    - `uv run poe check`
    - `uv run poe test`
+9. Wir nutzen Type Annotations. Funktions-Signaturen (Parameter und Rückgabewert)
+   werden immer annotiert. Lokale Variablen nur dann, wenn der Typ sonst nicht
+   eindeutig ableitbar ist.
