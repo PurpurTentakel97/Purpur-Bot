@@ -76,7 +76,7 @@ def _result_lookup(state: ResultState) -> str:
 
 
 async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
-    parts = message.text.strip().split(" ")
+    parts = message.text.split()
     if len(parts) == 0:
         log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
         return None
@@ -369,7 +369,7 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
 
 
 async def handle_custom_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
-    parts = message.text.strip().split(" ")
+    parts = message.text.split()
     if len(parts) == 0:
         log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
         return None
