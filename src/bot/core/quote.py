@@ -24,6 +24,8 @@ from bot.database.quote import select_quote_by_id
 from bot.database.quote import select_quote_by_twitch_id as select_quote_by_twitch_id_db
 from bot.database.quote import update_quote as update_quote_db
 from bot.database.types.quote import Quote
+from bot.helpers.log import LogLevel
+from bot.helpers.log import log_default
 
 
 def is_active_quote(message: ChatMessage) -> bool:
@@ -132,7 +134,18 @@ async def get_quote(text: str, message: ChatMessage) -> Result[str]:
         if result.state.fail or result.value is None or not result.value:
             return Result(ResultState.NO_DATA, None)
 
-        quote_obj = random.choice(result.value)
+        quotes = result.value
+
+        # TODO: temporary debug logging for the "same quote after every idle pause" bug - remove once diagnosed
+        rng_state_before = random.getstate()[1]
+        quote_obj = random.choice(quotes)
+        log_default(
+            LogLevel.INFO,
+            f"quote-debug | text={message.text!r} | n={len(quotes)} | ids={[quote.id for quote in quotes]}"
+            + f" | chosen_id={quote_obj.id} | chosen_idx={quotes.index(quote_obj)}"
+            + f" | mt_pos={rng_state_before[624]} | mt0={rng_state_before[0]} | mt623={rng_state_before[623]}",
+        )
+
         return await format_quote(quote_obj)
 
     async def format_quote(quote: Quote) -> Result[str]:
