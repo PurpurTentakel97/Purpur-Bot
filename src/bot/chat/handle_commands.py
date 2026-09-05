@@ -76,19 +76,25 @@ def _result_lookup(state: ResultState) -> str:
 
 
 async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
-    parts = message.text.strip().split(" ")
-    if len(parts) == 0:
+    # `tokens` keeps the original casing for identifiers and free-text payloads.
+    # `route` is only used for the match below, so command and subcommand keywords
+    # match regardless of how the user cased them (e.g. "!QUOTE", "!Com Add").
+    tokens = message.text.split()
+    if len(tokens) == 0:
         log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
         return None
+
+    route = [token.lower() for token in tokens]
 
     # permission level admin
     # currently there are no admin level commands
 
     # permission level moderator
     if message.sender_permission_level.is_permitted(PermissionLevel.MODERATOR):
-        match parts:
+        match route:
             # twitch-specific commands
             case ["!title", *title]:
+                title = tokens[1:]
                 if not message.has_twitch_message:
                     return message.to_response_message("This command is only available in Twitch Chats.")
                 if PROGRAMM_PARTS.twitch is None:
@@ -105,6 +111,7 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return await PROGRAMM_PARTS.twitch.send_change_title(message, broadcaster_id, new_title)
 
             case ["!game", *game]:
+                game = tokens[1:]
                 if not message.has_twitch_message:
                     return message.to_response_message("This command is only available in Twitch chat.")
                 if PROGRAMM_PARTS.twitch is None:
@@ -121,6 +128,7 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return await PROGRAMM_PARTS.twitch.send_change_game(message, broadcaster_id, new_game)
 
             case ["!tags", *tags]:
+                tags = tokens[1:]
                 if not message.has_twitch_message:
                     return message.to_response_message("This command is only available in Twitch chat.")
 
@@ -141,9 +149,11 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
 
     # permission level special user
     if message.sender_permission_level.is_permitted(PermissionLevel.SPECIAL_USER):
-        match parts:
+        match route:
             # command
             case ["!com", "add", command_name, *msg]:
+                command_name = tokens[2]
+                msg = tokens[3:]
                 command_message = " ".join(msg)
                 result = save_command_core(message.bot_id, command_name, command_message)
                 if result.state.success and result.value is not None:
@@ -151,6 +161,8 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to save command: {_result_lookup(result.state)}")
 
             case ["!com", "edit_message", command_name, *msg]:
+                command_name = tokens[2]
+                msg = tokens[3:]
                 command_message = " ".join(msg)
                 result = update_command_message_core(message.bot_id, command_name, command_message)
                 if result.state.success and result.value is not None:
@@ -158,6 +170,8 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to edit command message: {_result_lookup(result.state)}")
 
             case ["!com", "edit_name", old_command_name, new_command_name, *_]:
+                old_command_name = tokens[2]
+                new_command_name = tokens[3]
                 result = update_command_name_core(message.bot_id, old_command_name, new_command_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(
@@ -167,18 +181,21 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to rename command: {_result_lookup(result.state)}")
 
             case ["!com", "enable", command_name, *_]:
+                command_name = tokens[2]
                 result = enable_command_by_bot_id_core(message.bot_id, command_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Command '{result.value.command}' enabled successfully.")
                 return message.to_response_message(f"Failed to enable command: {_result_lookup(result.state)}")
 
             case ["!com", "disable", command_name, *_]:
+                command_name = tokens[2]
                 result = disable_command_by_bot_id_core(message.bot_id, command_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Command '{result.value.command}' disabled successfully.")
                 return message.to_response_message(f"Failed to disable command: {_result_lookup(result.state)}")
 
             case ["!com", "remove", command_name, *_]:
+                command_name = tokens[2]
                 result = delete_command_core(message.bot_id, command_name)
                 if result.state.success:
                     return message.to_response_message(
@@ -193,18 +210,21 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
 
             # counter
             case ["!counter", "add", counter_name, *_]:
+                counter_name = tokens[2]
                 result = save_counter_core(message.bot_id, counter_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Counter '{result.value.name}' created successfully.")
                 return message.to_response_message(f"Failed to create counter: {_result_lookup(result.state)}")
 
             case ["!counter", "reset", counter_name, *_]:
+                counter_name = tokens[2]
                 result = reset_counter_core(message.bot_id, counter_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Counter '{result.value.name}' reset successfully.")
                 return message.to_response_message(f"Failed to reset counter: {_result_lookup(result.state)}")
 
             case ["!counter", "remove", counter_name, *_]:
+                counter_name = tokens[2]
                 result = delete_counter_core(message.bot_id, counter_name)
                 if result.state.success:
                     return message.to_response_message(
@@ -213,12 +233,14 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to delete counter: {_result_lookup(result.state)}")
 
             case ["!counter", "show", counter_name, *_]:
+                counter_name = tokens[2]
                 result = get_counter_core(message.bot_id, counter_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Counter '{result.value.name}': {result.value.count}")
                 return message.to_response_message(f"Failed to show counter: {_result_lookup(result.state)}")
 
             case ["!counter", "increment", counter_name, *_]:
+                counter_name = tokens[2]
                 result = increment_counter_core(message.bot_id, counter_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(
@@ -227,6 +249,8 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to increment counter: {_result_lookup(result.state)}")
 
             case ["!counter", "increment_by", counter_name, value, *_]:
+                counter_name = tokens[2]
+                value = tokens[3]
                 v = _to_int(value)
                 if v is None:
                     return message.to_response_message("Invalid value. Must be a number.")
@@ -239,6 +263,7 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to increment counter: {_result_lookup(result.state)}")
 
             case ["!counter", "decrement", counter_name, *_]:
+                counter_name = tokens[2]
                 result = decrement_counter_core(message.bot_id, counter_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(
@@ -247,6 +272,8 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to decrement counter: {_result_lookup(result.state)}")
 
             case ["!counter", "decrement_by", counter_name, value, *_]:
+                counter_name = tokens[2]
+                value = tokens[3]
                 v = _to_int(value)
                 if v is None:
                     return message.to_response_message("Invalid value. Must be a number.")
@@ -259,6 +286,8 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to decrement counter: {_result_lookup(result.state)}")
 
             case ["!counter", "edit_count", counter_name, value, *_]:
+                counter_name = tokens[2]
+                value = tokens[3]
                 v = _to_int(value)
                 if v is None:
                     return message.to_response_message("Invalid value. Must be a number.")
@@ -269,6 +298,8 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to set counter value: {_result_lookup(result.state)}")
 
             case ["!counter", "edit_name", counter_name, new_name, *_]:
+                counter_name = tokens[2]
+                new_name = tokens[3]
                 result = edit_counter_name_core(message.bot_id, counter_name, new_name)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(
@@ -284,6 +315,8 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
 
             # dict
             case ["!alias", "add", alias, *msg]:
+                alias = tokens[2]
+                msg = tokens[3:]
                 command_message = " ".join(msg)
                 result = add_alias_core(message.bot_id, alias, command_message)
                 if result.state.success and result.value is not None:
@@ -293,12 +326,16 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to add alias: {_result_lookup(result.state)}")
 
             case ["!alias", "edit_name", old_alias, new_alias, *_]:
+                old_alias = tokens[2]
+                new_alias = tokens[3]
                 result = edit_dict_alias_core(message.bot_id, old_alias, new_alias)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Alias '{old_alias}' updated to '{new_alias}'.")
                 return message.to_response_message(f"Failed to edit alias: {_result_lookup(result.state)}")
 
             case ["!alias", "edit_message", alias, *msg]:
+                alias = tokens[2]
+                msg = tokens[3:]
                 command_message = " ".join(msg)
                 result = edit_dict_explanation_core(message.bot_id, alias, command_message)
                 if result.state.success and result.value is not None:
@@ -306,18 +343,21 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 return message.to_response_message(f"Failed to edit alias explanation: {_result_lookup(result.state)}")
 
             case ["!alias", "enable", alias, *_]:
+                alias = tokens[2]
                 result = enable_alias_by_bot_id_core(message.bot_id, alias)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Alias '{alias}' enabled successfully.")
                 return message.to_response_message(f"Failed to enable alias: {_result_lookup(result.state)}")
 
             case ["!alias", "disable", alias, *_]:
+                alias = tokens[2]
                 result = disable_alias_by_bot_id_core(message.bot_id, alias)
                 if result.state.success and result.value is not None:
                     return message.to_response_message(f"Alias '{alias}' disabled successfully.")
                 return message.to_response_message(f"Failed to disable alias: {_result_lookup(result.state)}")
 
             case ["!alias", "remove", alias, *_]:
+                alias = tokens[2]
                 result = delete_alias_core(message.bot_id, alias)
                 if result.state.success:
                     return message.to_response_message(f"Alias '{alias}' deleted successfully.")
@@ -332,9 +372,10 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
                 pass
 
     # permission level user
-    match parts:
+    match route:
         # quote
         case ["!quote", "add", *quote]:
+            quote = tokens[2:]
             quote_text = " ".join(quote)
             result = await save_quote_by_message(quote_text, message)
             if result.state.success:
@@ -342,6 +383,7 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
             return message.to_response_message(f"Failed to save quote: {_result_lookup(result.state)}")
 
         case ["!quote", name, *_]:
+            name = tokens[1]
             result = await get_quote(name, message)
             if result.state.success and result.value is not None:
                 return message.to_response_message(result.value)
@@ -369,7 +411,7 @@ async def handle_build_in_command(message: ChatMessage, feature_flags: FeatureFl
 
 
 async def handle_custom_command(message: ChatMessage, feature_flags: FeatureFlagsDB) -> Optional[ChatMessageResponse]:
-    parts = message.text.strip().split(" ")
+    parts = message.text.split()
     if len(parts) == 0:
         log_default(LogLevel.ERROR, f"the command is empty. Ignoring command. | message: '{message}'")
         return None
