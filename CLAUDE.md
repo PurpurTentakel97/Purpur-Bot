@@ -14,3 +14,6 @@
 9. Wir nutzen Type Annotations. Funktions-Signaturen (Parameter und Rückgabewert)
    werden immer annotiert. Lokale Variablen nur dann, wenn der Typ sonst nicht
    eindeutig ableitbar ist.
+10. Bei `Result`-Objekten wird immer sowohl `Result.state` als auch `Result.value`
+    explizit geprüft – nie nur eines von beiden. Normalerweise sind die beiden
+    kohärent, das ist aber nicht garantiert.
