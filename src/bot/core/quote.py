@@ -131,7 +131,13 @@ async def get_quote(text: str, message: ChatMessage) -> Result[str]:
 
     async def get_random_quote() -> Result[str]:
         result = select_quote_by_bot_id_db(message.bot_id)
-        if result.state.fail or result.value is None or not result.value:
+        if result.state == ResultState.NO_DATA:
+            return Result(ResultState.NO_QUOTES, None)
+
+        if result.state.fail:
+            return Result(result.state, None)
+
+        if not result.value:
             return Result(ResultState.NO_DATA, None)
 
         quotes = result.value

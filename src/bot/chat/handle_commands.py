@@ -63,6 +63,8 @@ def _result_lookup(state: ResultState) -> str:
             return "user not found."
         case ResultState.NO_QUOTES_FOUND:
             return "this user does not have any Quotes."
+        case ResultState.NO_QUOTES:
+            return "there are no quotes yet."
         case ResultState.INACTIVE_FEATURE:
             return "this feature is not enabled."
         case ResultState.SPLITTABLE_ALIAS:

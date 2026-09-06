@@ -340,13 +340,25 @@ async def test_save_quote_by_message_discord(
 
 
 @pytest.mark.asyncio
-async def test_get_quote_no_data(
+async def test_get_quote_no_quotes(
     chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
 ) -> None:
     with patch("bot.core.quote.select_quote_by_bot_id_db") as mock_select:
-        mock_select.return_value = Result(ResultState.NO_DATA, None)
+        # `select_all` returns NO_DATA with an empty list when the bot has no quotes.
+        mock_select.return_value = Result(ResultState.NO_DATA, [])
         result = await get_quote("", chat_message_twitch)
-        assert result.state == ResultState.NO_DATA
+        assert result.state == ResultState.NO_QUOTES
+
+
+@pytest.mark.asyncio
+async def test_get_quote_db_error_state_is_forwarded(
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+) -> None:
+    with patch("bot.core.quote.select_quote_by_bot_id_db") as mock_select:
+        # `select_all` reports an actual failure as TYPE_MISSMATCH; the state must be forwarded unchanged.
+        mock_select.return_value = Result(ResultState.TYPE_MISSMATCH, [])
+        result = await get_quote("", chat_message_twitch)
+        assert result.state == ResultState.TYPE_MISSMATCH
 
 
 @pytest.mark.asyncio
