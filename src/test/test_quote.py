@@ -1,6 +1,7 @@
 from collections.abc import Generator
 from datetime import UTC
 from datetime import datetime
+from datetime import timedelta
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -11,10 +12,15 @@ from twitchAPI.chat import ChatMessage as TwitchMessage
 
 from bot.chat.types.message import ChatMessage
 from bot.chat.types.user_ref import TwitchUserRef
+from bot.core.quote import _pick_quote  # type: ignore[reportPrivateUsage]
+from bot.core.quote import _uncached_quotes  # type: ignore[reportPrivateUsage]
 from bot.core.quote import get_quote
 from bot.core.quote import save_discord_quote_by_message
 from bot.core.quote import save_quote_by_message
 from bot.core.quote import save_twitch_quote_by_message
+from bot.core.types.cooldown import CooldownsWrapper
+from bot.core.types.cooldown import QuoteCooldownKey
+from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.types.feature_flags import FeatureFlagsDB
@@ -27,6 +33,8 @@ def mock_programm_parts() -> Generator[MagicMock, None, None]:
         mock_parts.database = MagicMock()
         mock_parts.twitch = MagicMock()
         mock_parts.twitch.client = MagicMock()
+        mock_parts.cooldowns = CooldownsWrapper()
+        mock_parts.cooldowns.quote_response_cooldown.data.clear()
         yield mock_parts
 
 
@@ -403,3 +411,67 @@ async def test_quote_disabled_discord(
 
     result = await save_quote_by_message("hello", chat_message_discord)
     assert result.state == ResultState.INACTIVE_FEATURE
+
+
+def _tw_quote(quote_id: int) -> Quote:
+    return Quote(
+        id=quote_id,
+        bot_id=1,
+        discord_user_id=None,
+        twitch_user_id="tw",
+        timestamp=datetime.now(UTC),
+        quote=f"quote {quote_id}",
+    )
+
+
+def test_uncached_quotes_excludes_quotes_on_cooldown() -> None:
+    cooldown = PROGRAMM_PARTS.cooldowns.quote_response_cooldown
+    quotes = [_tw_quote(1), _tw_quote(2), _tw_quote(3)]
+
+    assert _uncached_quotes(1, quotes) == quotes
+
+    cooldown.add(QuoteCooldownKey(1, 2, "tw", None))
+    assert [quote.id for quote in _uncached_quotes(1, quotes)] == [1, 3]
+
+
+def test_uncached_quotes_are_scoped_by_bot_id() -> None:
+    cooldown = PROGRAMM_PARTS.cooldowns.quote_response_cooldown
+    quotes = [_tw_quote(1), _tw_quote(2)]
+    cooldown.add(QuoteCooldownKey(2, 1, "tw", None))
+
+    assert _uncached_quotes(1, quotes) == quotes
+
+
+def test_uncached_quotes_free_up_expired_entries() -> None:
+    cooldown = PROGRAMM_PARTS.cooldowns.quote_response_cooldown
+    quotes = [_tw_quote(1), _tw_quote(2)]
+    key = QuoteCooldownKey(1, 1, "tw", None)
+    cooldown.add(key)
+    cooldown.data[key] = datetime.now(UTC) - timedelta(days=365)
+
+    assert [quote.id for quote in _uncached_quotes(1, quotes)] == [1, 2]
+
+
+def test_pick_quote_remembers_uncached_choice() -> None:
+    quotes = [_tw_quote(7)]
+
+    chosen = _pick_quote(1, quotes)
+
+    assert chosen.id == 7
+    assert _uncached_quotes(1, quotes) == []
+
+
+def test_pick_quote_returns_and_refreshes_oldest_when_all_cached() -> None:
+    cooldown = PROGRAMM_PARTS.cooldowns.quote_response_cooldown
+    quotes = [_tw_quote(1), _tw_quote(2)]
+
+    old_key = QuoteCooldownKey(1, 1, "tw", None)
+    cooldown.add(old_key)
+    stale_ts = datetime.now(UTC) - timedelta(seconds=10)
+    cooldown.data[old_key] = stale_ts
+    cooldown.add(QuoteCooldownKey(1, 2, "tw", None))
+
+    chosen = _pick_quote(1, quotes)
+
+    assert chosen.id == 1
+    assert cooldown.data[old_key] > stale_ts

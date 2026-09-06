@@ -13,6 +13,7 @@ from bot.chat.twitch_chat import TwitchChat
 from bot.chat.types.message import ChatMessage
 from bot.core.discord_feature_flags import select_discord_feature_flags_by_server_id
 from bot.core.twitch_feature_flags import select_twitch_feature_flags_by_channel_name
+from bot.core.types.cooldown import QuoteCooldownKey
 from bot.core.types.programm_parts import PROGRAMM_PARTS
 from bot.core.types.result import Result
 from bot.core.types.result import ResultState
@@ -123,6 +124,34 @@ async def get_quotes_by_bot_id(bot_id: int) -> Result[list[Quote]]:
     return select_quote_by_bot_id_db(bot_id)
 
 
+def _quote_cooldown_key(bot_id: int, quote: Quote) -> QuoteCooldownKey:
+    return QuoteCooldownKey(bot_id, quote.id, quote.twitch_user_id, quote.discord_user_id)
+
+
+def _remember_quote(bot_id: int, quote: Quote) -> None:
+    cooldown = PROGRAMM_PARTS.cooldowns.quote_response_cooldown
+    key = _quote_cooldown_key(bot_id, quote)
+    cooldown.remove(key)
+    cooldown.add(key)
+
+
+def _uncached_quotes(bot_id: int, candidates: list[Quote]) -> list[Quote]:
+    cooldown = PROGRAMM_PARTS.cooldowns.quote_response_cooldown
+    return [quote for quote in candidates if not cooldown.is_in_cooldown(_quote_cooldown_key(bot_id, quote))]
+
+
+def _oldest_quote(bot_id: int, candidates: list[Quote]) -> Quote:
+    cooldown = PROGRAMM_PARTS.cooldowns.quote_response_cooldown
+    return min(candidates, key=lambda quote: cooldown.data[_quote_cooldown_key(bot_id, quote)])
+
+
+def _pick_quote(bot_id: int, candidates: list[Quote]) -> Quote:
+    uncached = _uncached_quotes(bot_id, candidates)
+    chosen = random.choice(uncached) if uncached else _oldest_quote(bot_id, candidates)
+    _remember_quote(bot_id, chosen)
+    return chosen
+
+
 async def get_quote(text: str, message: ChatMessage) -> Result[str]:
     if not is_active_quote(message):
         return Result(ResultState.INACTIVE_FEATURE, None)
@@ -138,9 +167,7 @@ async def get_quote(text: str, message: ChatMessage) -> Result[str]:
         if not result.value:
             return Result(ResultState.NO_DATA, None)
 
-        quotes = list(result.value)
-        random.shuffle(quotes)
-        quote_obj = random.choice(quotes)
+        quote_obj = _pick_quote(message.bot_id, list(result.value))
 
         return await format_quote(quote_obj)
 
@@ -173,7 +200,8 @@ async def get_quote(text: str, message: ChatMessage) -> Result[str]:
                 if user_res.state.success and user_res.value:
                     quotes_res = select_quote_by_twitch_id_db(message.bot_id, user_res.value.id)
                     if quotes_res.state.success and quotes_res.value:
-                        return await format_quote(random.choice(quotes_res.value))
+                        quote_obj = _pick_quote(message.bot_id, list(quotes_res.value))
+                        return await format_quote(quote_obj)
                     return Result(ResultState.NO_QUOTES_FOUND, None)
                 return Result(ResultState.USER_NOT_FOUND, None)
 
@@ -185,7 +213,8 @@ async def get_quote(text: str, message: ChatMessage) -> Result[str]:
                 user_id = int(match.group(1))
                 quotes_res = select_quote_by_discord_id_db(bot_id=message.bot_id, discord_id=user_id)
                 if quotes_res.state.success and quotes_res.value:
-                    return await format_quote(random.choice(quotes_res.value))
+                    quote_obj = _pick_quote(message.bot_id, list(quotes_res.value))
+                    return await format_quote(quote_obj)
                 return Result(ResultState.NO_QUOTES_FOUND, None)
 
             # Fallback to name lookup if it's not a mention but some text
@@ -193,7 +222,8 @@ async def get_quote(text: str, message: ChatMessage) -> Result[str]:
             if user_res.state.success and user_res.value:
                 quotes_res = select_quote_by_discord_id_db(bot_id=message.bot_id, discord_id=user_res.value.id)
                 if quotes_res.state.success and quotes_res.value:
-                    return await format_quote(random.choice(quotes_res.value))
+                    quote_obj = _pick_quote(message.bot_id, list(quotes_res.value))
+                    return await format_quote(quote_obj)
                 return Result(ResultState.NO_QUOTES_FOUND, None)
             return Result(ResultState.USER_NOT_FOUND, None)
 
