@@ -133,26 +133,25 @@ def chat_message_discord(mock_discord_message: MagicMock, mock_discord_chat: Mag
 
 @pytest.mark.asyncio
 async def test_save_twitch_quote_success(
-    mock_programm_parts: MagicMock, chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
 ) -> None:
     chat_message_twitch.text = "@target hello world"
 
-    # Mock Twitch API user lookup
     mock_user = MagicMock()
     mock_user.id = "target_id"
-    mock_programm_parts.twitch.client.get_users.return_value = AsyncMock()
 
-    with patch("bot.core.quote.first", new_callable=AsyncMock) as mock_first:
-        mock_first.return_value = mock_user
+    with (
+        patch("bot.core.quote.get_twitch_user_by_name", new_callable=AsyncMock) as mock_get_user,
+        patch("bot.core.quote.insert_quote_db") as mock_insert,
+    ):
+        mock_get_user.return_value = Result(ResultState.SUCCESS, mock_user)
+        mock_insert.return_value = Result(ResultState.SUCCESS, 1)
 
-        with patch("bot.core.quote.insert_quote_db") as mock_insert:
-            mock_insert.return_value = Result(ResultState.SUCCESS, 1)
+        result = await save_twitch_quote_by_message("@target hello world", chat_message_twitch)
 
-            result = await save_twitch_quote_by_message("@target hello world", chat_message_twitch)
-
-            assert result.state == ResultState.SUCCESS
-            assert result.value == 1
-            mock_insert.assert_called_once_with(bot_id=1, discord_id=None, twitch_id="target_id", quote="hello world")
+        assert result.state == ResultState.SUCCESS
+        assert result.value == 1
+        mock_insert.assert_called_once_with(bot_id=1, discord_id=None, twitch_id="target_id", quote="hello world")
 
 
 @pytest.mark.asyncio
@@ -173,13 +172,12 @@ async def test_save_twitch_quote_no_quote(
 
 @pytest.mark.asyncio
 async def test_save_twitch_quote_user_not_found(
-    mock_programm_parts: MagicMock, chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
+    chat_message_twitch: ChatMessage, mock_feature_flags: tuple[MagicMock, MagicMock]
 ) -> None:
     chat_message_twitch.text = "@unknown hello"
 
-    mock_programm_parts.twitch.client.get_users.return_value = AsyncMock()
-    with patch("bot.core.quote.first", new_callable=AsyncMock) as mock_first:
-        mock_first.return_value = None
+    with patch("bot.core.quote.get_twitch_user_by_name", new_callable=AsyncMock) as mock_get_user:
+        mock_get_user.return_value = Result(ResultState.USER_NOT_FOUND, None)
 
         result = await save_twitch_quote_by_message("@unknown hello", chat_message_twitch)
         assert result.state == ResultState.USER_NOT_FOUND

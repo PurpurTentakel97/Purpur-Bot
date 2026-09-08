@@ -20,8 +20,10 @@ from bot.core.types.result import Result
 from bot.core.types.result import ResultState
 from bot.database.types.feature_flags import FeatureFlagsDB
 from bot.helpers.log import LogLevel
+from bot.helpers.log import LogProgram
 from bot.helpers.log import log_default
 from bot.helpers.log import log_discord
+from bot.helpers.log import log_exception
 from bot.helpers.log import log_twitch
 
 
@@ -70,14 +72,24 @@ async def handle_single_message(message: ChatMessage) -> list[ChatMessageRespons
     return list(reversed(response_messages))
 
 
+async def _send_responses(messages: list[ChatMessageResponse]) -> None:
+    if not messages:
+        return
+
+    first_message = messages[0]
+    await first_message.destination_chat.send_response(messages)
+
+
+async def _handle_message_safely(message: ChatMessage) -> None:
+    # A single failing message must never take down the shared message loop.
+    try:
+        responses = await handle_single_message(message)
+        await _send_responses(responses)
+    except Exception as exception:
+        log_exception(exception, LogProgram.Default, f"failed to handle message | text={message.text!r}")
+
+
 async def handle_messages() -> None:
-    async def send_responses(messages: list[ChatMessageResponse]) -> None:
-        if not messages:
-            return
-
-        first_message = messages[0]
-        await first_message.destination_chat.send_response(messages)
-
     log_default(LogLevel.INFO, "message handler started")
     while True:
         if PROGRAMM_PARTS.twitch is not None:
@@ -89,8 +101,7 @@ async def handle_messages() -> None:
                     LogLevel.DEBUG,
                     f"{message.sender_chat.bot_id} | {message.sender_permission_level.name} | {message.text}",
                 )
-                responses = await handle_single_message(message)
-                await send_responses(responses)
+                await _handle_message_safely(message)
 
         if PROGRAMM_PARTS.discord is not None:
             while True:
@@ -101,7 +112,6 @@ async def handle_messages() -> None:
                     LogLevel.DEBUG,
                     f"{message.sender_chat.bot_id} | {message.sender_permission_level.name} | {message.text}",
                 )
-                responses = await handle_single_message(message)
-                await send_responses(responses)
+                await _handle_message_safely(message)
 
         await asyncio.sleep(0.1)
