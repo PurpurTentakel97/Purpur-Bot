@@ -27,3 +27,16 @@ def get_env_var_as_int_or_default[T](key: str, default: T) -> T | int:
         return default
 
     return int(value.strip())
+
+
+def get_env_var_as_log_level_or_default(key: str, default: LogLevel) -> LogLevel:
+    value = os.getenv(key)
+    if value is None or not value.strip():
+        log_default(LogLevel.INFO, f"Environment variable '{key}' is not set, using default '{default!s}'")
+        return default
+
+    try:
+        return LogLevel[value.strip().upper()]
+    except KeyError:
+        log_default(LogLevel.WARNING, f"Invalid {key} '{value}', falling back to '{default!s}'")
+        return default
