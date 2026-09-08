@@ -185,6 +185,7 @@ def test_app_context_update_twitch_tokens(tmp_path: Path) -> None:
             twitch_live_message_cooldown_in_seconds=7200,
             command_response_cooldown_in_seconds=15,
             alias_response_cooldown_in_seconds=15,
+            quote_response_cooldown_in_seconds=3600,
         )
 
         ctx.update_twitch_tokens("new_access", "new_refresh")

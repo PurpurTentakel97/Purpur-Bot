@@ -26,6 +26,7 @@ class ResultState(Enum):
     MISSING_DATA = auto()
     USER_NOT_FOUND = auto()
     NO_QUOTES_FOUND = auto()
+    NO_QUOTES = auto()
     INACTIVE_FEATURE = auto()
     PERMISSION_DENIED = auto()
     SPLITTABLE_ALIAS = auto()

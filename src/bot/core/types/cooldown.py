@@ -1,6 +1,7 @@
 from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
+from typing import Optional
 
 from attr import dataclass
 
@@ -35,6 +36,14 @@ class AliasCooldownKey(CooldownKey):
     twitch_channel_id: str
     discord_server_id: int
     discord_channel_id: int
+
+
+@dataclass(frozen=True)
+class QuoteCooldownKey(CooldownKey):
+    bot_id: int
+    quote_id: int
+    twitch_user_id: Optional[str] = None
+    discord_user_id: Optional[int] = None
 
 
 class Cooldown[T: CooldownKey]:
@@ -76,3 +85,4 @@ class CooldownsWrapper:
     )
     command_response_cooldown = Cooldown[CommandCooldownKey](APP_CONTEXT.command_response_cooldown_in_seconds.value())
     alias_response_cooldown = Cooldown[AliasCooldownKey](APP_CONTEXT.alias_response_cooldown_in_seconds.value())
+    quote_response_cooldown = Cooldown[QuoteCooldownKey](APP_CONTEXT.quote_response_cooldown_in_seconds.value())
