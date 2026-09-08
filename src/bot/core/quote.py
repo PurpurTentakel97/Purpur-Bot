@@ -3,7 +3,6 @@ import re
 
 from discord.message import Message as DiscordMessage
 from twitchAPI.chat import ChatMessage as TwitchMessage
-from twitchAPI.helper import first
 
 from bot.chat.helper.discord import get_user_by_id as get_discord_user_by_id
 from bot.chat.helper.discord import get_user_by_name as get_discord_user_by_name
@@ -64,16 +63,11 @@ async def save_twitch_quote_by_message(text: str, message: ChatMessage) -> Resul
     if not quote:
         return Result(ResultState.MISSING_DATA, None)
 
-    if PROGRAMM_PARTS.twitch is None:
-        return Result(ResultState.ERROR, None)
+    user_res = await get_twitch_user_by_name(username)
+    if user_res.state.fail or user_res.value is None:
+        return user_res.cast_to(int)
 
-    user = await first(PROGRAMM_PARTS.twitch.client.get_users(logins=[username]))
-    if not user:
-        return Result(ResultState.USER_NOT_FOUND, None)
-
-    twitch_user_id = user.id
-
-    return insert_quote_db(bot_id=message.bot_id, discord_id=None, twitch_id=twitch_user_id, quote=quote)
+    return insert_quote_db(bot_id=message.bot_id, discord_id=None, twitch_id=user_res.value.id, quote=quote)
 
 
 async def save_discord_quote_by_message(text: str, message: ChatMessage) -> Result[int]:
