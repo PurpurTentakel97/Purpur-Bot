@@ -9,6 +9,7 @@ from typing import final
 from dotenv import load_dotenv
 
 from bot.core.helpers.env import get_env_var_as_int_or_default
+from bot.core.helpers.env import get_env_var_as_log_level_or_default
 from bot.core.helpers.env import get_env_var_or_default
 from bot.core.helpers.env import get_env_var_or_rise
 from bot.core.types.environment_state import Environment
@@ -78,6 +79,8 @@ class AppContext:
         command_response_cooldown_in_seconds: int,
         alias_response_cooldown_in_seconds: int,
         quote_response_cooldown_in_seconds: int,
+        console_log_level: LogLevel,
+        file_log_level: LogLevel,
     ) -> None:
         self.discord_token: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_token)
         self.discord_client_id: OptionalAppContextEntry[str] = OptionalAppContextEntry(discord_client_id)
@@ -107,6 +110,8 @@ class AppContext:
         self.quote_response_cooldown_in_seconds: AppContextEntry[int] = AppContextEntry(
             quote_response_cooldown_in_seconds
         )
+        self.console_log_level: AppContextEntry[LogLevel] = AppContextEntry(console_log_level)
+        self.file_log_level: AppContextEntry[LogLevel] = AppContextEntry(file_log_level)
 
     def update_twitch_tokens(self, new_access_token: str, new_refresh_token: str) -> None:
         self.twitch_tokens.set_value(TwitchTokens(new_access_token, new_refresh_token))
@@ -190,4 +195,6 @@ APP_CONTEXT = AppContext(
     command_response_cooldown_in_seconds=get_env_var_as_int_or_default("COMMAND_RESPONSE_COOLDOWN_IN_SECONDS", 15),
     alias_response_cooldown_in_seconds=get_env_var_as_int_or_default("ALIAS_RESPONSE_COOLDOWN_IN_SECONDS", 15),
     quote_response_cooldown_in_seconds=get_env_var_as_int_or_default("QUOTE_RESPONSE_COOLDOWN_IN_SECONDS", 18000),
+    console_log_level=get_env_var_as_log_level_or_default("CONSOLE_LOG_LEVEL", LogLevel.INFO),
+    file_log_level=get_env_var_as_log_level_or_default("FILE_LOG_LEVEL", LogLevel.ERROR),
 )

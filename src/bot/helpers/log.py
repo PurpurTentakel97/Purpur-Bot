@@ -4,8 +4,11 @@ from enum import Enum
 from enum import IntEnum
 from enum import auto
 from functools import lru_cache
+from pathlib import Path
 from types import TracebackType
 from typing import ClassVar
+
+_LOG_FILE_PATH = Path(__file__).resolve().parents[3] / "data" / "log.txt"
 
 
 class LogProgram(Enum):
@@ -64,6 +67,7 @@ class LogLevelConfig:
     default: ClassVar[LogLevelConfigEntry] = LogLevelConfigEntry()
     discord: ClassVar[LogLevelConfigEntry] = LogLevelConfigEntry()
     twitch: ClassVar[LogLevelConfigEntry] = LogLevelConfigEntry()
+    file: ClassVar[LogLevelConfigEntry] = LogLevelConfigEntry()
 
     @classmethod
     def set_all_levels(cls, level: LogLevel) -> None:
@@ -76,15 +80,37 @@ class LogLevelConfig:
         cls.default.level = LogLevel.DEFAULT_LOG_LEVEL
         cls.discord.level = LogLevel.DEFAULT_LOG_LEVEL
         cls.twitch.level = LogLevel.DEFAULT_LOG_LEVEL
+        cls.file.level = LogLevel.DEFAULT_LOG_LEVEL
 
 
-def _log(level: LogLevel, program: LogProgram, message: str) -> None:
-    print(
+def _format_line(level: LogLevel, program: LogProgram, message: str) -> str:
+    return (
         f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}] |"
         + f" {level!s:{LogLevel.max_length()}} |"
         + f" {program!s:{LogProgram.max_length()}} |"
         + f" {message}"
     )
+
+
+def _append_to_file(line: str) -> None:
+    try:
+        _LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with _LOG_FILE_PATH.open("a", encoding="utf-8") as log_file:
+            log_file.write(f"{line}\n")
+    except OSError as exception:
+        # Report directly via print (never via _log) so a broken file sink cannot recurse into itself.
+        print(
+            f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}] | CRITICAL |"
+            + f" failed to write to log file '{_LOG_FILE_PATH}': {exception}"
+        )
+
+
+def _log(level: LogLevel, program: LogProgram, message: str) -> None:
+    line = _format_line(level, program, message)
+    print(line)
+
+    if LogLevelConfig.file.should_log(level):
+        _append_to_file(line)
 
 
 def log_default(level: LogLevel, message: str) -> None:

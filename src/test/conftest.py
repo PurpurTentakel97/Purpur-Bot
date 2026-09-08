@@ -15,6 +15,10 @@ os.environ.setdefault("TWITCH_LIVE_MESSAGE_COOLDOWN_IN_SECONDS", "7200")
 os.environ.setdefault("COMMAND_RESPONSE_COOLDOWN_IN_SECONDS", "15")
 os.environ.setdefault("ALIAS_RESPONSE_COOLDOWN_IN_SECONDS", "15")
 os.environ.setdefault("QUOTE_RESPONSE_COOLDOWN_IN_SECONDS", "3600")
+os.environ.setdefault("CONSOLE_LOG_LEVEL", "WARNING")
+os.environ.setdefault("FILE_LOG_LEVEL", "ERROR")
+
+from pathlib import Path  # noqa: E402
 
 import pytest  # noqa: E402
 
@@ -27,3 +31,11 @@ def _fresh_quote_cooldown() -> None:  # pyright: ignore [reportUnusedFunction]
     if PROGRAMM_PARTS.cooldowns_unwrapped() is None:
         PROGRAMM_PARTS.cooldowns = CooldownsWrapper()
     PROGRAMM_PARTS.cooldowns.quote_response_cooldown.data.clear()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_log_file(  # pyright: ignore [reportUnusedFunction]
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Keep every test from appending to the real data/log.txt.
+    monkeypatch.setattr("bot.helpers.log._LOG_FILE_PATH", tmp_path / "log.txt")

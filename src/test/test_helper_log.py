@@ -1,5 +1,6 @@
 import re
 from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 from _pytest.capture import CaptureResult
@@ -155,3 +156,63 @@ def test_log_exception_no_traceback(capsys: pytest.CaptureFixture[str]) -> None:
     assert log_message in captured.out
     assert exception_message in captured.out
     assert "CRITICAL" in captured.out
+
+
+def test_file_append_keeps_existing_content(tmp_path: Path) -> None:
+    _reset_log()
+    LogLevelConfig.file.level = LogLevel.DEBUG
+
+    log_file: Path = tmp_path / "log.txt"
+    log_file.write_text("existing line\n", encoding="utf-8")
+
+    log_default(LogLevel.INFO, "first appended")
+    log_default(LogLevel.INFO, "second appended")
+
+    lines: list[str] = log_file.read_text(encoding="utf-8").splitlines()
+    assert lines[0] == "existing line"
+    assert "first appended" in lines[1]
+    assert "second appended" in lines[2]
+
+
+def test_file_level_is_independent_of_console_level(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    _reset_log()
+    LogLevelConfig.default.level = LogLevel.DEBUG
+    LogLevelConfig.file.level = LogLevel.ERROR
+
+    log_default(LogLevel.INFO, "console only line")
+    log_default(LogLevel.ERROR, "console and file line")
+
+    console: str = capsys.readouterr().out
+    assert "console only line" in console
+    assert "console and file line" in console
+
+    file_content: str = (tmp_path / "log.txt").read_text(encoding="utf-8")
+    assert "console only line" not in file_content
+    assert "console and file line" in file_content
+
+
+def test_log_exception_is_written_to_file(tmp_path: Path) -> None:
+    _reset_log()
+    LogLevelConfig.file.level = LogLevel.ERROR
+
+    log_exception(ValueError("boom"), LogProgram.Default, "exception context")
+
+    file_content: str = (tmp_path / "log.txt").read_text(encoding="utf-8")
+    assert "ValueError" in file_content
+    assert "exception context" in file_content
+    assert "CRITICAL" in file_content
+
+
+def test_file_write_failure_is_reported_on_console(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _reset_log()
+    LogLevelConfig.file.level = LogLevel.DEBUG
+    # Point the file sink at a directory so open("a") raises OSError.
+    monkeypatch.setattr("bot.helpers.log._LOG_FILE_PATH", tmp_path)
+
+    log_default(LogLevel.INFO, "trigger write failure")
+
+    console: str = capsys.readouterr().out
+    assert "failed to write to log file" in console
+    assert "CRITICAL" in console

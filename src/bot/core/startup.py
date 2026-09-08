@@ -125,20 +125,13 @@ def _start_broadcast() -> None:
 
 
 async def startup_programm() -> None:
-    if APP_CONTEXT.environment_state.value().is_development():
-        LogLevelConfig.set_all_levels(LogLevel.DEBUG)
-        log_default(
-            LogLevel.CRITICAL,
-            "Running in development mode. Logging all levels... "
-            + "| Logging with level CRITICAL to ensure it will be logged.",
-        )
-    else:
-        LogLevelConfig.set_all_levels(LogLevel.INFO)
-        log_default(
-            LogLevel.CRITICAL,
-            "Running in production mode. Logging only INFO and the above levels."
-            + "| Logging with level CRITICAL to ensure it will be logged.",
-        )
+    LogLevelConfig.set_all_levels(APP_CONTEXT.console_log_level.value())
+    LogLevelConfig.file.level = APP_CONTEXT.file_log_level.value()
+    log_default(
+        LogLevel.INFO,
+        f"Console log level: '{APP_CONTEXT.console_log_level.value()!s}'"
+        + f" | File log level: '{APP_CONTEXT.file_log_level.value()!s}'",
+    )
 
     _start_cooldowns()
     _start_database()
